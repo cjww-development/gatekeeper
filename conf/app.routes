@@ -1,0 +1,3 @@
+POST        /register-client            controllers.ApplicationsController.registerApplication()
+GET         /clients                    controllers.ApplicationsController.getAllApplications()
+DELETE      /client/:name               controllers.ApplicationsController.removeApplication(name: String)
