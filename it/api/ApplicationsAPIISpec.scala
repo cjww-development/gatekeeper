@@ -76,7 +76,7 @@ class ApplicationsAPIISpec extends IntegrationTestSpec with IntegrationApplicati
     "requestId"    -> s"${UUID.randomUUID()}"
   )
 
-  "/gatekeeper/register-client" should {
+  "POST /gatekeeper/register-client" should {
     "return an Ok" when {
       "the app has been successfully registered" in {
         awaitAndAssert(client("/register-client").withHttpHeaders(headers:_*).post(jsonBody)) { resp =>
@@ -124,7 +124,7 @@ class ApplicationsAPIISpec extends IntegrationTestSpec with IntegrationApplicati
     }
   }
 
-  "/gatekeeper/clients" should {
+  "GET /gatekeeper/clients" should {
     "return an Ok" when {
       "there are registered applications" in {
         val clientId = s"${UUID.randomUUID()}".replace("-", "").encrypt
@@ -166,7 +166,50 @@ class ApplicationsAPIISpec extends IntegrationTestSpec with IntegrationApplicati
     }
   }
 
-  "/gatekeeper/client/testName" should {
+  "GET /gatekeeper/client/testName" should {
+    "return an Ok" when {
+      "a service could be found based on the key" in {
+        val clientId = s"${UUID.randomUUID()}".replace("-", "").encrypt
+        val clientSecret = Some(s"${UUID.randomUUID()}${UUID.randomUUID()}".replace("-", "").encrypt)
+
+        await(testRepo.insertNewApplication(RegisteredApplication(
+          name         = "testName",
+          desc         = "testDesc",
+          homeUrl      = "/test/url",
+          redirectUrl  = "/test/url",
+          clientType   = ClientTypes.confidential.toString,
+          clientId,
+          clientSecret
+        )))
+
+        implicit val reads = Json.reads[RegisteredApplication]
+
+        awaitAndAssert(client("/client/testName").withHttpHeaders(headers:_*).get()) { resp =>
+          resp.status mustBe OK
+          resp.json.get[RegisteredApplication]("body") mustBe RegisteredApplication(
+            "testName",
+            "testDesc",
+            "/test/url",
+            "/test/url",
+            "confidential",
+            clientId,
+            clientSecret
+          )
+        }
+      }
+    }
+
+    "return a NotFound" when {
+      "a service could not be found based on the key" in {
+        awaitAndAssert(client("/client/testName").withHttpHeaders(headers:_*).get()) {
+          _.status mustBe NOT_FOUND
+        }
+      }
+    }
+  }
+
+
+  "DELETE /gatekeeper/client/testName" should {
     "return a NoContent" when {
       "the specified application was be deleted" in {
         val clientId = s"${UUID.randomUUID()}".replace("-", "").encrypt

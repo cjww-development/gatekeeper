@@ -20,6 +20,7 @@ import database.RegisteredApplicationsStore
 import database.responses.{MySQLCreateResponse, MySQLDeleteResponse, MySQLFailedRead, MySQLReadResponse}
 import javax.inject.Inject
 import models.RegisteredApplication
+import slick.jdbc.MySQLProfile.api._
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
@@ -36,6 +37,13 @@ trait ApplicationService {
   def getAllApplications(implicit ec: ExC): Future[Either[MySQLReadResponse, Seq[RegisteredApplication]]] = {
     registeredApplicationsStore.getAllApplications map {
       list => if(list.isEmpty) Left(MySQLFailedRead) else Right(list)
+    }
+  }
+
+  def getServiceByName(value: String)(implicit ec: ExC): Future[Option[RegisteredApplication]] = {
+    val query = registeredApplicationsStore.table.filter(_.name === value).result.headOption
+    registeredApplicationsStore.getOneApplication(query) map {
+      _.fold(_ => None, Some(_))
     }
   }
 

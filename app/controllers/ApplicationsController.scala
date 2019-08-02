@@ -76,6 +76,23 @@ trait ApplicationsController extends BackendController {
     }
   }
 
+  def getOneServiceByName(name: String): Action[AnyContent] = Action.async { implicit req =>
+    apiFeatureGuard(Features.registration) {
+      applicationVerification {
+        applicationService.getServiceByName(name) map { app =>
+          val (status, body) = app match {
+            case Some(srv) => (OK, Json.toJson(srv))
+            case None      => (NOT_FOUND, JsString(s"Service $name could not be found"))
+          }
+
+          withJsonResponseBody(status, body) {
+            json => Status(status)(json)
+          }
+        }
+      }
+    }
+  }
+
   def removeApplication(name: String): Action[AnyContent] = Action.async { implicit req =>
     apiFeatureGuard(Features.registration) {
       applicationVerification {
