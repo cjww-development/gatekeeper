@@ -16,8 +16,10 @@ lazy val microservice = Project(appName, file("."))
     organization                                  :=  "com.cjww-dev.apps",
     resolvers                                     +=  "cjww-dev" at "https://dl.bintray.com/cjww-development/releases",
     libraryDependencies                           ++= Seq(
-      "com.cjww-dev.libs" % "mongo-connector_2.13" % "0.2.0",
-      "com.cjww-dev.libs" % "data-defender_2.13"   % "0.5.0"
+      "com.cjww-dev.libs"      %  "mongo-connector_2.13" % "0.2.0",
+      "com.cjww-dev.libs"      %  "data-defender_2.13"   % "0.5.0",
+      "org.scalatestplus.play" %% "scalatestplus-play"   % "5.0.0" % Test,
+      "org.scalatestplus.play" %% "scalatestplus-play"   % "5.0.0" % IntegrationTest
     ),
     fork                       in IntegrationTest :=  false,
     unmanagedSourceDirectories in IntegrationTest :=  (baseDirectory in IntegrationTest)(base => Seq(base / "it")).value,

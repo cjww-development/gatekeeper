@@ -21,6 +21,10 @@ import java.util.UUID
 import com.cjwwdev.security.SecurityConfiguration
 import com.cjwwdev.security.obfuscation.Obfuscators
 import play.api.libs.json.{JsSuccess, JsValue, Reads}
+import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
+import org.bson.codecs.configuration.CodecRegistry
+import org.mongodb.scala.bson.codecs.DEFAULT_CODEC_REGISTRY
+import org.mongodb.scala.bson.codecs.Macros._
 
 case class RegisteredApplication(name: String,
                                  desc: String,
@@ -49,4 +53,6 @@ object RegisteredApplication extends Obfuscators with SecurityConfiguration {
   }
 
   override val locale: String = this.getClass.getCanonicalName
+
+  implicit val codecRegistry: CodecRegistry = fromRegistries(fromProviders(classOf[RegisteredApplication]), DEFAULT_CODEC_REGISTRY)
 }
