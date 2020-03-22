@@ -1,18 +1,15 @@
 <!-- https://www.playframework.com/documentation/latest/SettingsLogger -->
-<configuration>
-
-  <conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel" />
+<configuration debug="false">
+  <conversionRule conversionWord="coloredLevel" converterClass="com.cjwwdev.logging.converters.ColouredLogLevelConversion" />
 
   <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-    <file>${application.home:-.}/logs/application.log</file>
-    <encoder>
-      <pattern>%date [%level] from %logger in %thread - %message%n%xException</pattern>
-    </encoder>
+    <file>${application.home:-.}/logs/application-json.log</file>
+    <encoder class="com.cjwwdev.logging.encoding.JsonLoggingEncoder" />
   </appender>
 
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-    <encoder>
-      <pattern>%coloredLevel %logger{15} - %message%n%xException{10}</pattern>
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+      <pattern>%coloredLevel timestamp=[%date{ISO8601}] thread=[%thread] locale=[%logger] %message %replace(exception=[%xException]){'^exception=\[\]$',''}%n</pattern>
     </encoder>
   </appender>
 
@@ -24,18 +21,22 @@
     <appender-ref ref="STDOUT" />
   </appender>
 
-  <logger name="play" level="INFO" />
-  <logger name="application" level="DEBUG" />
+  <logger name="play"                                                level="INFO" />
+  <logger name="application"                                         level="INFO" />
+  <logger name="repositories"                                        level="INFO" />
+  <logger name="Logging filter"                                      level="INFO" />
+
+  <logger name="reactivemongo.api.MongoDriver"                       level="OFF" />
+  <logger name="play.modules.reactivemongo.DefaultReactiveMongoApi"  level="OFF" />
 
   <!-- Off these ones as they are annoying, and anyway we manage configuration ourselves -->
-  <logger name="com.avaje.ebean.config.PropertyMapLoader" level="OFF" />
+  <logger name="com.avaje.ebean.common.PropertyMapLoader"            level="OFF" />
   <logger name="com.avaje.ebeaninternal.server.core.XmlConfigLoader" level="OFF" />
   <logger name="com.avaje.ebeaninternal.server.lib.BackgroundThread" level="OFF" />
-  <logger name="com.gargoylesoftware.htmlunit.javascript" level="OFF" />
+  <logger name="com.gargoylesoftware.htmlunit.javascript"            level="OFF" />
 
-  <root level="WARN">
-    <appender-ref ref="ASYNCFILE" />
+  <root level="INFO">
+    <appender-ref ref="ASYNCFILE"   />
     <appender-ref ref="ASYNCSTDOUT" />
   </root>
-
 </configuration>

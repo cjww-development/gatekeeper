@@ -1,0 +1,8 @@
+POST        /register-user                          controllers.RegistrationController.registerUser()
+POST        /register-org-user                      controllers.RegistrationController.registerOrgUser()
+
+POST        /register-client                        controllers.ClientController.registerClient()
+
+GET         /oauth/authorise                        controllers.OAuthController.authorise()
+
+
