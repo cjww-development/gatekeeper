@@ -20,6 +20,7 @@ lazy val microservice = Project(appName, file("."))
       "com.cjww-dev.libs"      %  "data-defender_2.13"      % "0.5.0",
       "com.cjww-dev.libs"      %  "log-encoding_2.13"       % "0.3.0",
       "com.cjww-dev.libs"      %  "feature-management_2.13" % "2.0.1",
+      "com.cjww-dev.libs"      % "inbound-outbound_2.13"    % "0.5.0",
       "org.scalatestplus.play" %% "scalatestplus-play"      % "5.0.0" % Test,
       "org.scalatestplus.play" %% "scalatestplus-play"      % "5.0.0" % IntegrationTest
     ),

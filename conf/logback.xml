@@ -1,6 +1,6 @@
 <!-- https://www.playframework.com/documentation/latest/SettingsLogger -->
 <configuration debug="false">
-  <conversionRule conversionWord="coloredLevel" converterClass="com.cjwwdev.logging.converters.ColouredLogLevelConversion" />
+  <conversionRule conversionWord="coloredLevel" converterClass="com.cjwwdev.logging.converters.HighlightedLogLevelConverter" />
 
   <appender name="FILE" class="ch.qos.logback.core.FileAppender">
     <file>${application.home:-.}/logs/application-json.log</file>

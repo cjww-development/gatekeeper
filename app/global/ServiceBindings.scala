@@ -16,6 +16,11 @@
 
 package global
 
+import com.cjwwdev.featuremanagement.controllers.FeatureController
+import com.cjwwdev.featuremanagement.models.Features
+import com.cjwwdev.shuttering.controllers.ShutteringController
+import controllers.features.DefaultFeatureController
+import controllers.shuttering.DefaultShutteringController
 import controllers.{ClientController, DefaultClientController, DefaultOAuthController, DefaultRegistrationController, OAuthController, RegistrationController}
 import play.api.{Configuration, Environment}
 import play.api.inject.{Binding, Module}
@@ -24,6 +29,9 @@ class ServiceBindings extends Module {
   override def bindings(environment: Environment, configuration: Configuration): collection.Seq[Binding[_]] = Seq(
     bind[ClientController].to[DefaultClientController].eagerly(),
     bind[RegistrationController].to[DefaultRegistrationController].eagerly(),
-    bind[OAuthController].to[DefaultOAuthController].eagerly()
+    bind[OAuthController].to[DefaultOAuthController].eagerly(),
+    bind[Features].to[FeatureDef].eagerly(),
+    bind[FeatureController].to[DefaultFeatureController].eagerly(),
+    bind[ShutteringController].to[DefaultShutteringController].eagerly()
   )
 }

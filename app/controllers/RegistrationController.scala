@@ -17,14 +17,22 @@
 package controllers
 
 import javax.inject.Inject
-import play.api.libs.json.JsValue
-import play.api.mvc.{Action, BaseController, ControllerComponents}
+import org.slf4j.LoggerFactory
+import play.api.libs.json.Json
+import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
+import views.html.registration.UserRegistration
 
 class DefaultRegistrationController @Inject()(val controllerComponents: ControllerComponents) extends RegistrationController
 
 trait RegistrationController extends BaseController {
 
-  def registerUser(): Action[JsValue] = ???
+  private val logger = LoggerFactory.getLogger(this.getClass)
 
-  def registerOrgUser(): Action[JsValue] = ???
+  def show(): Action[AnyContent] = Action { implicit req =>
+    Ok(UserRegistration())
+  }
+
+  def submit(): Action[AnyContent] = Action { req =>
+    Ok(req.body.toString)
+  }
 }
