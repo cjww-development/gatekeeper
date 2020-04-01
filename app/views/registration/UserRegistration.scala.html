@@ -1,10 +1,9 @@
 @import views.html.Main
 @import org.joda.time.DateTime
 @import helper._
-@import forms.RegistrationForm
+@import views.html.components.forms.{TextInput, SlidingCheckbox}
 
-@import forms.NewUser
-@()(implicit rh: RequestHeader)
+@(form: Form[User])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
 
 @Main("Register for an account") {
     <form class="form-signin" action="@routes.RegistrationController.submit()" method="post">
@@ -15,26 +14,49 @@
 
         @CSRF.formField
 
-        <label for="inputUsername" class="sr-only">User name</label>
-        <input type="text" name="userName" id="inputUsername" class="form-control form-input-topper" placeholder="User name" required="" autofocus="">
+        @TextInput(
+            form("userName"),
+            isReadOnly = false,
+            Symbol("_id") -> "userNameInput",
+            Symbol("_name") -> "userName",
+            Symbol("_label") -> "User name",
+            Symbol("_type") -> "text",
+            Symbol("_class") -> "form-control form-input-topper"
+        )
 
-        <label for="inputEmail" class="sr-only">Email address</label>
-        <input type="email" name="email" id="inputEmail" class="form-control form-input-middle" placeholder="Email address" required="" autofocus="">
+        @TextInput(
+            form("email"),
+            isReadOnly = false,
+            Symbol("_id") -> "emailInput",
+            Symbol("_name") -> "email",
+            Symbol("_label") -> "Email",
+            Symbol("_type") -> "email",
+            Symbol("_class") -> "form-control form-input-middle"
+        )
 
-        <label for="inputPassword" class="sr-only">Password</label>
-        <input type="password" name="password" id="inputPassword" class="form-control form-input-bottom" placeholder="Password" required="">
+        @TextInput(
+            form("password"),
+            isReadOnly = false,
+            Symbol("_id") -> "passwordInput",
+            Symbol("_name") -> "password",
+            Symbol("_label") -> "Password",
+            Symbol("_type") -> "password",
+            Symbol("_class") -> "form-control form-input-middle"
+        )
 
-        <label class="value-picker">
-            <input class="checkbox-slider" name="accType" id="inputAccType" type="checkbox" value="Organisation"/>
-            <input class="checkbox-slider" name="accType" id="inputAccType" type="hidden" value="Individual"/>
-            <div class="slider">
-                <div> </div>
-            </div>
-            <div class="labels">
-                <p>Individual</p>
-                <p>Organisation</p>
-            </div>
-        </label>
+        @TextInput(
+            form("confirmPassword"),
+            isReadOnly = false,
+            Symbol("_id") -> "confirmPasswordInput",
+            Symbol("_name") -> "confirmPassword",
+            Symbol("_label") -> "Confirm password",
+            Symbol("_type") -> "password",
+            Symbol("_class") -> "form-control form-input-bottom"
+        )
+
+        @SlidingCheckbox(
+            form("accType")
+        )
 
         <button id="account-type-picker" type="button" class="btn btn-info btn-wide" data-toggle="modal" data-target="#accountTypeExplanation">
             What type of account do I need?
@@ -42,7 +64,7 @@
 
         <hr>
 
-        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign up</button>
+        <button class="btn btn-lg btn-primary btn-block" id="registration-submit" type="submit" disabled>Sign up</button>
         <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
     </form>
 
@@ -79,4 +101,6 @@
             </div>
         </div>
     </div>
+
+    <script src="@routes.Assets.at("javascript/registration-validation.js")"></script>
 }

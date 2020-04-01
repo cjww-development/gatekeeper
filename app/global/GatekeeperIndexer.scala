@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package forms
+package global
 
+import com.cjwwdev.mongo.indexing.RepositoryIndexer
+import database.{IndividualUserStore, OrganisationUserStore}
+import javax.inject.Inject
 import models.User
-import play.api.data.Form
-import play.api.data.Forms._
+import models.User._
 
-object RegistrationForm {
-  val form: Form[User] = Form(
-    mapping(
-      "userName" -> text,
-      "email" -> text,
-      "accType" -> text,
-      "password" -> text
-    )(User.apply)(User.unapply)
-  )
+import scala.concurrent.{ExecutionContext => ExC}
+
+class GatekeeperIndexer @Inject()(val userStore: IndividualUserStore,
+                                  val orgUserStore: OrganisationUserStore,
+                                  implicit val ec: ExC) extends RepositoryIndexer {
+  for {
+    _ <- ensureMultipleIndexes[User](userStore)
+    _ <- ensureMultipleIndexes[User](orgUserStore)
+  } yield true
 }

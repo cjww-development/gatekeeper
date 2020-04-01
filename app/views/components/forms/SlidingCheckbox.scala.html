@@ -1,0 +1,18 @@
+@import views.html.helper.FieldElements
+@import play.api.data.Field
+
+@(formItem: Field, args: (Symbol, Any)*)(implicit msgs: MessagesApi, lang: Lang, req: RequestHeader)
+
+@elements = @{FieldElements(formItem.id, formItem, null, args.toMap, msgs.preferred(req))}
+
+<label class="value-picker">
+    <input class="checkbox-slider" name="accType" id="inputAccType" type="checkbox" value="Organisation"/>
+    <input class="checkbox-slider" name="accType" id="inputAccType" type="hidden" value="Individual"/>
+    <div class="slider">
+        <div> </div>
+    </div>
+    <div class="labels">
+        <p>Individual</p>
+        <p>Organisation</p>
+    </div>
+</label>

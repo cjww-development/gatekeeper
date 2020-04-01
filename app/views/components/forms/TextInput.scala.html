@@ -1,0 +1,16 @@
+@import views.html.helper.FieldElements
+@import play.api.data.Field
+
+@(formItem: Field, isReadOnly: Boolean, args: (Symbol, Any)*)(implicit msgs: MessagesApi, lang: Lang, req: RequestHeader)
+
+@elements = @{FieldElements(formItem.id, formItem, null, args.toMap, msgs.preferred(req))}
+@disabled = {@if(isReadOnly) { readOnly }}
+
+@id        = @{elements.args(Symbol("_id"))}
+@name      = @{elements.args(Symbol("_name"))}
+@label     = @{elements.args(Symbol("_label"))}
+@inputType = @{elements.args(Symbol("_type"))}
+@classes   = @{elements.args(Symbol("_class"))}
+
+<label for="@id" class="sr-only">@label</label>
+<input type="@inputType" name="@name" id="@id" class="@classes" placeholder="@label" value="@{formItem.value}" @disabled>
