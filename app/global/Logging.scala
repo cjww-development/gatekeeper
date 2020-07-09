@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 CJWW Development
+ * Copyright 2020 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package global
 
-//import com.cjwwdev.logging.filters.RequestLoggingFilter
-import filters.RequestIdFilter
-import javax.inject.Inject
-import play.api.http.DefaultHttpFilters
+import org.slf4j.{Logger, LoggerFactory}
 
-class EnabledFilters @Inject()(requestIdFilter: RequestIdFilter /*, requestLoggingFilter: RequestLoggingFilter*/)
-  extends DefaultHttpFilters(requestIdFilter /*, requestLoggingFilter*/)
+trait Logging {
+  val logger: Logger = LoggerFactory.getLogger(getClass)
+}

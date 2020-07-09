@@ -18,42 +18,43 @@ package api
 
 import java.util.UUID
 
-import com.cjwwdev.http.headers.HeaderPackage
-import com.cjwwdev.implicits.ImplicitDataSecurity._
-import com.cjwwdev.implicits.ImplicitJsValues._
-import com.cjwwdev.security.obfuscation.Obfuscation._
-import com.cjwwdev.testing.integration.IntegrationTestSpec
-import com.cjwwdev.testing.integration.application.IntegrationApplication
+import com.cjwwdev.security.Implicits._
+import com.cjwwdev.security.obfuscation.Obfuscators
 import com.typesafe.config.ConfigFactory
 import database.RegisteredApplicationsStore
+import models.RegisteredApplication._
 import models.{ClientTypes, RegisteredApplication}
+import org.scalatestplus.play.guice.GuiceOneServerPerSuite
+import play.api.http.ContentTypes._
+import play.api.http.HeaderNames._
+import play.api.http.Status._
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.Json
-import play.api.libs.ws.WSRequest
+import play.api.libs.json.{Json, Reads}
+import play.api.libs.ws.{WSClient, WSRequest}
 import play.api.{Application, Configuration}
-import slick.jdbc.MySQLProfile.api._
+import utils.IntegrationSpec
 
-class ApplicationsAPIISpec extends IntegrationTestSpec with IntegrationApplication {
+class ApplicationsAPIISpec extends IntegrationSpec with Obfuscators with GuiceOneServerPerSuite {
+
+  override val locale: String = "ApplicationsAPIISpec"
 
   val testRepo = app.injector.instanceOf[RegisteredApplicationsStore]
-
-  override val currentAppBaseUrl: String   = "gatekeeper"
-  override val appConfig: Map[String, Any] = Map("" -> "")
+  val wsClient = app.injector.instanceOf[WSClient]
 
   override lazy val app: Application = new GuiceApplicationBuilder()
     .configure(Configuration(ConfigFactory.load()))
     .build()
 
   override def beforeEach(): Unit = {
-    await(testRepo.getDb.run(testRepo.table.schema.create))
+
   }
 
   override def afterEach(): Unit = {
-    await(testRepo.getDb.run(testRepo.table.schema.drop))
+
   }
 
   def client(url: String): WSRequest = {
-    ws.url(s"$testAppUrl$url")
+    wsClient.url(s"http://localhost:${port}/gatekeeper/$url")
   }
 
   System.setProperty("features.app-registration-api", "true")
@@ -68,20 +69,19 @@ class ApplicationsAPIISpec extends IntegrationTestSpec with IntegrationApplicati
       |   "clientType" : "confidential"
       |}
     """.stripMargin
-  ).encrypt
+  )
 
   val headers = List(
-    CONTENT_TYPE   -> TEXT,
-    "cjww-headers" -> HeaderPackage("d6e3a79b-cb31-40a1-839a-530803d76156", None).encrypt,
-    "requestId"    -> s"${UUID.randomUUID()}"
+    CONTENT_TYPE -> TEXT,
+    "requestId"  -> s"${UUID.randomUUID()}"
   )
 
   "POST /gatekeeper/register-client" should {
     "return an Ok" when {
       "the app has been successfully registered" in {
         awaitAndAssert(client("/register-client").withHttpHeaders(headers:_*).post(jsonBody)) { resp =>
-          resp.status                   mustBe CREATED
-          resp.json.get[String]("body") mustBe "Registered new application testName"
+          resp.status                    mustBe CREATED
+          resp.json.\("body").as[String] mustBe "Registered new application testName"
         }
       }
     }
@@ -97,7 +97,7 @@ class ApplicationsAPIISpec extends IntegrationTestSpec with IntegrationApplicati
             |   "clientType" : "confidential"
             |}
           """.stripMargin
-        ).encrypt
+        )
 
         awaitAndAssert(client("/register-client").withHttpHeaders(headers:_*).post(jsonBody)) { resp =>
           resp.status mustBe BAD_REQUEST
@@ -117,8 +117,8 @@ class ApplicationsAPIISpec extends IntegrationTestSpec with IntegrationApplicati
         )))
 
         awaitAndAssert(client("/register-client").withHttpHeaders(headers:_*).post(jsonBody)) { resp =>
-          resp.status                           mustBe BAD_REQUEST
-          resp.json.get[String]("errorMessage") mustBe "There was a problem creating the application testName"
+          resp.status                            mustBe BAD_REQUEST
+          resp.json.\("errorMessage").as[String] mustBe "There was a problem creating the application testName"
         }
       }
     }
@@ -140,11 +140,11 @@ class ApplicationsAPIISpec extends IntegrationTestSpec with IntegrationApplicati
           clientSecret
         )))
 
-        implicit val reads = Json.reads[RegisteredApplication]
+        val reads = Reads.seq(Json.reads[RegisteredApplication])
 
         awaitAndAssert(client("/clients").withHttpHeaders(headers:_*).get()) { resp =>
-          resp.status                                       mustBe OK
-          resp.json.get[Seq[RegisteredApplication]]("body") mustBe Seq(RegisteredApplication(
+          resp.status                                        mustBe OK
+          resp.json.\("body").as[Seq[RegisteredApplication]](reads) mustBe Seq(RegisteredApplication(
             "testName",
             "testDesc",
             "/test/url",
@@ -185,8 +185,8 @@ class ApplicationsAPIISpec extends IntegrationTestSpec with IntegrationApplicati
         implicit val reads = Json.reads[RegisteredApplication]
 
         awaitAndAssert(client("/client/testName").withHttpHeaders(headers:_*).get()) { resp =>
-          resp.status mustBe OK
-          resp.json.get[RegisteredApplication]("body") mustBe RegisteredApplication(
+          resp.status                                   mustBe OK
+          resp.json.\("body").as[RegisteredApplication](reads) mustBe RegisteredApplication(
             "testName",
             "testDesc",
             "/test/url",
@@ -234,8 +234,8 @@ class ApplicationsAPIISpec extends IntegrationTestSpec with IntegrationApplicati
     "return a BadRequest" when {
       "the specified application couldn't be deleted" in {
         awaitAndAssert(client("/client/testName").withHttpHeaders(headers:_*).delete()) { resp =>
-          resp.status                           mustBe BAD_REQUEST
-          resp.json.get[String]("errorMessage") mustBe "There was a problem removing the application testName"
+          resp.status                            mustBe BAD_REQUEST
+          resp.json.\("errorMessage").as[String] mustBe "There was a problem removing the application testName"
         }
       }
     }

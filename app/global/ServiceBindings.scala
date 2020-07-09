@@ -16,14 +16,12 @@
 
 package global
 
-import com.cjwwdev.config.{ConfigurationLoader, DefaultConfigurationLoader}
-import com.cjwwdev.featuremanagement.models.{Features => FeaturesAbstract}
-import com.cjwwdev.logging.filters.{DefaultRequestLoggingFilter, RequestLoggingFilter}
-import controllers.{ApplicationsController, DefaultApplicationsController}
-import database.{DefaultRegisteredApplicationsStore, RegisteredApplicationsStore}
+import com.cjwwdev.featuremanagement.services.{DefaultFeatureService, FeatureService}
+import controllers.{ApplicationsController, DefaultApplicationsController, DefaultUserController, UserController}
+import database._
 import play.api.inject.{Binding, Module}
 import play.api.{Configuration, Environment}
-import services.{ApplicationService, DefaultApplicationService}
+import services.{ApplicationService, AuthService, DefaultApplicationService, DefaultAuthService, DefaultUserService, UserService}
 
 class ServiceBindings extends Module {
   override def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
@@ -31,21 +29,24 @@ class ServiceBindings extends Module {
   }
 
   private def bindGlobals(): Seq[Binding[_]] = Seq(
-    bind[ConfigurationLoader].to[DefaultConfigurationLoader].eagerly(),
-    bind[EvolutionsApplicator].toSelf.eagerly(),
-    bind[FeaturesAbstract].to[FeatureDef].eagerly(),
-    bind[RequestLoggingFilter].to[DefaultRequestLoggingFilter].eagerly()
+    bind[Indexer].toSelf.eagerly(),
+    bind[FeatureService].to[DefaultFeatureService].eagerly(),
   )
 
   private def bindDatabase(): Seq[Binding[_]] = Seq(
-    bind[RegisteredApplicationsStore].to[DefaultRegisteredApplicationsStore].eagerly()
+    bind[RegisteredApplicationsStore].to[DefaultRegisteredApplicationsStore].eagerly(),
+    bind[UserStore].to[DefaultUserStore].eagerly(),
+    bind[AuthStore].to[DefaultAuthStore].eagerly()
   )
 
   private def bindServices(): Seq[Binding[_]] = Seq(
-    bind[ApplicationService].to[DefaultApplicationService].eagerly()
+    bind[ApplicationService].to[DefaultApplicationService].eagerly(),
+    bind[UserService].to[DefaultUserService].eagerly(),
+    bind[AuthService].to[DefaultAuthService].eagerly()
   )
 
   private def bindControllers(): Seq[Binding[_]] = Seq(
-    bind[ApplicationsController].to[DefaultApplicationsController].eagerly()
+    bind[ApplicationsController].to[DefaultApplicationsController].eagerly(),
+    bind[UserController].to[DefaultUserController].eagerly()
   )
 }

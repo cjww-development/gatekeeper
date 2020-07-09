@@ -18,11 +18,13 @@ package models
 
 import java.util.UUID
 
-import com.cjwwdev.implicits.ImplicitDataSecurity._
-import com.cjwwdev.implicits.ImplicitJsValues._
-import com.cjwwdev.security.deobfuscation.{DeObfuscation, DeObfuscator}
-import com.cjwwdev.security.obfuscation.Obfuscation._
+import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
+import org.bson.codecs.configuration.CodecRegistry
+import org.mongodb.scala.bson.codecs.DEFAULT_CODEC_REGISTRY
+import org.mongodb.scala.bson.codecs.Macros._
 import play.api.libs.json._
+
+import scala.reflect.ClassTag
 
 case class RegisteredApplication(name: String,
                                  desc: String,
@@ -42,28 +44,27 @@ case class RegisteredApplication(name: String,
   )
 }
 
-object RegisteredApplicationCompanion {
+object RegisteredApplication {
+  implicit val mongoCodec: CodecRegistry = fromRegistries(fromProviders(classOf[RegisteredApplication]), DEFAULT_CODEC_REGISTRY)
+  implicit val classTag: ClassTag[RegisteredApplication] = ClassTag(classOf[RegisteredApplication])
+
   implicit val inboundReads = new Reads[RegisteredApplication] {
     override def reads(json: JsValue): JsResult[RegisteredApplication] = {
-      val clientType = json.get[String]("clientType")
+      val clientType = json.\("clientType").as[String]
 
       JsSuccess(RegisteredApplication(
-        json.get[String]("name"),
-        json.get[String]("desc"),
-        json.get[String]("homeUrl"),
-        json.get[String]("redirectUrl"),
+        json.\("name").as[String],
+        json.\("desc").as[String],
+        json.\("homeUrl").as[String],
+        json.\("redirectUrl").as[String],
         clientType,
-        clientId     = UUID.randomUUID().toString.replace("-", "").encrypt,
+        clientId     = UUID.randomUUID().toString.replace("-", ""),
         clientSecret = clientType match {
-          case "confidential" => Some(s"${UUID.randomUUID()}${UUID.randomUUID()}".replace("-", "").encrypt)
+          case "confidential" => Some(s"${UUID.randomUUID()}${UUID.randomUUID()}".replace("-", ""))
           case "public"       => None
         }
       ))
     }
-  }
-
-  implicit val inboundDeObfuscator: DeObfuscator[RegisteredApplication] = (value: String) => {
-    DeObfuscation.deObfuscate[RegisteredApplication](value)(inboundReads, implicitly)
   }
 
   implicit val writes = Json.writes[RegisteredApplication]

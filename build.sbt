@@ -16,55 +16,40 @@
  */
 
 import com.typesafe.config.ConfigFactory
-import com.typesafe.sbt.packager.docker.Cmd
-import scoverage.ScoverageKeys
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 val appName = "gatekeeper"
 
-val btVersion: String = Try(ConfigFactory.load.getString("version")) match {
-  case Success(ver) => ver
-  case Failure(_)   => "0.1.0"
-}
-
-lazy val scoverageSettings = Seq(
-  ScoverageKeys.coverageExcludedPackages := "<empty>;Reverse.*;/.data/..*;views.*;models.*;global.*;common.*;.*(AuthService|BuildInfo|Routes).*",
-  ScoverageKeys.coverageMinimum          := 80,
-  ScoverageKeys.coverageFailOnMinimum    := false,
-  ScoverageKeys.coverageHighlighting     := true
-)
-
-name := "gatekeeper"
- 
-version := "1.0" 
+val btVersion: String = Try(ConfigFactory.load.getString("version")).getOrElse("0.1.0")
 
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(PlayScala)
-  .settings(scoverageSettings : _*)
   .configs(IntegrationTest)
   .settings(PlayKeys.playDefaultPort := 5678)
   .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)
   .settings(
+    name                                          := "gatekeeper",
     version                                       :=  btVersion,
-    scalaVersion                                  :=  "2.12.8",
+    scalaVersion                                  :=  "2.13.2",
     organization                                  :=  "com.cjww-dev.apps",
-    resolvers                                     +=  "cjww-dev" at "http://dl.bintray.com/cjww-development/releases",
-    libraryDependencies                           ++= AppDependencies(),
+    resolvers                                     +=  "cjww-dev" at "https://dl.bintray.com/cjww-development/releases",
+    libraryDependencies                           ++= Seq(
+      "com.cjww-dev.libs"      %  "mongo-connector_2.13"     % "0.2.0",
+      "com.cjww-dev.libs"      %  "log-encoding_2.13"        % "0.3.0",
+      "com.cjww-dev.libs"      %  "data-defender_2.13"       % "0.5.0",
+      "com.cjww-dev.libs"      %  "service-health_2.13"      % "1.1.0",
+      "com.cjww-dev.libs"      %  "feature-management_2.13"  % "2.0.1",
+      "com.cjww-dev.libs"      %  "inbound-outbound_2.13"    % "0.5.0",
+      "com.cjww-dev.libs"      %  "bouncer_2.13"             % "0.2.1",
+      "org.scalatestplus.play" %% "scalatestplus-play"       % "5.1.0"  % Test,
+      "org.scalatestplus.play" %% "scalatestplus-play"       % "5.1.0"  % IntegrationTest
+    ),
     fork                       in IntegrationTest :=  false,
     unmanagedSourceDirectories in IntegrationTest :=  (baseDirectory in IntegrationTest)(base => Seq(base / "it")).value,
     parallelExecution          in IntegrationTest :=  false,
     fork                       in Test            :=  true,
     testForkedParallel         in Test            :=  true,
     parallelExecution          in Test            :=  true,
-    logBuffered                in Test            :=  false,
-    dockerRepository                              :=  Some("cjwwdevelopment"),
-    dockerCommands                                :=  Seq(
-      Cmd("FROM", "openjdk:8u181-jdk"),
-      Cmd("WORKDIR", "/opt/docker"),
-      Cmd("ADD", "--chown=daemon:daemon opt /opt"),
-      Cmd("USER", "daemon"),
-      Cmd("ENTRYPOINT", """["/opt/docker/bin/default"]"""),
-      Cmd("CMD", """[]""")
-    )
+    logBuffered                in Test            :=  false
   )

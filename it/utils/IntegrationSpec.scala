@@ -16,18 +16,29 @@
 
 package utils
 
-import com.cjwwdev.testing.common.FutureHelpers
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+import akka.util.Timeout
+import org.scalatest.{Assertion, BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.mvc.Result
+import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
+
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
 trait IntegrationSpec
   extends PlaySpec
-    with GuiceOneAppPerSuite
-    with FutureHelpers
     with BeforeAndAfterEach
-    with BeforeAndAfterAll {
+    with BeforeAndAfterAll
+    with FutureAwaits
+    with DefaultAwaitTimeout {
 
+  override implicit def defaultAwaitTimeout: Timeout = 5.seconds
 
+  def awaitAndAssert[A](f: => Future[A])(assert: A => Assertion): Assertion = {
+    assert(await(f))
+  }
 
+  def assertFutureResult(methodUnderTest: => Future[Result])(assertions: Future[Result] => Assertion): Assertion = {
+    assertions(methodUnderTest)
+  }
 }

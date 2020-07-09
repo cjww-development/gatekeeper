@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 CJWW Development
+ * Copyright 2020 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package global
+package database
 
-//import com.cjwwdev.logging.filters.RequestLoggingFilter
-import filters.RequestIdFilter
+import com.cjwwdev.mongo.indexing.RepositoryIndexer
 import javax.inject.Inject
-import play.api.http.DefaultHttpFilters
 
-class EnabledFilters @Inject()(requestIdFilter: RequestIdFilter /*, requestLoggingFilter: RequestLoggingFilter*/)
-  extends DefaultHttpFilters(requestIdFilter /*, requestLoggingFilter*/)
+import scala.concurrent.{Future, ExecutionContext => ExC}
+
+class Indexer @Inject()(appStore: RegisteredApplicationsStore,
+                        implicit val ec: ExC) extends RepositoryIndexer {
+  val stores: Seq[Indexing] = Seq(appStore)
+
+  Future.sequence(stores.map(_.createIndexes))
+}

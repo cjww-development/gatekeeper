@@ -16,16 +16,14 @@
 
 package database
 
-import database.responses._
+import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoFailedDelete, MongoSuccessCreate, MongoSuccessDelete}
+import models.RegisteredApplication._
 import models.{ClientTypes, RegisteredApplication}
-import slick.dbio.Effect
-import slick.jdbc.MySQLProfile.api._
-import slick.sql.FixedSqlAction
+import org.mongodb.scala.model.Filters.{equal => bsonEqual}
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import utils.IntegrationSpec
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
-class RegisteredApplicationsRepositoryISpec extends IntegrationSpec {
+class RegisteredApplicationsRepositoryISpec extends IntegrationSpec with GuiceOneAppPerSuite {
 
   val testRepo = app.injector.instanceOf[RegisteredApplicationsStore]
 
@@ -51,41 +49,36 @@ class RegisteredApplicationsRepositoryISpec extends IntegrationSpec {
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-
-    await(testRepo.getDb.run(testRepo.table.schema.create))
-
-    val deleteQuery: String => FixedSqlAction[Int, NoStream, Effect.Write] =
-      name => testRepo.table.filter(_.name === name).delete
-
-    await(testRepo.getDb.run(deleteQuery(testApplicationOne.name)))
+    await(testRepo.collection[RegisteredApplication].deleteOne(bsonEqual("name", testApplicationOne.name)).toFuture())
   }
 
   override def afterEach(): Unit = {
     super.afterAll()
-    await(testRepo.getDb.run(testRepo.table.schema.drop))
+    await(testRepo.collection[RegisteredApplication].deleteOne(bsonEqual("name", testApplicationOne.name)).toFuture())
+    await(testRepo.collection[RegisteredApplication].deleteOne(bsonEqual("name", testApplicationTwo.name)).toFuture())
   }
 
   "insertNewApplication" should {
-    "return a MySQLSuccessCreate" when {
+    "return a MongoSuccessCreate" when {
       "a new application is successfully registered" in {
         awaitAndAssert(testRepo.insertNewApplication(testApplicationOne)) {
-          _ mustBe MySQLSuccessCreate
+          _ mustBe MongoSuccessCreate
         }
       }
     }
 
-    "return a MySQLFailedCreate" when {
+    "return a MongoFailedCreate" when {
       "a duplicate record is inserted" in {
         await(testRepo.insertNewApplication(testApplicationOne))
 
         awaitAndAssert(testRepo.insertNewApplication(testApplicationOne)) {
-          _ mustBe MySQLFailedCreate
+          _ mustBe MongoFailedCreate
         }
       }
 
       "a record is inserted containing a null value" in {
         awaitAndAssert(testRepo.insertNewApplication(testApplicationTwo)) {
-          _ mustBe MySQLFailedCreate
+          _ mustBe MongoFailedCreate
         }
       }
     }
@@ -96,16 +89,16 @@ class RegisteredApplicationsRepositoryISpec extends IntegrationSpec {
       "a matching database row has been matched" in {
         await(testRepo.insertNewApplication(testApplicationOne))
 
-        awaitAndAssert(testRepo.getOneApplication(testRepo.table.filter(_.name === testApplicationOne.name).result.headOption)) {
-          _ mustBe Right(testApplicationOne)
+        awaitAndAssert(testRepo.getOneApplication("name", testApplicationOne.name)) {
+          _ mustBe Some(testApplicationOne)
         }
       }
     }
 
     "return a failed read" when {
       "no matching database row could be found" in {
-        awaitAndAssert(testRepo.getOneApplication(testRepo.table.filter(_.name === testApplicationOne.name).result.headOption)) {
-          _ mustBe Left(MySQLFailedRead)
+        awaitAndAssert(testRepo.getOneApplication("name", testApplicationOne.name)) {
+          _ mustBe None
         }
       }
     }
@@ -117,7 +110,7 @@ class RegisteredApplicationsRepositoryISpec extends IntegrationSpec {
         await(testRepo.insertNewApplication(testApplicationOne))
 
         awaitAndAssert(testRepo.removeRegisteredApplication(testApplicationOne.name)) {
-          _ mustBe MySQLSuccessDelete
+          _ mustBe MongoSuccessDelete
         }
       }
     }
@@ -125,7 +118,7 @@ class RegisteredApplicationsRepositoryISpec extends IntegrationSpec {
     "return a MySQLFailedDelete" when {
       "a row has been successfully deleted" in {
         awaitAndAssert(testRepo.removeRegisteredApplication(testApplicationOne.name)) {
-          _ mustBe MySQLFailedDelete
+          _ mustBe MongoFailedDelete
         }
       }
     }

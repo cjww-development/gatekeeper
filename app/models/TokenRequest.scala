@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 CJWW Development
+ * Copyright 2020 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,7 @@
  * limitations under the License.
  */
 
-package database
+package models
 
-import com.cjwwdev.logging.Logging
-import play.api.db.slick.HasDatabaseConfigProvider
-import slick.jdbc.MySQLProfile.api._
-import slick.jdbc.{JdbcBackend, MySQLProfile}
-import slick.lifted.AbstractTable
-
-trait DatabaseRepository[T <: AbstractTable[_]] extends HasDatabaseConfigProvider[MySQLProfile] with Logging {
-
-  val table: TableQuery[T]
-
-  def getDb: JdbcBackend#DatabaseDef = db
-}
+case class TokenRequest(clientId: String,
+                        state: String)

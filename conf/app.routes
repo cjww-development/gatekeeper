@@ -2,3 +2,9 @@ POST        /register-client            controllers.ApplicationsController.regis
 GET         /clients                    controllers.ApplicationsController.getAllApplications()
 GET         /client/:name               controllers.ApplicationsController.getOneServiceByName(name: String)
 DELETE      /client/:name               controllers.ApplicationsController.removeApplication(name: String)
+
+POST        /register-user              controllers.UserController.createUser()
+POST        /login                      controllers.UserController.login()
+GET         /authed                     controllers.UserController.authed()
+GET         /auth-code                  controllers.UserController.grantAccessToUser()
+GET         /issue-token                controllers.UserController.issueToken()

@@ -1,5 +1,5 @@
 ->      /gatekeeper                 app.Routes
 ->      /gatekeeper/test-only       test.Routes
-->      /                           health.Routes
-->      /private                    shuttering.Routes
-->      /private                    features.Routes
+#->      /                           health.Routes
+#->      /private                    shuttering.Routes
+#->      /private                    features.Routes

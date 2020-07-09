@@ -1,4 +1,4 @@
 ->      /gatekeeper                 app.Routes
-->      /                           health.Routes
-->      /private                    shuttering.Routes
-->      /private                    features.Routes
+#->      /                           health.Routes
+#->      /private                    shuttering.Routes
+#->      /private                    features.Routes

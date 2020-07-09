@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 CJWW Development
+ * Copyright 2020 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package database.responses
+package models
 
-sealed trait MySQLCreateResponse
-case object MySQLSuccessCreate extends MySQLCreateResponse
-case object MySQLFailedCreate  extends MySQLCreateResponse
-
-sealed trait MySQLReadResponse
-case object MySQLFailedRead extends MySQLReadResponse
-
-sealed trait MySQLDeleteResponse
-case object MySQLSuccessDelete extends MySQLDeleteResponse
-case object MySQLFailedDelete  extends MySQLDeleteResponse
-
+case class AuthCodeRequest(responseType: String,
+                           clientId: String,
+                           redirectUri: String,
+                           scope: String,
+                           state: String)

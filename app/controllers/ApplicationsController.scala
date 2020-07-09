@@ -16,14 +16,12 @@
 
 package controllers
 
-import com.cjwwdev.config.ConfigurationLoader
 import com.cjwwdev.featuremanagement.services.FeatureService
-import database.responses.{MySQLFailedCreate, MySQLFailedDelete, MySQLSuccessCreate, MySQLSuccessDelete}
-import global.Features
+import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoFailedDelete, MongoSuccessCreate, MongoSuccessDelete}
 import javax.inject.Inject
 import models.RegisteredApplication
-import models.RegisteredApplicationCompanion._
-import play.api.libs.json.{JsString, Json}
+import models.RegisteredApplication._
+import play.api.libs.json.{JsString, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.ApplicationService
 
@@ -31,10 +29,7 @@ import scala.concurrent.ExecutionContext
 
 class DefaultApplicationsController @Inject()(val controllerComponents: ControllerComponents,
                                               val featureService: FeatureService,
-                                              val applicationService: ApplicationService,
-                                              val config: ConfigurationLoader) extends ApplicationsController {
-  override val adminId: String = config.getServiceId("admin-frontend")
-  override val appId: String   = config.getServiceId("gatekeeper")
+                                              val applicationService: ApplicationService) extends ApplicationsController {
   override implicit val ec: ExecutionContext = controllerComponents.executionContext
 }
 
@@ -42,70 +37,57 @@ trait ApplicationsController extends BackendController {
 
   val applicationService: ApplicationService
 
-  def registerApplication(): Action[String] = Action.async(parse.text) { implicit req =>
-    apiFeatureGuard(Features.registration) {
-      applicationVerification {
-        withJsonBody[RegisteredApplication] { app =>
-          applicationService.registerNewApplication(app) map { res =>
-            val (status, body) = res match {
-              case MySQLSuccessCreate => (CREATED, JsString(s"Registered new application ${app.name}"))
-              case MySQLFailedCreate  => (BAD_REQUEST, JsString(s"There was a problem creating the application ${app.name}"))
-            }
-
-            withJsonResponseBody(status, body) {
-              json => Status(status)(json)
-            }
-          }
+  def registerApplication(): Action[JsValue] = Action.async(parse.json) { implicit req =>
+    withJsonBody[RegisteredApplication] { app =>
+      applicationService.registerNewApplication(app) map { res =>
+        val (status, body) = res match {
+          case MongoSuccessCreate => (CREATED, JsString(s"Registered new application ${app.name}"))
+          case MongoFailedCreate  => (BAD_REQUEST, JsString(s"There was a problem creating the application ${app.name}"))
         }
-      }
-    }
-  }
-
-  def getAllApplications(): Action[AnyContent] = Action.async { implicit req =>
-    applicationVerification {
-      applicationService.getAllApplications map { res =>
-        val (status, body) = res.fold(
-          _   => (NO_CONTENT, JsString("")),
-          seq => (OK, Json.toJson(seq))
-        )
 
         withJsonResponseBody(status, body) {
           json => Status(status)(json)
         }
       }
+    }(req, inboundReads)
+  }
+
+  def getAllApplications(): Action[AnyContent] = Action.async { implicit req =>
+    applicationService.getAllApplications map { res =>
+      val (status, body) = if(res.nonEmpty) {
+        (OK, Json.toJson(res))
+      } else {
+        (NO_CONTENT, JsString(""))
+      }
+
+      withJsonResponseBody(status, body) {
+        json => Status(status)(json)
+      }
     }
   }
 
   def getOneServiceByName(name: String): Action[AnyContent] = Action.async { implicit req =>
-    apiFeatureGuard(Features.registration) {
-      applicationVerification {
-        applicationService.getServiceByName(name) map { app =>
-          val (status, body) = app match {
-            case Some(srv) => (OK, Json.toJson(srv))
-            case None      => (NOT_FOUND, JsString(s"Service $name could not be found"))
-          }
+    applicationService.getServiceByName("name", name) map { app =>
+      val (status, body) = app match {
+        case Some(srv) => (OK, Json.toJson(srv))
+        case None      => (NOT_FOUND, JsString(s"Service $name could not be found"))
+      }
 
-          withJsonResponseBody(status, body) {
-            json => Status(status)(json)
-          }
-        }
+      withJsonResponseBody(status, body) {
+        json => Status(status)(json)
       }
     }
   }
 
   def removeApplication(name: String): Action[AnyContent] = Action.async { implicit req =>
-    apiFeatureGuard(Features.registration) {
-      applicationVerification {
-        applicationService.removeRegisteredApplication(name) map { res =>
-          val (status, body) = res match {
-            case MySQLSuccessDelete => (NO_CONTENT, s"Application $name has been deleted")
-            case MySQLFailedDelete  => (BAD_REQUEST, s"There was a problem removing the application $name")
-          }
+    applicationService.removeRegisteredApplication(name) map { res =>
+      val (status, body) = res match {
+        case MongoSuccessDelete => (NO_CONTENT, JsString(s"Application $name has been deleted"))
+        case MongoFailedDelete  => (BAD_REQUEST, JsString(s"There was a problem removing the application $name"))
+      }
 
-          withJsonResponseBody(status, body) {
-            json => Status(status)(json)
-          }
-        }
+      withJsonResponseBody(status, body) {
+        json => Status(status)(json)
       }
     }
   }
