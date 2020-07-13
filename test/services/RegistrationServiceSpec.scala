@@ -19,40 +19,58 @@ package services
 import java.util.UUID
 
 import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
-import database.{IndividualUserStore, OrganisationUserStore}
-import helpers.database.{MockIndividualStore, MockOrganisationStore}
-import models.User
+import database.{AppStore, IndividualUserStore, OrganisationUserStore}
+import helpers.Assertions
+import helpers.database.{MockAppStore, MockIndividualStore, MockOrganisationStore}
+import models.{RegisteredApplication, User}
+import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
+import utils.StringUtils
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class RegistrationServiceSpec
   extends PlaySpec
-    with FutureAwaits
-    with DefaultAwaitTimeout
+    with Assertions
     with MockIndividualStore
-    with MockOrganisationStore {
+    with MockOrganisationStore
+    with MockAppStore {
 
   private val testService: RegistrationService = new RegistrationService {
     override val userStore: IndividualUserStore = mockIndividualStore
     override val orgUserStore: OrganisationUserStore = mockOrganisationStore
+    override val appStore: AppStore = mockAppStore
   }
 
   val testIndividualUser: User = User(
-    id       = s"user-${UUID.randomUUID()}",
-    userName = "testUserName",
-    email    = "test@email.com",
-    accType  = "INDIVIDUAL",
-    password = "testPassword"
+    id        = s"user-${UUID.randomUUID()}",
+    userName  = "testUserName",
+    email     = "test@email.com",
+    accType   = "individual",
+    password  = "testPassword",
+    salt      = "testSalt",
+    createdAt = DateTime.now()
   )
 
   val testOrganisationUser: User = User(
-    id       = s"org-user-${UUID.randomUUID()}",
-    userName = "testUserName",
-    email    = "test@email.com",
-    accType  = "ORGANISATION",
-    password = "testPassword"
+    id        = s"org-user-${UUID.randomUUID()}",
+    userName  = "testUserName",
+    email     = "test@email.com",
+    accType   = "organisation",
+    password  = "testPassword",
+    salt      = "testSalt",
+    createdAt = DateTime.now()
+  )
+
+  val testApp: RegisteredApplication = RegisteredApplication(
+    owner        = "testOwner",
+    name         = "testName",
+    desc         = "testDesc",
+    homeUrl      = "http://localhost:8080",
+    redirectUrl  = "http://localhost:8080/redirect",
+    clientType   = "confidential",
+    clientId     = "testId",
+    clientSecret = Some("testSecret")
   )
 
   "createNewUser" should {
@@ -60,15 +78,17 @@ class RegistrationServiceSpec
       "an individual user has been created" in {
         mockCreateIndividualUser(success = true)
 
-        val res = await(testService.createNewUser(testIndividualUser))
-        res mustBe MongoSuccessCreate
+        awaitAndAssert(testService.createNewUser(testIndividualUser)) {
+          _ mustBe MongoSuccessCreate
+        }
       }
 
       "an organisation user has been created" in {
         mockCreateOrgUser(success = true)
 
-        val res = await(testService.createNewUser(testOrganisationUser))
-        res mustBe MongoSuccessCreate
+        awaitAndAssert(testService.createNewUser(testOrganisationUser)) {
+          _ mustBe MongoSuccessCreate
+        }
       }
     }
 
@@ -76,75 +96,214 @@ class RegistrationServiceSpec
       "there was a problem creating an individual user" in {
         mockCreateIndividualUser(success = false)
 
-        val res = await(testService.createNewUser(testIndividualUser))
-        res mustBe MongoFailedCreate
+        awaitAndAssert(testService.createNewUser(testIndividualUser)) {
+          _ mustBe MongoFailedCreate
+        }
       }
 
       "there was a problem creating an organisation user" in {
         mockCreateOrgUser(success = false)
 
-        val res = await(testService.createNewUser(testOrganisationUser))
-        res mustBe MongoFailedCreate
+        awaitAndAssert(testService.createNewUser(testOrganisationUser)) {
+          _ mustBe MongoFailedCreate
+        }
       }
     }
   }
 
-  "validateEmail" should {
+  "isIdentifierInUse" should {
     "return true" when {
-      "the new users email already exists in the database on either type of user" in {
-        mockIndividualValidateUserOn(user = Some(testIndividualUser))
-        mockOrganisationValidateUserOn(user = None)
+      "the identifier in use on an individual user" in {
+        mockMultipleIndividualValidateUserOn(
+          userOne = Some(testIndividualUser),
+          userTwo = None
+        )
 
-        val res: Boolean = await(testService.validateEmail(testIndividualUser.email))
-        res mustBe true
+        mockMultipleOrganisationValidateUserOn(
+          userOne = None,
+          userTwo = None
+        )
+
+        awaitAndAssert(testService.isIdentifierInUse(testIndividualUser.email, testIndividualUser.userName)) {
+          res => assert(res)
+        }
       }
 
-      "the new users email already exists in the database on both types of user" in {
-        mockIndividualValidateUserOn(user = Some(testIndividualUser))
-        mockOrganisationValidateUserOn(user = Some(testOrganisationUser))
+      "the identifier in use on an organisation user" in {
+        mockMultipleIndividualValidateUserOn(
+          userOne = None,
+          userTwo = None
+        )
 
-        val res: Boolean = await(testService.validateEmail(testIndividualUser.email))
-        res mustBe true
+        mockMultipleOrganisationValidateUserOn(
+          userOne = Some(testOrganisationUser),
+          userTwo = None
+        )
+
+        awaitAndAssert(testService.isIdentifierInUse(testIndividualUser.email, testIndividualUser.userName)) {
+          res => assert(res)
+        }
+      }
+
+      "the identifier in in use on both user types" in {
+        mockMultipleIndividualValidateUserOn(
+          userOne = Some(testIndividualUser),
+          userTwo = None
+        )
+
+        mockMultipleOrganisationValidateUserOn(
+          userOne = Some(testOrganisationUser),
+          userTwo = None
+        )
+
+        awaitAndAssert(testService.isIdentifierInUse(testIndividualUser.email, testIndividualUser.userName)) {
+          res => assert(res)
+        }
       }
     }
 
     "return false" when {
-      "the new users email doesn't exist in the database on both types of user" in {
-        mockIndividualValidateUserOn(user = None)
-        mockOrganisationValidateUserOn(user = None)
+      "neither user type is using the identifier" in {
+        mockMultipleIndividualValidateUserOn(
+          userOne = None,
+          userTwo = None
+        )
 
-        val res: Boolean = await(testService.validateEmail(testIndividualUser.email))
-        res mustBe false
+        mockMultipleOrganisationValidateUserOn(
+          userOne = None,
+          userTwo = None
+        )
+
+        awaitAndAssert(testService.isIdentifierInUse(testIndividualUser.email, testIndividualUser.userName)) {
+          res => assert(!res)
+        }
       }
     }
   }
 
-  "validateUsername" should {
-    "return true" when {
-      "the new users user name already exists in the database on both types of user" in {
-        mockIndividualValidateUserOn(user = Some(testIndividualUser))
-        mockOrganisationValidateUserOn(user = Some(testOrganisationUser))
-
-        val res: Boolean = await(testService.validateUsername(testIndividualUser.userName))
-        res mustBe true
-      }
-
-      "the new users user name already exists in the database on one type of user" in {
-        mockIndividualValidateUserOn(user = None)
-        mockOrganisationValidateUserOn(user = Some(testOrganisationUser))
-
-        val res: Boolean = await(testService.validateUsername(testIndividualUser.userName))
-        res mustBe true
-      }
-    }
-
-    "return false" when {
-      "the new users user name doesn't exist in the database on both types of user" in {
+  "revalidateSalt" should {
+    "return the original salt" when {
+      "the original salt isn't already been used on another account" in {
         mockIndividualValidateUserOn(user = None)
         mockOrganisationValidateUserOn(user = None)
 
-        val res: Boolean = await(testService.validateUsername(testIndividualUser.userName))
-        res mustBe false
+        val salt = StringUtils.salter(length = 8)
+
+        awaitAndAssert(testService.validateSalt(salt)) {
+          _ mustBe salt
+        }
+      }
+    }
+
+    "return a new salt string" when {
+      "the new users salt is already being used on another account" in {
+        mockMultipleIndividualValidateUserOn(
+          userOne = Some(testIndividualUser),
+          userTwo = None
+        )
+
+        mockMultipleOrganisationValidateUserOn(
+          userOne = Some(testOrganisationUser),
+          userTwo = None
+        )
+
+        awaitAndAssert(testService.validateSalt(testIndividualUser.salt)) { res =>
+          assert(res != testIndividualUser.salt)
+          assert(res != testOrganisationUser.salt)
+        }
+      }
+    }
+  }
+
+  "createApp" should {
+    "return a MongoCreateSuccess" when {
+      "the app was created" in {
+        mockCreateApp(success = true)
+
+        awaitAndAssert(testService.createApp(testApp)) {
+          _ mustBe MongoSuccessCreate
+        }
+      }
+    }
+
+    "return a MongoCreateFailed" when {
+      "there was a problem creating the app" in {
+        mockCreateApp(success = false)
+
+        awaitAndAssert(testService.createApp(testApp)) {
+          _ mustBe MongoFailedCreate
+        }
+      }
+    }
+  }
+
+  "validateIdsAndSecrets" should {
+    "return a new app" when {
+      "both the id and secret is in use" in {
+        mockMultipleValidateAppOn(
+          appOne = Some(testApp),
+          appTwo = Some(testApp),
+          appThree = None,
+          appFour = None
+        )
+
+        awaitAndAssert(testService.validateIdsAndSecrets(testApp)) { res =>
+          assert(res != testApp)
+        }
+      }
+
+      "just the id is in use" in {
+        mockMultipleValidateAppOn(
+          appOne = Some(testApp),
+          appTwo = None,
+          appThree = None,
+          appFour = None
+        )
+
+        awaitAndAssert(testService.validateIdsAndSecrets(testApp)) { res =>
+          assert(res != testApp)
+        }
+      }
+
+      "just the id is in use but the client is public" in {
+        mockMultipleValidateAppOn(
+          appOne = Some(testApp),
+          appTwo = None,
+          appThree = None,
+          appFour = None
+        )
+
+        awaitAndAssert(testService.validateIdsAndSecrets(testApp)) { res =>
+          assert(res != testApp)
+        }
+      }
+
+      "just the secret is in use" in {
+        mockMultipleValidateAppOn(
+          appOne = None,
+          appTwo = Some(testApp),
+          appThree = None,
+          appFour = None
+        )
+
+        awaitAndAssert(testService.validateIdsAndSecrets(testApp)) { res =>
+          assert(res != testApp)
+        }
+      }
+    }
+
+    "return the original id and secret" when {
+      "neither the client Id or secret are in use" in {
+        mockMultipleValidateAppOn(
+          appOne = None,
+          appTwo = None,
+          appThree = None,
+          appFour = None
+        )
+
+        awaitAndAssert(testService.validateIdsAndSecrets(testApp)) {
+          _ mustBe testApp
+        }
       }
     }
   }

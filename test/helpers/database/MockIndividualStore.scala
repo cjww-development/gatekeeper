@@ -22,6 +22,8 @@ import models.User
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
 import org.mockito.stubbing.OngoingStubbing
+import org.mongodb.scala.bson.BsonValue
+import org.mongodb.scala.bson.conversions.Bson
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
@@ -44,7 +46,24 @@ trait MockIndividualStore extends MockitoSugar with BeforeAndAfterEach {
   }
 
   def mockIndividualValidateUserOn(user: Option[User]): OngoingStubbing[Future[Option[User]]] = {
-    when(mockIndividualStore.validateUserOn(ArgumentMatchers.any[String](), ArgumentMatchers.any[String]()))
+    when(mockIndividualStore.validateUserOn(ArgumentMatchers.any[Bson]()))
       .thenReturn(Future.successful(user))
+  }
+
+  def mockMultipleIndividualValidateUserOn(userOne: Option[User], userTwo: Option[User]): OngoingStubbing[Future[Option[User]]] = {
+    when(mockIndividualStore.validateUserOn(ArgumentMatchers.any[Bson]()))
+      .thenReturn(Future.successful(userOne))
+      .thenReturn(Future.successful(userTwo))
+  }
+
+  def mockIndividualProjectValue(value: Map[String, BsonValue]): OngoingStubbing[Future[Map[String, BsonValue]]] = {
+    when(mockIndividualStore.projectValue(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(value))
+  }
+
+  def mockIndividualMultipleProjectValue(valueOne: Map[String, BsonValue], valueTwo: Map[String, BsonValue]): OngoingStubbing[Future[Map[String, BsonValue]]] = {
+    when(mockIndividualStore.projectValue(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(valueOne))
+      .thenReturn(Future.successful(valueTwo))
   }
 }

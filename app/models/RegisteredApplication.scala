@@ -18,15 +18,14 @@ package models
 
 import java.util.UUID
 
-import com.cjwwdev.security.SecurityConfiguration
+import com.cjwwdev.security.Implicits._
 import com.cjwwdev.security.obfuscation.Obfuscators
-import play.api.libs.json.{JsSuccess, JsValue, Reads}
-import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
-import org.bson.codecs.configuration.CodecRegistry
-import org.mongodb.scala.bson.codecs.DEFAULT_CODEC_REGISTRY
-import org.mongodb.scala.bson.codecs.Macros._
+import play.api.libs.json._
 
-case class RegisteredApplication(name: String,
+import scala.collection.Seq
+
+case class RegisteredApplication(owner: String,
+                                 name: String,
                                  desc: String,
                                  homeUrl: String,
                                  redirectUrl: String,
@@ -34,25 +33,78 @@ case class RegisteredApplication(name: String,
                                  clientId: String,
                                  clientSecret: Option[String])
 
-object RegisteredApplication extends Obfuscators with SecurityConfiguration {
-  implicit val inboundReads: Reads[RegisteredApplication] = (json: JsValue) => {
-    val clientType = json.\("clientType").as[String]
-
-    JsSuccess(RegisteredApplication(
-      json.\("name").as[String],
-      json.\("desc").as[String],
-      json.\("homeUrl").as[String],
-      json.\("redirectUrl").as[String],
-      clientType,
-      clientId = encrypt(UUID.randomUUID().toString.replace("-", "")),
-      clientSecret = clientType match {
-        case "confidential" => Some(encrypt(s"${UUID.randomUUID()}${UUID.randomUUID()}".replace("-", "")))
-        case "public" => None
-      }
-    ))
-  }
-
+object RegisteredApplication extends Obfuscators {
   override val locale: String = this.getClass.getCanonicalName
 
-  implicit val codecRegistry: CodecRegistry = fromRegistries(fromProviders(classOf[RegisteredApplication]), DEFAULT_CODEC_REGISTRY)
+  private def generateIds(iterations: Int): String = {
+    (0 to iterations)
+      .map(_ => UUID.randomUUID().toString.replace("-", ""))
+      .mkString
+      .encrypt
+  }
+
+  implicit class RegisteredApplicationOps(app: RegisteredApplication) {
+    def regenerateIdsAndSecrets: RegisteredApplication = {
+      app.copy(
+        clientId = generateIds(iterations = 1),
+        clientSecret = app.clientType match {
+          case "confidential" => Some(generateIds(iterations = 2))
+          case "public"       => None
+        }
+      )
+    }
+  }
+
+  def apply(name: String, desc: String, homeUrl: String, redirectUrl: String, clientType: String): RegisteredApplication = {
+    new RegisteredApplication(
+      "testOwner",
+      name,
+      desc,
+      homeUrl,
+      redirectUrl,
+      clientType,
+      generateIds(iterations = 1),
+      clientType match {
+        case "confidential" => Some(generateIds(iterations = 2))
+        case "public"       => None
+      }
+    )
+  }
+
+  def unapply(arg: RegisteredApplication): Option[(String, String, String, String, String)] = {
+    Some(arg.name, arg.desc, arg.homeUrl, arg.redirectUrl, arg.clientType)
+  }
+
+  implicit val inboundReads: Reads[RegisteredApplication] = (json: JsValue) => {
+    val problemFields: Map[String, JsResult[_]] = Map(
+      "clientType" -> json.\("clientType").validate[String](ClientTypes.reads)
+    )
+
+    val errors = problemFields.filter({ case (_, v) => v.isError })
+
+    if(errors.nonEmpty) {
+      type JsErr = Seq[(JsPath, Seq[JsonValidationError])]
+      JsError(
+        errors
+          .collect({ case (_, JsError(e)) => e })
+          .foldLeft[JsErr](Seq())((a, b) => JsError.merge(a, b))
+      )
+    } else {
+      val clientType: String = problemFields("clientType").get.asInstanceOf[String]
+
+      JsSuccess(RegisteredApplication(
+        owner = json.\("owner").as[String],
+        name = json.\("name").as[String],
+        desc = json.\("desc").as[String],
+        homeUrl = json.\("homeUrl").as[String],
+        redirectUrl = json.\("redirectUrl").as[String],
+        clientType,
+        clientId = generateIds(iterations = 1),
+        clientSecret = clientType match {
+          case "confidential" => Some(generateIds(iterations = 2))
+          case "public"       => None
+        }
+      ))
+    }
+  }
 }

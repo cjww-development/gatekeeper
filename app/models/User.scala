@@ -18,12 +18,10 @@ package models
 
 import java.util.UUID
 
-import org.bson.codecs.configuration.CodecRegistries.{fromProviders, fromRegistries}
-import org.bson.codecs.configuration.CodecRegistry
-import org.mongodb.scala.bson.codecs.DEFAULT_CODEC_REGISTRY
-import org.mongodb.scala.bson.codecs.Macros._
-import com.cjwwdev.security.sha.SHA512
-import com.cjwwdev.security.defence.DataDefenders
+import com.cjwwdev.security.Implicits._
+import com.cjwwdev.security.obfuscation.Obfuscators
+import org.joda.time.DateTime
+import utils.StringUtils
 
 import scala.reflect.ClassTag
 
@@ -31,20 +29,32 @@ case class User(id: String,
                 userName: String,
                 email: String,
                 accType: String,
-                password: String)
+                salt: String,
+                password: String,
+                createdAt: DateTime)
 
-object User extends DataDefenders {
-  override val locale: String = this.getClass.getCanonicalName
+object User extends Obfuscators {
+  override val locale: String = "models.User"
 
-  implicit val codec: CodecRegistry = fromRegistries(fromProviders(classOf[User]), DEFAULT_CODEC_REGISTRY)
   implicit val classTag: ClassTag[User] = ClassTag[User](classOf[User])
 
   def apply(userName: String, email: String, accType: String, password: String): User = {
-    val id = accType match {
-      case "Individual"   => s"user-${UUID.randomUUID()}"
-      case "Organisation" => s"org-user-${UUID.randomUUID()}"
+    val saltStr = StringUtils.salter(length = 32)
+
+    val id = accType.trim match {
+      case "individual"   => s"user-${UUID.randomUUID()}"
+      case "organisation" => s"org-user-${UUID.randomUUID()}"
     }
-    new User(id, userName, stringDefense.encrypt(email), accType, SHA512.encrypt(password))
+
+    new User(
+      id,
+      userName.trim.encrypt,
+      email = email.trim.encrypt,
+      accType.trim,
+      salt = saltStr,
+      password = StringUtils.hasher(saltStr, password),
+      createdAt = DateTime.now()
+    )
   }
 
   def unapply(arg: User): Option[(String, String, String, String)] = {

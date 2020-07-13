@@ -16,19 +16,12 @@
 
 package models
 
-import play.api.libs.json.{JsResult, JsSuccess, JsValue, Reads}
+import play.api.libs.json._
 
-object ClientTypes extends Enumeration {
-
-  val confidential: ClientTypes.Value = Value
-  val public: ClientTypes.Value = Value
-
-  implicit val reads = new Reads[ClientTypes.Value] {
-    override def reads(json: JsValue): JsResult[ClientTypes.Value] = {
-      json.as[String] match {
-        case "confidential" => JsSuccess(confidential)
-        case "public"       => JsSuccess(public)
-      }
-    }
+object ClientTypes {
+  val reads: Reads[String] = (json: JsValue) => json.as[String] match {
+    case c@"confidential" => JsSuccess(c)
+    case p@"public" => JsSuccess(p)
+    case _ => JsError(JsPath.\("clientType"), "Unsupported client type")
   }
 }

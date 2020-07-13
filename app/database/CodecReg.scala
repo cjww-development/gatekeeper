@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-package controllers
+package database
 
-import javax.inject.Inject
-import play.api.libs.json.JsValue
-import play.api.mvc.{Action, BaseController, ControllerComponents}
+import database.registries.JodaCodec
+import models.{RegisteredApplication, User}
+import org.bson.codecs.configuration.CodecRegistries.{fromCodecs, fromProviders, fromRegistries}
+import org.bson.codecs.configuration.CodecRegistry
+import org.mongodb.scala.bson.codecs.DEFAULT_CODEC_REGISTRY
+import org.mongodb.scala.bson.codecs.Macros._
 
-class DefaultClientController @Inject()(val controllerComponents: ControllerComponents) extends ClientController
-
-trait ClientController extends BaseController {
-
-  def registerClient(): Action[JsValue] = ???
+trait CodecReg {
+  implicit val codec: CodecRegistry = fromRegistries(
+    fromCodecs(new JodaCodec),
+    fromProviders(classOf[User], classOf[RegisteredApplication]),
+    DEFAULT_CODEC_REGISTRY
+  )
 }

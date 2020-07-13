@@ -1,8 +1,14 @@
-GET         /register                               controllers.RegistrationController.show()
-POST        /register                               controllers.RegistrationController.submit()
+GET         /register                               controllers.ui.RegistrationController.showUserReg()
+POST        /register                               controllers.ui.RegistrationController.submitUserReg()
+GET         /register/service                       controllers.ui.RegistrationController.showAppReg()
+POST        /register/service                       controllers.ui.RegistrationController.submitAppReg()
 
-POST        /register-client                        controllers.ClientController.registerClient()
+GET         /login                                  controllers.ui.LoginController.show()
+POST        /login                                  controllers.ui.LoginController.submit()
+GET         /logout                                 controllers.ui.LoginController.logout()
 
-GET         /oauth/authorise                        controllers.OAuthController.authorise()
+GET         /account                                controllers.ui.AccountController.show()
+
+GET         /oauth/authorise                        controllers.ui.OAuthController.authorise()
 
 GET         /assets/*file                           controllers.Assets.at(path="/public", file)

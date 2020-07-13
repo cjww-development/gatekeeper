@@ -17,18 +17,20 @@
 package global
 
 import com.cjwwdev.mongo.indexing.RepositoryIndexer
-import database.{IndividualUserStore, OrganisationUserStore}
+import database.{AppStore, CodecReg, IndividualUserStore, OrganisationUserStore}
 import javax.inject.Inject
-import models.User
+import models.{RegisteredApplication, User}
 import models.User._
 
 import scala.concurrent.{ExecutionContext => ExC}
 
 class GatekeeperIndexer @Inject()(val userStore: IndividualUserStore,
                                   val orgUserStore: OrganisationUserStore,
-                                  implicit val ec: ExC) extends RepositoryIndexer {
+                                  val appStore: AppStore,
+                                  implicit val ec: ExC) extends RepositoryIndexer with CodecReg {
   for {
     _ <- ensureMultipleIndexes[User](userStore)
     _ <- ensureMultipleIndexes[User](orgUserStore)
+    _ <- ensureMultipleIndexes[RegisteredApplication](appStore)
   } yield true
 }

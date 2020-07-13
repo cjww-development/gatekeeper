@@ -16,78 +16,100 @@
 
 package orchestrators
 
+import helpers.Assertions
 import helpers.services.MockRegistrationService
-import models.User
+import models.{RegisteredApplication, User}
+import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import services.RegistrationService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class RegistrationOrchestratorSpec extends PlaySpec with FutureAwaits with DefaultAwaitTimeout with MockRegistrationService {
+class RegistrationOrchestratorSpec extends PlaySpec with Assertions with MockRegistrationService {
 
   val testOrchestrator: RegistrationOrchestrator = new RegistrationOrchestrator {
     override val registrationService: RegistrationService = mockRegistrationService
   }
 
   val testUser: User = User(
-    id       = "testId",
-    userName = "testUsername",
-    email    = "test@email.com",
-    accType  = "ORGANISATION",
-    password = "testPassword"
+    id        = "testId",
+    userName  = "testUsername",
+    email     = "test@email.com",
+    accType   = "organisation",
+    password  = "testPassword",
+    salt      = "testSalt",
+    createdAt = DateTime.now()
+  )
+
+  val testApp: RegisteredApplication = RegisteredApplication(
+    owner        = "testOwner",
+    name         = "testName",
+    desc         = "testDesc",
+    homeUrl      = "http://localhost:8080",
+    redirectUrl  = "http://localhost:8080/redirect",
+    clientType   = "confidential",
+    clientId     = "testId",
+    clientSecret = Some("testSecret")
   )
 
   "registerUser" should {
     "return a Registered response" when {
       "the user is successfully registered" in {
-        mockValidateEmail(inUse = false)
-        mockValidateUserName(inUse = false)
+        mockIsIdentifierInUse(inUse = false)
+        mockValidateSalt(salt = "testSalt")
         mockCreateNewUser(success = true)
 
-        val res = await(testOrchestrator.registerUser(testUser))
-        res mustBe Registered
+        awaitAndAssert(testOrchestrator.registerUser(testUser)) {
+          _ mustBe Registered
+        }
       }
     }
 
-    "return an EmailInUse response" when {
-      "the new users email is already in use" in {
-        mockValidateEmail(inUse = true)
-        mockValidateUserName(inUse = false)
-
-        val res = await(testOrchestrator.registerUser(testUser))
-        res mustBe EmailInUse
-      }
-    }
-
-    "return a UserNameInUse response" when {
-      "the new users user name is already in use" in {
-        mockValidateEmail(inUse = false)
-        mockValidateUserName(inUse = true)
-
-        val res = await(testOrchestrator.registerUser(testUser))
-        res mustBe UserNameInUse
-      }
-    }
-
-    "return a BothInUse response" when {
+    "return an AccountIdsInUse response" when {
       "the new users email and user name are already in use" in {
-        mockValidateEmail(inUse = true)
-        mockValidateUserName(inUse = true)
+        mockIsIdentifierInUse(inUse = true)
 
-        val res = await(testOrchestrator.registerUser(testUser))
-        res mustBe BothInUse
+        awaitAndAssert(testOrchestrator.registerUser(testUser)) {
+          _ mustBe AccountIdsInUse
+        }
       }
     }
 
     "return a RegistrationError response" when {
       "there was a problem registering the new user" in {
-        mockValidateEmail(inUse = false)
-        mockValidateUserName(inUse = false)
+        mockIsIdentifierInUse(inUse = false)
+        mockValidateSalt(salt = "testSalt")
         mockCreateNewUser(success = false)
 
-        val res = await(testOrchestrator.registerUser(testUser))
-        res mustBe RegistrationError
+        awaitAndAssert(testOrchestrator.registerUser(testUser)) {
+          _ mustBe RegistrationError
+        }
+      }
+    }
+  }
+
+  "registerApplication" should {
+    "return an AppRegistered response" when {
+      "the app has been registered" in {
+        mockValidateIdsAndSecrets(app = testApp)
+
+        mockCreateApp(success = true)
+
+        awaitAndAssert(testOrchestrator.registerApplication(testApp)) {
+          _ mustBe AppRegistered
+        }
+      }
+    }
+
+    "return an AppRegisteredError response" when {
+      "there was a problem registering the app" in {
+        mockValidateIdsAndSecrets(app = testApp)
+
+        mockCreateApp(success = false)
+
+        awaitAndAssert(testOrchestrator.registerApplication(testApp)) {
+          _ mustBe AppRegistrationError
+        }
       }
     }
   }

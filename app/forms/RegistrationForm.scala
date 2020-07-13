@@ -17,10 +17,14 @@
 package forms
 
 import models.User
+import org.slf4j.LoggerFactory
 import play.api.data.Form
 import play.api.data.Forms._
 
 object RegistrationForm {
+
+  private val logger = LoggerFactory.getLogger(this.getClass)
+
   val form: Form[User] = Form(
     mapping(
       "userName" -> text,
@@ -29,4 +33,13 @@ object RegistrationForm {
       "password" -> text
     )(User.apply)(User.unapply)
   )
+
+  implicit class RegistrationFormOps(regForm: Form[User]) {
+    def renderErrors: Form[User] = {
+      logger.warn(s"[renderErrors] - Registration form was in error")
+      regForm
+        .withError("userName", "Please use a different user name or email")
+        .withError("email", "")
+    }
+  }
 }

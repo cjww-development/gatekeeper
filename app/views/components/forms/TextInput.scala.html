@@ -13,4 +13,4 @@
 @classes   = @{elements.args(Symbol("_class"))}
 
 <label for="@id" class="sr-only">@label</label>
-<input type="@inputType" name="@name" id="@id" class="@classes" placeholder="@label" value="@{formItem.value}" @disabled>
+<input type="@inputType" name="@name" id="@id" class="@classes @if(formItem.hasErrors){ is-invalid }" placeholder="@label" value="@{formItem.value}" @disabled>

@@ -18,18 +18,20 @@ package orchestrators
 
 import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
 import javax.inject.Inject
-import models.User
+import models.{RegisteredApplication, User}
 import org.slf4j.LoggerFactory
 import services.RegistrationService
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
-sealed trait RegistrationResponse
-case object Registered extends RegistrationResponse
-case object EmailInUse extends RegistrationResponse
-case object UserNameInUse extends RegistrationResponse
-case object BothInUse extends RegistrationResponse
-case object RegistrationError extends RegistrationResponse
+sealed trait UserRegistrationResponse
+case object Registered extends UserRegistrationResponse
+case object AccountIdsInUse extends UserRegistrationResponse
+case object RegistrationError extends UserRegistrationResponse
+
+sealed trait AppRegistrationResponse
+case object AppRegistered extends AppRegistrationResponse
+case object AppRegistrationError extends AppRegistrationResponse
 
 class DefaultRegistrationOrchestrator @Inject()(val registrationService: RegistrationService) extends RegistrationOrchestrator
 
@@ -39,29 +41,30 @@ trait RegistrationOrchestrator {
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  def registerUser(user: User)(implicit ec: ExC): Future[RegistrationResponse] = {
-    for {
-      emailInUse    <- registrationService.validateEmail(user.email)
-      userNameInUse <- registrationService.validateUsername(user.userName)
-      registered    <- (emailInUse, userNameInUse) match {
-        case (true, true)   =>
-          logger.warn(s"[registerUser] - Aborting registration; both email and username are already in use")
-          Future.successful(BothInUse)
-        case (false, true)  =>
-          logger.warn(s"[registerUser] - Aborting registration; username is already in use")
-          Future.successful(UserNameInUse)
-        case (true, false)  =>
-          logger.warn(s"[registerUser] - Aborting registration; email is already in use")
-          Future.successful(EmailInUse)
-        case (false, false) => registrationService.createNewUser(user) flatMap {
+  def registerUser(user: User)(implicit ec: ExC): Future[UserRegistrationResponse] = {
+    registrationService.isIdentifierInUse(user.email, user.userName) flatMap {
+      case true =>
+        logger.warn(s"[registerUser] - Aborting registration; either email or username are already in use")
+        Future.successful(AccountIdsInUse)
+      case false => registrationService.validateSalt(user.salt) flatMap { saltToUse =>
+        registrationService.createNewUser(user.copy(salt = saltToUse)) map {
           case MongoSuccessCreate =>
             logger.info(s"[registerUser] - Registration successful; new user under ${user.id}")
-            Future.successful(Registered)
-          case MongoFailedCreate  =>
+            Registered
+          case MongoFailedCreate =>
             logger.error(s"[registerUser] - Registration unsuccessful; There was a problem creating the user")
-            Future.successful(RegistrationError)
+            RegistrationError
         }
       }
-    } yield registered
+    }
+  }
+
+  def registerApplication(app: RegisteredApplication)(implicit ec: ExC): Future[AppRegistrationResponse] = {
+    registrationService.validateIdsAndSecrets(app) flatMap { cleansedApp =>
+      registrationService.createApp(cleansedApp) map {
+        case MongoSuccessCreate => AppRegistered
+        case MongoFailedCreate  => AppRegistrationError
+      }
+    }
   }
 }

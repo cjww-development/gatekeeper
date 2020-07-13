@@ -22,8 +22,10 @@ import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, Mong
 import com.typesafe.config.Config
 import javax.inject.Inject
 import models.User
-import models.User._
-import org.mongodb.scala.model.Filters.equal
+import org.mongodb.scala.bson.BsonValue
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.bson.conversions.Bson
+import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Projections.{excludeId, fields, include}
 import org.mongodb.scala.model.{IndexModel, IndexOptions, Indexes}
 import org.slf4j.{Logger, LoggerFactory}
@@ -35,31 +37,52 @@ class DefaultOrganisationUserStore @Inject()(val configuration: Configuration) e
   override val config: Config = configuration.underlying
 }
 
-trait OrganisationUserStore extends DatabaseRepository {
+trait OrganisationUserStore extends DatabaseRepository with CodecReg {
 
   private val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   override def indexes: Seq[IndexModel] = Seq(
     IndexModel(Indexes.ascending("id"), IndexOptions().background(false).unique(true)),
     IndexModel(Indexes.ascending("userName"), IndexOptions().background(false).unique(true)),
-    IndexModel(Indexes.ascending("email"), IndexOptions().background(false).unique(true))
+    IndexModel(Indexes.ascending("email"), IndexOptions().background(false).unique(true)),
+    IndexModel(Indexes.ascending("salt"), IndexOptions().background(false).unique(true)),
   )
 
   def createUser(user: User)(implicit ec: ExC): Future[MongoCreateResponse] = {
-    collection[User].insertOne(user).toFuture().map { _ =>
-      logger.info(s"[createNewUser] - Created new user under userId ${user.id}")
-      MongoSuccessCreate
-    }recover {
-      case e =>
-        logger.error(s"[createNewUser] - There was a problem creating a new user under userId ${user.id}", e)
-        MongoFailedCreate
-    }
+    collection[User]
+      .insertOne(user)
+      .toFuture()
+      .map { _ =>
+        logger.info(s"[createNewUser] - Created new user under userId ${user.id}")
+        MongoSuccessCreate
+      } recover {
+        case e =>
+          logger.error(s"[createNewUser] - There was a problem creating a new user under userId ${user.id}", e)
+          MongoFailedCreate
+      }
   }
 
-  def validateUserOn(key: String, value: String): Future[Option[User]] = {
+  def validateUserOn(query: Bson): Future[Option[User]] = {
     collection[User]
-      .find(equal(key, value))
+      .find(query)
       .first()
       .toFutureOption()
+  }
+
+  def projectValue(key: String, value: String, projections: String*)(implicit ec: ExC): Future[Map[String, BsonValue]] = {
+    def buildMap(doc: Option[Document]): Map[String, BsonValue] = {
+      doc.fold[Map[String, BsonValue]](Map())(_.toMap)
+    }
+
+    val inclusions = fields((projections
+      .map(str => include(str)) ++ Seq(include("id"), excludeId())):_*)
+
+    collection[Document]
+      .find(equal(key, value))
+      .projection(inclusions)
+      .first()
+      .toFutureOption()
+      .map(buildMap)
+      .recover(_ => Map())
   }
 }

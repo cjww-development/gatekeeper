@@ -1,0 +1,24 @@
+@import views.html.Main
+@import org.joda.time.DateTime
+@import controllers.ui.{routes => uiRoutes}
+
+@(userDetails: Map[String, String])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
+
+@Main("Your account") {
+    <div class="form-signin">
+        <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
+        <h1 class="h3 mb-3 font-weight-normal">Your account</h1>
+
+        <hr>
+        <p class="default-text">@{userDetails("userName")}</p>
+        <p class="default-text">@{userDetails("email")}</p>
+        <p class="default-text">@{userDetails("createdAt")}</p>
+        <hr>
+        <form class="form-signin" action="@{uiRoutes.LoginController.logout()}" method="get">
+            <button class="btn btn-lg btn-primary btn-block" id="registration-submit" type="submit">Logout</button>
+        </form>
+        <hr>
+
+        <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
+    </div>
+}

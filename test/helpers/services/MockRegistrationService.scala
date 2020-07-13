@@ -17,7 +17,7 @@
 package helpers.services
 
 import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
-import models.User
+import models.{RegisteredApplication, User}
 import org.mockito.ArgumentMatchers
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
@@ -26,7 +26,7 @@ import services.RegistrationService
 import org.mockito.Mockito.{reset, when}
 import org.mockito.stubbing.OngoingStubbing
 
-import scala.concurrent.{ExecutionContext => ExC, Future}
+import scala.concurrent.{Future, ExecutionContext => ExC}
 
 trait MockRegistrationService extends MockitoSugar with BeforeAndAfterEach {
   self: PlaySpec =>
@@ -43,13 +43,23 @@ trait MockRegistrationService extends MockitoSugar with BeforeAndAfterEach {
       .thenReturn(Future.successful(if(success) MongoSuccessCreate else MongoFailedCreate))
   }
 
-  def mockValidateEmail(inUse: Boolean): OngoingStubbing[Future[Boolean]] = {
-    when(mockRegistrationService.validateEmail(ArgumentMatchers.any[String]())(ArgumentMatchers.any[ExC]()))
+  def mockIsIdentifierInUse(inUse: Boolean): OngoingStubbing[Future[Boolean]] = {
+    when(mockRegistrationService.isIdentifierInUse(ArgumentMatchers.any[String](), ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
       .thenReturn(Future.successful(inUse))
   }
 
-  def mockValidateUserName(inUse: Boolean): OngoingStubbing[Future[Boolean]] = {
-    when(mockRegistrationService.validateUsername(ArgumentMatchers.any[String]())(ArgumentMatchers.any[ExC]()))
-      .thenReturn(Future.successful(inUse))
+  def mockValidateSalt(salt: String): OngoingStubbing[Future[String]] = {
+    when(mockRegistrationService.validateSalt(ArgumentMatchers.any[String]())(ArgumentMatchers.any[ExC]()))
+      .thenReturn(Future.successful(salt))
+  }
+
+  def mockCreateApp(success: Boolean): OngoingStubbing[Future[MongoCreateResponse]] = {
+    when(mockRegistrationService.createApp(ArgumentMatchers.any[RegisteredApplication]())(ArgumentMatchers.any[ExC]()))
+      .thenReturn(Future.successful(if(success) MongoSuccessCreate else MongoFailedCreate))
+  }
+
+  def mockValidateIdsAndSecrets(app: RegisteredApplication): OngoingStubbing[Future[RegisteredApplication]] = {
+    when(mockRegistrationService.validateIdsAndSecrets(ArgumentMatchers.any[RegisteredApplication]())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(app))
   }
 }

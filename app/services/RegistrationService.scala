@@ -17,51 +17,102 @@
 package services
 
 import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
-import database.{IndividualUserStore, OrganisationUserStore}
+import database.{AppStore, IndividualUserStore, OrganisationUserStore}
 import javax.inject.Inject
-import models.User
+import models.{RegisteredApplication, User}
+import org.mongodb.scala.bson.conversions.Bson
 import org.slf4j.LoggerFactory
+import utils.StringUtils
+import org.mongodb.scala.model.Filters._
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultRegistrationService @Inject()(val userStore: IndividualUserStore,
-                                           val orgUserStore: OrganisationUserStore) extends RegistrationService
+                                           val orgUserStore: OrganisationUserStore,
+                                           val appStore: AppStore) extends RegistrationService
 
 trait RegistrationService {
 
   val userStore: IndividualUserStore
   val orgUserStore: OrganisationUserStore
+  val appStore: AppStore
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
   def createNewUser(user: User)(implicit ec: ExC): Future[MongoCreateResponse] = {
     logger.info(s"[createNewUser] - Creating new user with Id ${user.id}")
-    user.accType.toUpperCase match {
-      case "INDIVIDUAL"   => userStore.createUser(user).map(logResponse(user))
-      case "ORGANISATION" => orgUserStore.createUser(user).map(logResponse(user))
+    user.accType match {
+      case "individual"   => userStore.createUser(user).map(logResponse(user))
+      case "organisation" => orgUserStore.createUser(user).map(logResponse(user))
     }
   }
 
-  def validateEmail(email: String)(implicit ec: ExC): Future[Boolean] = {
+  def isIdentifierInUse(email: String, userName: String)(implicit ec: ExC): Future[Boolean] = {
+    val query: String => Bson = accountId => or(
+      equal("email", accountId),
+      equal("userName", accountId)
+    )
+
     for {
-      ind <- userStore.validateUserOn("email", email)
-      org <- orgUserStore.validateUserOn("email", email)
-    } yield !(ind.isEmpty && org.isEmpty)
+      indEmail    <- userStore.validateUserOn(query(email))
+      indUserName <- userStore.validateUserOn(query(userName))
+      orgEmail    <- orgUserStore.validateUserOn(query(email))
+      orgUserName <- orgUserStore.validateUserOn(query(userName))
+    } yield {
+      (indEmail.nonEmpty || indUserName.nonEmpty) -> (orgEmail.nonEmpty || orgUserName.nonEmpty) match {
+        case (false, false) => false
+        case (true, false)  => true
+        case (false, true)  => true
+        case (true, true)   => true
+      }
+    }
   }
 
-  def validateUsername(userName: String)(implicit ec: ExC): Future[Boolean] = {
-    for {
-      ind <- userStore.validateUserOn("userName", userName)
-      org <- orgUserStore.validateUserOn("userName", userName)
-    } yield !(ind.isEmpty && org.isEmpty)
+  def validateSalt(salt: String)(implicit ec: ExC): Future[String] = {
+    val query = equal("salt", salt)
+    userStore.validateUserOn(query) flatMap { ind =>
+      orgUserStore.validateUserOn(query) flatMap { org =>
+        if(!(ind.isEmpty && org.isEmpty)) {
+          logger.info("[revalidateSalt] - Current salt is in use, regenerating salt and revalidating")
+          val salt = StringUtils.salter(length = 32)
+          validateSalt(salt)
+        } else {
+          logger.info("[revalidateSalt] - Current salt deemed ok to use")
+          Future.successful(salt)
+        }
+      }
+    }
+  }
+
+  def createApp(app: RegisteredApplication)(implicit ec: ExC): Future[MongoCreateResponse] = {
+    appStore.createApp(app)
+  }
+
+  def validateIdsAndSecrets(app: RegisteredApplication)(implicit ec: ExC): Future[RegisteredApplication] = {
+    def validate(clientId: String, clientSecret: Option[String])(implicit ec: ExC): Future[Boolean] = {
+      for {
+        appId     <- appStore.validateAppOn("clientId", clientId)
+        appSecret <- clientSecret.fold(Future.successful(Option.empty[RegisteredApplication])) {
+          sec => appStore.validateAppOn("clientSecret", sec)
+        }
+      } yield {
+        val inUse = appId.nonEmpty || appSecret.nonEmpty
+        logger.info(s"[areIdsAndSecretsInUse] - Are the selected ids and secrets in use? $inUse")
+        inUse
+      }
+    }
+
+    validate(app.clientId, app.clientSecret) flatMap { inUse =>
+      if(inUse) validateIdsAndSecrets(app.regenerateIdsAndSecrets) else Future.successful(app)
+    }
   }
 
   private def logResponse(user: User): PartialFunction[MongoCreateResponse, MongoCreateResponse] = {
     case resp@MongoSuccessCreate =>
-      logger.info(s"[createNewUser] - Created new ${user.accType.toLowerCase} user against Id ${user.id}")
+      logger.info(s"[createNewUser] - Created new ${user.accType} user against Id ${user.id}")
       resp
     case resp@MongoFailedCreate =>
-      logger.error(s"[createNewUser] - There was a problem creating a ${user.accType.toLowerCase} user against Id ${user.id}")
+      logger.error(s"[createNewUser] - There was a problem creating a ${user.accType} user against Id ${user.id}")
       resp
   }
 }

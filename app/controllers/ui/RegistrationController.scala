@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.ui
 
-import forms.RegistrationForm
+import forms.AppRegistrationForm.{form => appRegForm}
+import forms.RegistrationForm.{form => regForm, _}
 import javax.inject.Inject
-import orchestrators.{BothInUse, EmailInUse, Registered, RegistrationError, RegistrationOrchestrator, UserNameInUse}
+import orchestrators._
 import org.slf4j.LoggerFactory
-import play.api.i18n.{I18NSupportLowPriorityImplicits, I18nSupport}
-import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents, RequestHeader}
-import views.html.registration.UserRegistration
+import play.api.i18n.{I18NSupportLowPriorityImplicits, I18nSupport, Lang}
+import play.api.mvc._
+import views.html.registration.{AppRegistration, UserRegistration}
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
@@ -37,23 +38,35 @@ trait RegistrationController extends BaseController with I18NSupportLowPriorityI
 
   implicit val ec: ExC
 
-  implicit def langs(implicit rh: RequestHeader) = messagesApi.preferred(rh).lang
+  implicit def langs(implicit rh: RequestHeader): Lang = messagesApi.preferred(rh).lang
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  def show(): Action[AnyContent] = Action { implicit req =>
-    Ok(UserRegistration(RegistrationForm.form))
+  def showUserReg(): Action[AnyContent] = Action { implicit req =>
+    Ok(UserRegistration(regForm))
   }
 
-  def submit(): Action[AnyContent] = Action.async { implicit req =>
-    RegistrationForm.form.bindFromRequest().fold(
+  def submitUserReg(): Action[AnyContent] = Action.async { implicit req =>
+    regForm.bindFromRequest.fold(
       errs => Future.successful(BadRequest(errs.toString)),
       user => registrationOrchestrator.registerUser(user) map {
         case Registered        => Ok(user.toString)
-        case BothInUse         => BadRequest("Email and user name are in use")
-        case EmailInUse        => BadRequest("Email is in use")
-        case UserNameInUse     => BadRequest("User name is in use")
         case RegistrationError => BadRequest("There was a problem registering the new user")
+        case _                 => BadRequest(UserRegistration(regForm.renderErrors))
+      }
+    )
+  }
+
+  def showAppReg(): Action[AnyContent] = Action { implicit req =>
+    Ok(AppRegistration(appRegForm))
+  }
+
+  def submitAppReg(): Action[AnyContent] = Action.async { implicit req =>
+    appRegForm.bindFromRequest.fold(
+      errs => Future.successful(BadRequest(errs.toString)),
+      app  => registrationOrchestrator.registerApplication(app) map {
+        case AppRegistered        => Ok(s"${app.name} is now registered")
+        case AppRegistrationError => InternalServerError
       }
     )
   }

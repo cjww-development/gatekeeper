@@ -17,25 +17,30 @@
 package database
 
 import com.cjwwdev.mongo.responses.MongoSuccessCreate
+import helpers.Assertions
 import models.User
-import models.User._
+import org.joda.time.DateTime
 import org.scalatest.BeforeAndAfterAll
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
+import org.mongodb.scala.model.Filters.{equal => mongoEqual, and => mongoAnd}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class OrganisationUserStoreISpec extends PlaySpec with GuiceOneAppPerSuite with FutureAwaits with DefaultAwaitTimeout with BeforeAndAfterAll {
+class OrganisationUserStoreISpec extends PlaySpec with GuiceOneAppPerSuite with Assertions with BeforeAndAfterAll with CodecReg {
 
   val testUserStore: OrganisationUserStore = app.injector.instanceOf[OrganisationUserStore]
 
+  val now = DateTime.now()
+
   val testUser: User = User(
-    id       = "testUserId",
-    userName = "testUserName",
-    email    = "test@email.com",
-    accType  = "ORGANISATION",
-    password = "testPassword"
+    id        = "testUserId",
+    userName  = "testUserName",
+    email     = "test@email.com",
+    accType   = "organisation",
+    password  = "testPassword",
+    salt      = "testSalt",
+    createdAt = now
   )
 
   override def beforeAll(): Unit = {
@@ -51,8 +56,9 @@ class OrganisationUserStoreISpec extends PlaySpec with GuiceOneAppPerSuite with 
   "createUser" should {
     "return a MongoSuccessCreate" when {
       "a new user has been created" in {
-        val res = await(testUserStore.createUser(testUser))
-        res mustBe MongoSuccessCreate
+        awaitAndAssert(testUserStore.createUser(testUser)) {
+          _ mustBe MongoSuccessCreate
+        }
       }
     }
   }
@@ -60,25 +66,80 @@ class OrganisationUserStoreISpec extends PlaySpec with GuiceOneAppPerSuite with 
   "validateUserOn" should {
     "return a User" when {
       "a user already exists with a matching email" in {
-        val res = await(testUserStore.validateUserOn("email", testUser.email))
-        res mustBe Some(testUser)
+        awaitAndAssert(testUserStore.validateUserOn(mongoEqual("email", testUser.email))) {
+          _ mustBe Some(testUser)
+        }
       }
 
       "a user already exists with a matching user name" in {
-        val res = await(testUserStore.validateUserOn("userName", testUser.userName))
-        res mustBe Some(testUser)
+        awaitAndAssert(testUserStore.validateUserOn(mongoEqual("userName", testUser.userName))) {
+          _ mustBe Some(testUser)
+        }
+      }
+
+      "a user matches on more than one field" in {
+        awaitAndAssert(testUserStore.validateUserOn(mongoAnd(mongoEqual("userName", testUser.userName), mongoEqual("email", testUser.email)))) {
+          _ mustBe Some(testUser)
+        }
       }
     }
 
     "return None" when {
       "a user doesn't exist with the given email" in {
-        val res = await(testUserStore.validateUserOn("email", "test-user@email.com"))
-        res mustBe None
+        awaitAndAssert(testUserStore.validateUserOn(mongoEqual("email", "test-user@email.com"))) {
+          _ mustBe None
+        }
       }
 
       "a user doesn't exist with the given user name" in {
-        val res = await(testUserStore.validateUserOn("userName", "otherTestUser"))
-        res mustBe None
+        awaitAndAssert(testUserStore.validateUserOn(mongoEqual("userName", "otherTestUser"))) {
+          _ mustBe None
+        }
+      }
+
+      "a user matches on one field" in {
+        awaitAndAssert(testUserStore.validateUserOn(mongoAnd(mongoEqual("userName", testUser.userName), mongoEqual("email", "invalid@email.com")))) {
+          _ mustBe None
+        }
+      }
+    }
+  }
+
+  "projectValue" should {
+    "return an Optional value" when {
+      "projecting the email" in {
+        awaitAndAssert(testUserStore.projectValue("userName", testUser.userName, "email")) { map =>
+          map.get("email").map(_.asString().getValue) mustBe Some(testUser.email)
+          map.get("id").map(_.asString().getValue) mustBe Some(testUser.id)
+        }
+      }
+
+      "projecting the account type" in {
+        awaitAndAssert(testUserStore.projectValue("userName", testUser.userName, "accType")) { map =>
+          map.get("accType").map(_.asString().getValue) mustBe Some(testUser.accType)
+          map.get("id").map(_.asString().getValue) mustBe Some(testUser.id)
+        }
+      }
+
+      "projecting the date" in {
+        awaitAndAssert(testUserStore.projectValue("userName", testUser.userName, "createdAt")) { map =>
+          map.get("createdAt").map(_.asDateTime().getValue) mustBe Some(now.getMillis)
+          map.get("id").map(_.asString().getValue) mustBe Some(testUser.id)
+        }
+      }
+    }
+
+    "return None" when {
+      "the document doesn't exist" in {
+        awaitAndAssert(testUserStore.projectValue("userName", "invalidUserName", "email")) {
+          _ mustBe Map()
+        }
+      }
+
+      "the field doesn't exist" in {
+        awaitAndAssert(testUserStore.projectValue("userName", testUser.userName, "invalidField")) { map =>
+          map.get("id").map(_.asString().getValue) mustBe Some(testUser.id)
+        }
       }
     }
   }
