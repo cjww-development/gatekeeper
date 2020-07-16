@@ -22,7 +22,7 @@ import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import services.ScopeService
 
 class DefaultScopeController @Inject()(val controllerComponents: ControllerComponents,
-                                        val scopesService: ScopeService) extends ScopeController
+                                       val scopesService: ScopeService) extends ScopeController
 
 trait ScopeController extends BaseController {
 

@@ -16,32 +16,39 @@
 
 package helpers.services
 
-import models.Scopes
+import models.RegisteredApplication
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
 import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import services.ScopeService
+import services.GrantService
 
-trait MockScopeService extends MockitoSugar with BeforeAndAfterEach {
+import scala.concurrent.Future
+
+trait MockGrantService extends MockitoSugar with BeforeAndAfterEach {
   self: PlaySpec =>
 
-  val mockScopeService: ScopeService = mock[ScopeService]
+  val mockGrantService: GrantService = mock[GrantService]
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(mockScopeService)
+    reset(mockGrantService)
   }
 
-  def mockGetScopes(populated: Boolean): OngoingStubbing[Scopes] = {
-    when(mockScopeService.getValidScopes)
-      .thenReturn(if(populated) Scopes(Seq("testRead"), Seq("testWrite")) else Scopes(Seq(), Seq()))
+  def mockGetRegisteredApp(app: Option[RegisteredApplication]): OngoingStubbing[Future[Option[RegisteredApplication]]] = {
+    when(mockGrantService.getRegisteredApp(ArgumentMatchers.any[String]()))
+      .thenReturn(Future.successful(app))
   }
 
-  def mockMakeScopesFromQuery(scopes: Scopes): OngoingStubbing[Scopes] = {
-    when(mockScopeService.makeScopesFromQuery(ArgumentMatchers.any()))
-      .thenReturn(scopes)
+  def mockValidateRedirectUrl(valid: Boolean): OngoingStubbing[Boolean] = {
+    when(mockGrantService.validateRedirectUrl(ArgumentMatchers.any[String](), ArgumentMatchers.any[String]()))
+      .thenReturn(valid)
+  }
+
+  def mockValidateRequestedScopes(valid: Boolean): OngoingStubbing[Boolean] = {
+    when(mockGrantService.validateRequestedScopes(ArgumentMatchers.any[Seq[String]]()))
+      .thenReturn(valid)
   }
 }

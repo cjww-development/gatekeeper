@@ -40,15 +40,15 @@ object RegisteredApplication extends Obfuscators {
     (0 to iterations)
       .map(_ => UUID.randomUUID().toString.replace("-", ""))
       .mkString
-      .encrypt
+//      .encrypt
   }
 
   implicit class RegisteredApplicationOps(app: RegisteredApplication) {
     def regenerateIdsAndSecrets: RegisteredApplication = {
       app.copy(
-        clientId = generateIds(iterations = 1),
+        clientId = generateIds(iterations = 0),
         clientSecret = app.clientType match {
-          case "confidential" => Some(generateIds(iterations = 2))
+          case "confidential" => Some(generateIds(iterations = 1))
           case "public"       => None
         }
       )
@@ -63,9 +63,9 @@ object RegisteredApplication extends Obfuscators {
       homeUrl,
       redirectUrl,
       clientType,
-      generateIds(iterations = 1),
+      generateIds(iterations = 0),
       clientType match {
-        case "confidential" => Some(generateIds(iterations = 2))
+        case "confidential" => Some(generateIds(iterations = 1))
         case "public"       => None
       }
     )

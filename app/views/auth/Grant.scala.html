@@ -1,0 +1,32 @@
+@import views.html.Main
+@import org.joda.time.DateTime
+@import controllers.api.{routes => apiRoutes}
+@import controllers.ui.{routes => uiRoutes}
+@import controllers.routes
+
+@import views.html.helper.CSRF
+@(app: RegisteredApplication, scopes: Scopes, authReq: AuthorisationRequest)(implicit rh: RequestHeader)
+
+@Main("A service would like to access your account") {
+    <div class="form-signin">
+        <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
+        <h1 class="h3 mb-3 font-weight-normal">Allow access</h1>
+        <hr>
+
+        <p class="default-text">@{app.name} by @{app.owner} would like to access your account</p>
+        <p class="default-text">"@{app.desc}"</p>
+        <p class="default-text">and would like to access these parts of your account</p>
+        <ul class="default-text">
+            @for(scope <- scopes.reads){
+                <li>@{scope}</li>
+            }
+        </ul>
+        <hr>
+        <form class="form-signin" action="@uiRoutes.OAuthController.submitGrant(authReq.responseType, authReq.clientId, authReq.redirectUri, authReq.scope.mkString(","), authReq.state)" method="post">
+            @CSRF.formField
+            <button class="btn btn-lg btn-primary btn-block" id="registration-submit" type="submit">Allow access</button>
+        </form>
+        <hr>
+        <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
+    </div>
+}

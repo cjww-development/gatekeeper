@@ -17,17 +17,16 @@
 package database
 
 import com.cjwwdev.mongo.responses.MongoSuccessCreate
-import helpers.Assertions
+import helpers.{Assertions, IntegrationApp}
 import models.User
 import org.joda.time.DateTime
 import org.scalatest.BeforeAndAfterAll
 import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import org.mongodb.scala.model.Filters.{equal => mongoEqual, and => mongoAnd}
+import org.mongodb.scala.model.Filters.{and => mongoAnd, equal => mongoEqual}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class OrganisationUserStoreISpec extends PlaySpec with GuiceOneAppPerSuite with Assertions with BeforeAndAfterAll with CodecReg {
+class OrganisationUserStoreISpec extends PlaySpec with IntegrationApp with Assertions with BeforeAndAfterAll with CodecReg {
 
   val testUserStore: OrganisationUserStore = app.injector.instanceOf[OrganisationUserStore]
 

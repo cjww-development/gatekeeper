@@ -46,4 +46,15 @@ class ScopeServiceSpec
       }
     }
   }
+
+  "makeScopesFromQuery" should {
+    "return a scopes" in {
+      assertOutput(testService.makeScopesFromQuery(Seq("read:username", "write:email"))) {
+        _ mustBe Scopes(
+          reads  = Seq("username"),
+          writes = Seq("email")
+        )
+      }
+    }
+  }
 }

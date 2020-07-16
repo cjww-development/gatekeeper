@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package database
+package models
 
-import database.registries.JodaCodec
-import models.{Grant, RegisteredApplication, User}
-import org.bson.codecs.configuration.CodecRegistries.{fromCodecs, fromProviders, fromRegistries}
-import org.bson.codecs.configuration.CodecRegistry
-import org.mongodb.scala.bson.codecs.DEFAULT_CODEC_REGISTRY
-import org.mongodb.scala.bson.codecs.Macros._
+import play.api.libs.json.{Json, OFormat}
 
-trait CodecReg {
-  implicit val codec: CodecRegistry = fromRegistries(
-    fromCodecs(new JodaCodec),
-    fromProviders(classOf[User], classOf[RegisteredApplication], classOf[Grant]),
-    DEFAULT_CODEC_REGISTRY
-  )
+case class AuthorisationRequest(responseType: String,
+                                clientId: String,
+                                redirectUri: String,
+                                scope: Seq[String],
+                                state: String)
+
+object AuthorisationRequest {
+  implicit val format: OFormat[AuthorisationRequest] = Json.format[AuthorisationRequest]
 }

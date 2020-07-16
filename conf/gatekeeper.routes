@@ -9,6 +9,10 @@ GET         /logout                                 controllers.ui.LoginControll
 
 GET         /account                                controllers.ui.AccountController.show()
 
-GET         /oauth/authorise                        controllers.ui.OAuthController.authorise()
+GET         /oauth/grant                            controllers.ui.OAuthController.createGrant()
+POST        /oauth/grant                            controllers.ui.OAuthController.submitGrant(response_type, client_id, redirect_uri, scope, state)
+
++ NOCSRF
+POST        /oauth/token                            controllers.ui.OAuthController.getToken(grant_type, code, redirect_uri, client_id, client_secret: Option[String])
 
 GET         /assets/*file                           controllers.Assets.at(path="/public", file)

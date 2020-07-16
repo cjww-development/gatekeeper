@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package database
+package helpers
 
-import database.registries.JodaCodec
-import models.{Grant, RegisteredApplication, User}
-import org.bson.codecs.configuration.CodecRegistries.{fromCodecs, fromProviders, fromRegistries}
-import org.bson.codecs.configuration.CodecRegistry
-import org.mongodb.scala.bson.codecs.DEFAULT_CODEC_REGISTRY
-import org.mongodb.scala.bson.codecs.Macros._
+import org.scalatestplus.play.PlaySpec
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Application
+import play.api.inject.guice.GuiceApplicationBuilder
 
-trait CodecReg {
-  implicit val codec: CodecRegistry = fromRegistries(
-    fromCodecs(new JodaCodec),
-    fromProviders(classOf[User], classOf[RegisteredApplication], classOf[Grant]),
-    DEFAULT_CODEC_REGISTRY
+trait IntegrationApp extends GuiceOneAppPerSuite {
+  self: PlaySpec =>
+
+  val appConfig: Map[String, Any] = Map(
+    "scopes.read"  -> Seq("username"),
+    "scopes.write" -> Seq()
   )
+
+  override lazy val app: Application = new GuiceApplicationBuilder()
+    .configure(appConfig)
+    .build()
 }

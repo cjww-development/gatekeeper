@@ -17,13 +17,70 @@
 package controllers.ui
 
 import javax.inject.Inject
+import models.{AuthorisationRequest, Grant => GrantModel}
+import orchestrators.{GrantOrchestrator, Issued, TokenOrchestrator, ValidatedGrantRequest}
+import org.slf4j.LoggerFactory
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
+import views.html.auth.Grant
+import models.ServerCookies._
 
-class DefaultOAuthController @Inject()(val controllerComponents: ControllerComponents) extends OAuthController
+import scala.concurrent.{Future, ExecutionContext => ExC}
+
+class DefaultOAuthController @Inject()(val controllerComponents: ControllerComponents,
+                                       val tokenOrchestrator: TokenOrchestrator,
+                                       val grantOrchestrator: GrantOrchestrator) extends OAuthController {
+  override implicit val ec: ExC = controllerComponents.executionContext
+}
 
 trait OAuthController extends BaseController {
 
-  def getToken(): Action[AnyContent] = ???
+  protected val grantOrchestrator: GrantOrchestrator
+  protected val tokenOrchestrator: TokenOrchestrator
+
+  implicit val ec: ExC
+
+  private val logger = LoggerFactory.getLogger(this.getClass)
+
+  def getToken(grant_type: String, code: String, redirect_uri: String, client_id: String, client_secret: Option[String]): Action[AnyContent] = {
+    Action.async { implicit req =>
+      tokenOrchestrator.issueToken(code) map {
+        case Issued(token) => Ok(Json.parse(s"""{ "access_token" : "$token" }"""))
+        case _ => BadRequest
+      }
+    }
+  }
 
   def authorise(): Action[AnyContent] = ???
+
+  def createGrant(): Action[AnyContent] = Action.async { implicit req =>
+    val authReq = AuthorisationRequest(
+      responseType = req.queryString("response_type").head,
+      clientId = req.queryString("client_id").head,
+      redirectUri = req.queryString("redirect_uri").head,
+      scope = req.queryString("scope").map(_.trim.split(",")).flatten,
+      state = req.queryString("state").head
+    )
+    grantOrchestrator.initiateGrantRequest(authReq) map {
+      case ValidatedGrantRequest(app, scope) => Ok(Grant(app, scope, authReq))
+      case err => BadRequest(err.toString)
+    }
+  }
+
+  def submitGrant(response_type: String, client_id: String, redirect_uri: String, scope: String, state: String): Action[AnyContent] = Action.async { implicit req =>
+    val authReq = AuthorisationRequest(
+      responseType = response_type,
+      clientId = client_id,
+      redirectUri = redirect_uri,
+      scope = scope.split(",").toSeq,
+      state = state
+    )
+
+    req.cookies.get("aas") match {
+      case Some(cookie) => grantOrchestrator.saveGrant(authReq, cookie.getValue()) map { grant =>
+        Ok(Json.toJson(grant)(GrantModel.outboundWriter).as[JsObject] ++ Json.obj("state" -> state))
+      }
+      case None => Future.successful(Forbidden)
+    }
+  }
 }

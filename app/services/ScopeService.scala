@@ -39,4 +39,14 @@ trait ScopeService {
       writes = config.get[Seq[String]]("scopes.write")
     )
   }
+
+  def makeScopesFromQuery(scopes: Seq[String]): Scopes = {
+    val inboundReads  = scopes.filter(_.startsWith("read:")).map(_.replace("read:", ""))
+    val inboundWrites = scopes.filter(_.startsWith("write:")).map(_.replace("write:", ""))
+
+    Scopes(
+      reads = inboundReads,
+      writes = inboundWrites
+    )
+  }
 }

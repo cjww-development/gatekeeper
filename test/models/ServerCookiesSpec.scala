@@ -61,7 +61,7 @@ class ServerCookiesSpec extends PlaySpec with Assertions with Obfuscators with D
         value = "value".encrypt
       )
 
-      assertOutput(testInput.getValue) {
+      assertOutput(testInput.getValue()) {
         _ mustBe "value"
       }
     }
@@ -72,7 +72,7 @@ class ServerCookiesSpec extends PlaySpec with Assertions with Obfuscators with D
         value = "value"
       )
 
-      assertOutput(testInput.getValue) {
+      assertOutput(testInput.getValue()) {
         _ mustBe "value"
       }
     }

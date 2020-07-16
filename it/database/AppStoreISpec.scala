@@ -17,16 +17,15 @@
 package database
 
 import com.cjwwdev.mongo.responses.MongoSuccessCreate
-import helpers.Assertions
+import helpers.{Assertions, IntegrationApp}
 import models.{RegisteredApplication, User}
 import org.joda.time.DateTime
 import org.scalatest.BeforeAndAfterAll
 import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class AppStoreISpec extends PlaySpec with GuiceOneAppPerSuite with Assertions with BeforeAndAfterAll with CodecReg {
+class AppStoreISpec extends PlaySpec with IntegrationApp with Assertions with BeforeAndAfterAll with CodecReg {
 
   val testAppStore: AppStore = app.injector.instanceOf[AppStore]
 
