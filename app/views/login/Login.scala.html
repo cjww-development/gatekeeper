@@ -1,0 +1,80 @@
+@import views.html.Main
+@import org.joda.time.DateTime
+@import helper._
+@import views.html.components.forms.TextInput
+@import models.{Login => LoginModel}
+@import controllers.ui.{routes => uiRoutes}
+
+@(form: Form[LoginModel])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
+
+@Main("Register for an account") {
+    <form class="form-signin" action="@uiRoutes.LoginController.submit()" method="post">
+        <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
+        <h1 class="h3 mb-3 font-weight-normal">Sign in</h1>
+
+        <hr>
+
+        @CSRF.formField
+
+        @if(form.hasErrors) {
+            @formWithErrors(form)
+        } else {
+            @emptyForm(form)
+        }
+
+        <hr>
+
+        <button class="btn btn-lg btn-primary btn-block" id="registration-submit" type="submit">Sign in</button>
+        <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
+    </form>
+}
+
+@emptyForm(form: Form[LoginModel]) = {
+    @TextInput(
+        form("userName"),
+        isReadOnly = false,
+        Symbol("_id") -> "userNameInput",
+        Symbol("_name") -> "userName",
+        Symbol("_label") -> "User name",
+        Symbol("_type") -> "text",
+        Symbol("_class") -> "form-control form-input-topper"
+    )
+
+    @TextInput(
+        form("password"),
+        isReadOnly = false,
+        Symbol("_id") -> "passwordInput",
+        Symbol("_name") -> "password",
+        Symbol("_label") -> "Password",
+        Symbol("_type") -> "password",
+        Symbol("_class") -> "form-control form-input-bottom"
+    )
+}
+
+@formWithErrors(form: Form[LoginModel]) = {
+    @if(form("userName").hasErrors) {
+        @form("userName").error.map { err =>
+            @TextInput(
+                form("userName"),
+                isReadOnly = false,
+                Symbol("_id") -> "userNameInput",
+                Symbol("_name") -> "userName",
+                Symbol("_label") -> "User name",
+                Symbol("_type") -> "text",
+                Symbol("_class") -> s"form-control form-input-topper"
+            )
+            @TextInput(
+                form("password"),
+                isReadOnly = false,
+                Symbol("_id") -> "passwordInput",
+                Symbol("_name") -> "password",
+                Symbol("_label") -> "Password",
+                Symbol("_type") -> "password",
+                Symbol("_class") -> "form-control form-input-middle"
+            )
+            <div class="alert alert-danger form-input-bottom alert-error-border" role="alert">
+                @err.message
+            </div>
+        }
+    }
+}

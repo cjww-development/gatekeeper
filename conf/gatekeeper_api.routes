@@ -1,0 +1,3 @@
+GET         /scopes                               controllers.api.ScopeController.getValidScopes
+
+GET         /user-details                         controllers.api.AccountController.getUserDetails

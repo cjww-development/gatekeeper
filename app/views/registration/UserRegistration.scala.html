@@ -1,0 +1,171 @@
+@import views.html.Main
+@import org.joda.time.DateTime
+@import helper._
+@import views.html.components.forms.{TextInput, SlidingCheckbox}
+@import controllers.ui.{routes => uiRoutes}
+
+@(form: Form[User])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
+
+@Main("Register for an account") {
+    <form class="form-signin" action="@uiRoutes.RegistrationController.submitUserReg()" method="post">
+        <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
+        <h1 class="h3 mb-3 font-weight-normal">Sign up</h1>
+
+        <hr>
+
+        @CSRF.formField
+
+        @if(form.hasErrors) {
+            @formWithErrors(form)
+        } else {
+            @emptyForm(form)
+        }
+
+        @SlidingCheckbox(
+            form("accType"),
+            "individual",
+            "organisation",
+            Symbol("_id") -> "inputAccType",
+            Symbol("_name") -> "accType"
+        )
+
+        <button id="account-type-picker" type="button" class="btn btn-info btn-wide" data-toggle="modal" data-target="#accountTypeExplanation">
+            What type of account do I need?
+        </button>
+
+        <hr>
+
+        <button class="btn btn-lg btn-primary btn-block" id="registration-submit" type="submit" disabled>Sign up</button>
+        <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
+    </form>
+
+    <div class="modal fade" id="accountTypeExplanation" tabindex="-1" role="dialog" aria-labelledby="accountTypeExplanationTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="accountTypeExplanationTitle">What type of account do I need?</h5>
+                </div>
+                <div class="modal-body left-align">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <h5 class="card-header">Individual account</h5>
+                                <div class="card-body">
+                                    <p class="card-text left-align">Content pending.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card">
+                                <h5 class="card-header">Organisation account</h5>
+                                <div class="card-body">
+                                    <p class="card-text left-align">Content pending.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-lg btn-wide btn-danger" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="@routes.Assets.at("javascript/registration-validation.js")"></script>
+}
+
+@emptyForm(form: Form[User]) = {
+    @TextInput(
+        form("userName"),
+        isReadOnly = false,
+        Symbol("_id") -> "userNameInput",
+        Symbol("_name") -> "userName",
+        Symbol("_label") -> "User name",
+        Symbol("_type") -> "text",
+        Symbol("_class") -> "form-control form-input-topper"
+    )
+
+    @TextInput(
+        form("email"),
+        isReadOnly = false,
+        Symbol("_id") -> "emailInput",
+        Symbol("_name") -> "email",
+        Symbol("_label") -> "Email",
+        Symbol("_type") -> "email",
+        Symbol("_class") -> "form-control form-input-middle"
+    )
+
+    @TextInput(
+        form("password"),
+        isReadOnly = false,
+        Symbol("_id") -> "passwordInput",
+        Symbol("_name") -> "password",
+        Symbol("_label") -> "Password",
+        Symbol("_type") -> "password",
+        Symbol("_class") -> "form-control form-input-middle"
+    )
+
+    @TextInput(
+        form("confirmPassword"),
+        isReadOnly = false,
+        Symbol("_id") -> "confirmPasswordInput",
+        Symbol("_name") -> "confirmPassword",
+        Symbol("_label") -> "Confirm password",
+        Symbol("_type") -> "password",
+        Symbol("_class") -> "form-control form-input-bottom"
+    )
+}
+
+@formWithErrors(form: Form[User]) = {
+    @if(form("userName").hasErrors || form("email").hasErrors) {
+        @form("userName").error.map { err =>
+            @TextInput(
+                form("userName"),
+                isReadOnly = false,
+                Symbol("_id") -> "userNameInput",
+                Symbol("_name") -> "userName",
+                Symbol("_label") -> "User name",
+                Symbol("_type") -> "text",
+                Symbol("_class") -> s"form-control form-input-topper"
+            )
+
+            @TextInput(
+                form("email"),
+                isReadOnly = false,
+                Symbol("_id") -> "emailInput",
+                Symbol("_name") -> "email",
+                Symbol("_label") -> "Email",
+                Symbol("_type") -> "email",
+                Symbol("_class") -> "form-control form-input-middle"
+            )
+
+            <div class="alert alert-danger form-input-bottom alert-error-border" role="alert">
+                @err.message
+            </div>
+
+            <br>
+        }
+
+        @TextInput(
+            form("password"),
+            isReadOnly = false,
+            Symbol("_id") -> "passwordInput",
+            Symbol("_name") -> "password",
+            Symbol("_label") -> "Password",
+            Symbol("_type") -> "password",
+            Symbol("_class") -> "form-control form-input-topper"
+        )
+
+        @TextInput(
+            form("confirmPassword"),
+            isReadOnly = false,
+            Symbol("_id") -> "confirmPasswordInput",
+            Symbol("_name") -> "confirmPassword",
+            Symbol("_label") -> "Confirm password",
+            Symbol("_type") -> "password",
+            Symbol("_class") -> "form-control form-input-bottom"
+        )
+    }
+}

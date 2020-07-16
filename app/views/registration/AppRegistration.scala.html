@@ -1,0 +1,75 @@
+@import views.html.Main
+@import org.joda.time.DateTime
+@import helper._
+@import views.html.components.forms.{TextInput, SlidingCheckbox}
+@import controllers.ui.{routes => uiRoutes}
+
+@(form: Form[RegisteredApplication])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
+
+@Main("Register an OAuth Service") {
+    <form class="form-signin" action="@{uiRoutes.RegistrationController.submitAppReg()}" method="post">
+        <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
+        <h1 class="h3 mb-3 font-weight-normal">Register a Service</h1>
+
+        <hr>
+
+        @CSRF.formField
+
+        @emptyForm(form)
+
+        @SlidingCheckbox(
+            form("clientType"),
+            "confidential",
+            "public",
+            Symbol("_id") -> "inputClientType",
+            Symbol("_name") -> "clientType"
+        )
+
+        <hr>
+
+        <button class="btn btn-lg btn-primary btn-block" id="registration-submit" type="submit">Create service</button>
+        <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
+    </form>
+}
+
+@emptyForm(form: Form[RegisteredApplication]) = {
+    @TextInput(
+        form("name"),
+        isReadOnly = false,
+        Symbol("_id") -> "nameInput",
+        Symbol("_name") -> "name",
+        Symbol("_label") -> "Name",
+        Symbol("_type") -> "text",
+        Symbol("_class") -> "form-control form-input-topper"
+    )
+
+    @TextInput(
+        form("desc"),
+        isReadOnly = false,
+        Symbol("_id") -> "descInput",
+        Symbol("_name") -> "desc",
+        Symbol("_label") -> "Description",
+        Symbol("_type") -> "text",
+        Symbol("_class") -> "form-control form-input-middle"
+    )
+
+    @TextInput(
+        form("homeUrl"),
+        isReadOnly = false,
+        Symbol("_id") -> "homeUrlInput",
+        Symbol("_name") -> "homeUrl",
+        Symbol("_label") -> "Home URL",
+        Symbol("_type") -> "text",
+        Symbol("_class") -> "form-control form-input-middle"
+    )
+
+    @TextInput(
+        form("redirectUrl"),
+        isReadOnly = false,
+        Symbol("_id") -> "redirectUrlInput",
+        Symbol("_name") -> "redirectUrl",
+        Symbol("_label") -> "Redirect URL",
+        Symbol("_type") -> "text",
+        Symbol("_class") -> "form-control form-input-bottom"
+    )
+}

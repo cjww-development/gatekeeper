@@ -1,0 +1,18 @@
+GET         /register                               controllers.ui.RegistrationController.showUserReg()
+POST        /register                               controllers.ui.RegistrationController.submitUserReg()
+GET         /register/service                       controllers.ui.RegistrationController.showAppReg()
+POST        /register/service                       controllers.ui.RegistrationController.submitAppReg()
+
+GET         /login                                  controllers.ui.LoginController.show()
+POST        /login                                  controllers.ui.LoginController.submit()
+GET         /logout                                 controllers.ui.LoginController.logout()
+
+GET         /account                                controllers.ui.AccountController.show()
+
+GET         /oauth/grant                            controllers.ui.OAuthController.createGrant()
+POST        /oauth/grant                            controllers.ui.OAuthController.submitGrant(response_type, client_id, redirect_uri, scope, state)
+
++ NOCSRF
+POST        /oauth/token                            controllers.ui.OAuthController.getToken(grant_type, code, redirect_uri, client_id, client_secret: Option[String])
+
+GET         /assets/*file                           controllers.Assets.at(path="/public", file)

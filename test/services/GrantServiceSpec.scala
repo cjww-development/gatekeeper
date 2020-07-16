@@ -1,0 +1,182 @@
+/*
+ * Copyright 2020 CJWW Development
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package services
+
+import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
+import database.{AppStore, GrantStore}
+import helpers.Assertions
+import helpers.database.{MockAppStore, MockGrantStore}
+import models.{AuthorisationRequest, Grant, RegisteredApplication, Scopes}
+import org.joda.time.DateTime
+import org.scalatestplus.play.PlaySpec
+
+import scala.concurrent.ExecutionContext.Implicits.global
+
+class GrantServiceSpec
+  extends PlaySpec
+    with Assertions
+    with MockGrantStore
+    with MockAppStore {
+
+  private val testService: GrantService = new GrantService {
+    override val appStore: AppStore = mockAppStore
+    override val grantStore: GrantStore = mockGrantStore
+    override protected val scopes: Scopes = Scopes(
+      reads  = Seq("testRead"),
+      writes = Seq("testWrite")
+    )
+  }
+
+  val testApp: RegisteredApplication = RegisteredApplication(
+    owner        = "testOwner",
+    name         = "testName",
+    desc         = "testDesc",
+    homeUrl      = "http://localhost:8080",
+    redirectUrl  = "http://localhost:8080/redirect",
+    clientType   = "confidential",
+    clientId     = "testId",
+    clientSecret = Some("testSecret")
+  )
+
+  val testAuthReq: AuthorisationRequest = AuthorisationRequest(
+    responseType = "code",
+    clientId = testApp.clientId,
+    redirectUri = testApp.redirectUrl,
+    scope = Seq("read:username", "read:email"),
+    state = "testState"
+  )
+
+  val testGrant: Grant = Grant(
+    authCode = "testAuthCode",
+    state = testAuthReq.state,
+    scope = testAuthReq.scope,
+    createdAt = DateTime.now()
+  )
+
+  "getRegisteredApp" should {
+    "return a registered app" when {
+      "a valid client id is provided" in {
+        mockValidateAppOn(app = Some(testApp))
+
+        awaitAndAssert(testService.getRegisteredApp(testApp.clientId)) {
+          _ mustBe Some(testApp)
+        }
+      }
+    }
+
+    "return None" when {
+      "no registered app could be found" in {
+        mockValidateAppOn(app = None)
+
+        awaitAndAssert(testService.getRegisteredApp(testApp.clientId)) {
+          _ mustBe None
+        }
+      }
+    }
+  }
+
+  "validateRedirectUrl" should {
+    "return true" when {
+      "the two redirects match" in {
+        assertOutput(testService.validateRedirectUrl("http://localhost:8080/redirect", testApp.redirectUrl)) {
+          res => assert(res)
+        }
+      }
+    }
+
+    "return false" when {
+      "the two redirects don't match" in {
+        assertOutput(testService.validateRedirectUrl("http://localhost:8080/redirect", "http://localhost:8080/redirect/abc")) {
+          res => assert(!res)
+        }
+      }
+    }
+  }
+
+  "validateRequestedScopes" should {
+    "return true" when {
+      "the requested scopes are valid" in {
+        assertOutput(testService.validateRequestedScopes(inboundScopes = Seq("read:testRead", "write:testWrite"))) {
+          res => assert(res)
+        }
+      }
+    }
+
+    "return false" when {
+      "the requested scopes aren't valid" in {
+        assertOutput(testService.validateRequestedScopes(inboundScopes = Seq("read:testRead", "write:testWriteInvalid"))) {
+          res => assert(!res)
+        }
+      }
+    }
+  }
+
+  "buildGrant" should {
+    "return a grant" when {
+      "given an auth req" in {
+        assertOutput(testService.buildGrant(testAuthReq)) { res =>
+          res.state mustBe testAuthReq.state
+          res.scope mustBe testAuthReq.scope
+        }
+      }
+    }
+  }
+
+  "saveGrant" should {
+    "return a MongoCreateResponse" when {
+      "successfully saving a grant" in {
+        mockCreateGrant(success = true)
+
+        awaitAndAssert(testService.saveGrant(testGrant)) {
+          _ mustBe MongoSuccessCreate
+        }
+      }
+    }
+
+    "return a MongoFailedCreate" when {
+      "unsuccessfully saving a grant" in {
+        mockCreateGrant(success = false)
+
+        awaitAndAssert(testService.saveGrant(testGrant)) {
+          _ mustBe MongoFailedCreate
+        }
+      }
+    }
+  }
+
+  "validateGrant" should {
+    "return a grant" when {
+      "the auth code and state have been validated" in {
+        mockValidateGrant(app = Some(testGrant))
+
+        awaitAndAssert(testService.validateGrant(testGrant.authCode, testGrant.state)) {
+          _ mustBe Some(testGrant)
+        }
+      }
+    }
+
+    "return None" when {
+      "the auth code and state could not be validated" in {
+        mockValidateGrant(app = None)
+
+        awaitAndAssert(testService.validateGrant("invalid-auth-code", "invalid-state")) {
+          _ mustBe None
+        }
+      }
+    }
+  }
+}
