@@ -43,7 +43,7 @@ trait TokenService {
       .expiresIn(expiry)
       .++[String]("accType" -> accType)
 
-    Jwt.encode(claims, signature, JwtAlgorithm.RS512)
+    Jwt.encode(claims, signature, JwtAlgorithm.HS512)
   }
 
   def validateToken(token: String): Boolean = {

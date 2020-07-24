@@ -61,9 +61,13 @@ class GrantServiceSpec
   )
 
   val testGrant: Grant = Grant(
+    responseType = "code",
     authCode = "testAuthCode",
-    state = testAuthReq.state,
     scope = testAuthReq.scope,
+    clientId = testApp.clientId,
+    userId = "testUserId",
+    accType = "testType",
+    redirectUri = testApp.redirectUrl,
     createdAt = DateTime.now()
   )
 
@@ -125,17 +129,6 @@ class GrantServiceSpec
     }
   }
 
-  "buildGrant" should {
-    "return a grant" when {
-      "given an auth req" in {
-        assertOutput(testService.buildGrant(testAuthReq)) { res =>
-          res.state mustBe testAuthReq.state
-          res.scope mustBe testAuthReq.scope
-        }
-      }
-    }
-  }
-
   "saveGrant" should {
     "return a MongoCreateResponse" when {
       "successfully saving a grant" in {
@@ -163,7 +156,7 @@ class GrantServiceSpec
       "the auth code and state have been validated" in {
         mockValidateGrant(app = Some(testGrant))
 
-        awaitAndAssert(testService.validateGrant(testGrant.authCode, testGrant.state)) {
+        awaitAndAssert(testService.validateGrant(testGrant.authCode)) {
           _ mustBe Some(testGrant)
         }
       }
@@ -173,7 +166,7 @@ class GrantServiceSpec
       "the auth code and state could not be validated" in {
         mockValidateGrant(app = None)
 
-        awaitAndAssert(testService.validateGrant("invalid-auth-code", "invalid-state")) {
+        awaitAndAssert(testService.validateGrant("invalid-auth-code")) {
           _ mustBe None
         }
       }

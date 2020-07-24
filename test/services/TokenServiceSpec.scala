@@ -35,7 +35,6 @@ class TokenServiceSpec
     "return a signed access token" when {
       "given an owner and account type" in {
         assertOutput(testService.createAccessToken("testOwner", "testAccType")) { token =>
-          println(token)
           val split = token.split("\\.")
           split.length mustBe 3
 

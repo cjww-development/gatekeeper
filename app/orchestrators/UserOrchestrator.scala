@@ -31,15 +31,16 @@ trait UserOrchestrator {
   private val logger = LoggerFactory.getLogger(this.getClass)
 
   def getUserDetails(id: String)(implicit ec: ExC): Future[Map[String, String]] = {
-    accountService.determineAccountTypeFromId(id).fold(
-      _ => {
-        logger.warn(s"[getUserDetails] - Invalid userId $id")
-        Future.successful(Map())
-      },
-      {
+    def invalidUser(): Future[Map[String, String]] = {
+      logger.warn(s"[getUserDetails] - Invalid userId $id")
+      Future.successful(Map())
+    }
+
+    accountService
+      .determineAccountTypeFromId(id)
+      .fold(invalidUser()) {
         case "individual"   => accountService.getIndividualAccountInfo(id)
         case "organisation" => accountService.getOrganisationAccountInfo(id)
       }
-    )
   }
 }

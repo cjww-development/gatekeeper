@@ -16,8 +16,12 @@
 
 package orchestrators
 
+import java.util.UUID
+
+import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate, MongoSuccessDelete}
 import javax.inject.Inject
 import models.{AuthorisationRequest, Grant, RegisteredApplication, Scopes}
+import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 import services.{AccountService, GrantService, ScopeService}
 
@@ -26,8 +30,6 @@ import scala.concurrent.{Future, ExecutionContext => ExC}
 sealed trait GrantInitiateResponse
 case object InvalidApplication extends GrantInitiateResponse
 case object InvalidScopesRequested extends GrantInitiateResponse
-case object InvalidRedirectUrl extends GrantInitiateResponse
-case object InvalidScopesAndRedirect extends GrantInitiateResponse
 case class ValidatedGrantRequest(app: RegisteredApplication, scopes: Scopes) extends GrantInitiateResponse
 
 class DefaultGrantOrchestrator @Inject()(val grantService: GrantService,
@@ -42,45 +44,50 @@ trait GrantOrchestrator {
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  
-
-  def initiateGrantRequest(authReq: AuthorisationRequest)(implicit ec: ExC): Future[GrantInitiateResponse] = {
-    logger.info(s"current scope = ${authReq.scope}")
-    grantService.getRegisteredApp(authReq.clientId) flatMap {
+  def validateIncomingGrant(responseType: String, clientId: String, scope: Seq[String])(implicit ec: ExC): Future[GrantInitiateResponse] = {
+    grantService.getRegisteredApp(clientId) flatMap {
       case Some(app) =>
-        val validation = grantService.validateRedirectUrl(authReq.redirectUri, app.redirectUrl) ->
-          grantService.validateRequestedScopes(authReq.scope)
-
-        validation match {
-          case (true, true)   =>
-            logger.info(s"[initiateGrantRequest] - Grant request validated")
-            accountService.getOrganisationAccountInfo(app.owner) map {
-              user => ValidatedGrantRequest(
-                app.copy(owner = user.getOrElse("userName", "")),
-                scopeService.makeScopesFromQuery(authReq.scope)
-              )
-            }
-          case (true, false)  =>
-            logger.warn(s"[initiateGrantRequest] - The requested scopes weren't valid")
-            Future.successful(InvalidScopesRequested)
-          case (false, true)  =>
-            logger.warn(s"[initiateGrantRequest] - The requested redirectUrl wasn't valid")
-            Future.successful(InvalidRedirectUrl)
-          case (false, false) =>
-            logger.warn(s"[initiateGrantRequest] - Neither the scopes or redirect was valid")
-            Future.successful(InvalidScopesAndRedirect)
+        val validScopes = grantService.validateRequestedScopes(scope)
+        if(validScopes) {
+          accountService.getOrganisationAccountInfo(app.owner) map { user =>
+            ValidatedGrantRequest(
+              app = app.copy(owner = user.getOrElse("userName", "")),
+              scopes = scopeService.makeScopesFromQuery(scope)
+            )
+          }
+        } else {
+          logger.warn(s"[validateIncomingGrant] - The requested scopes weren't valid")
+          Future.successful(InvalidScopesRequested)
         }
-      case None      =>
-        logger.warn("[initiateGrantRequest] - The service doesn't exist")
+      case None =>
+        logger.warn(s"[validateIncomingGrant] - There are no clients registered against clientId $clientId")
         Future.successful(InvalidApplication)
     }
   }
 
-  def saveGrant(authReq: AuthorisationRequest, accountId: String)(implicit ec: ExC): Future[Grant] = {
-    accountService.determineAccountTypeFromId(accountId) match {
-      case Right(accType) =>
-        val grant = grantService.buildGrant(authReq, accountId, accType)
-        grantService.saveGrant(grant) map(_ => grant)
+  def saveIncomingGrant(responseType: String, clientId: String, userId: String, scope: Seq[String])(implicit ec: ExC): Future[Option[Grant]] = {
+    accountService.determineAccountTypeFromId(userId) match {
+      case Some(accType) => grantService.getRegisteredApp(clientId) flatMap {
+        case Some(app) =>
+          val grant = Grant(responseType, UUID.randomUUID().toString,
+                            scope, clientId,
+                            userId, accType,
+                            app.redirectUrl, DateTime.now())
+          grantService.saveGrant(grant).map {
+            case MongoSuccessCreate =>
+              logger.info(s"[saveIncomingGrant] - Successfully created authorisation grant for userId $userId targeted for client $clientId")
+              Some(grant)
+            case MongoFailedCreate  =>
+              logger.error(s"[saveIncomingGrant] - There was a problem saving the grant for userId $userId")
+              None
+          }
+        case None =>
+          logger.warn(s"[saveIncomingGrant] - No matching client found for clientId $clientId")
+          Future.successful(None)
+      }
+      case None =>
+        logger.warn(s"[saveIncomingGrant] - Unable to determine the users account type on userId $userId")
+        Future.successful(None)
     }
   }
 }

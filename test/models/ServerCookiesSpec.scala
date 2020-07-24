@@ -58,7 +58,7 @@ class ServerCookiesSpec extends PlaySpec with Assertions with Obfuscators with D
     "decrypt the cookie value if the value is encrypted" in {
       val testInput = Cookie(
         name  = "test",
-        value = "value".encrypt
+        value = "value"
       )
 
       assertOutput(testInput.getValue()) {

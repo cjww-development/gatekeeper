@@ -68,16 +68,6 @@ trait GrantService {
     valid
   }
 
-  def buildGrant(authReq: AuthorisationRequest, userId: String, accType: String): Grant = {
-    Grant(
-      authCode = UUID.randomUUID().toString,
-      scope = authReq.scope,
-      userId,
-      accType,
-      createdAt = DateTime.now()
-    )
-  }
-
   def saveGrant(grant: Grant)(implicit ec: ExC): Future[MongoCreateResponse] = {
     grantStore.createGrant(grant)
   }

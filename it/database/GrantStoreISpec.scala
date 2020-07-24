@@ -32,10 +32,14 @@ class GrantStoreISpec extends PlaySpec with IntegrationApp with Assertions with 
   val now = DateTime.now()
 
   val testGrant: Grant = Grant(
-    authCode = "testCode",
-    state = "testState",
-    scope = Seq("read:username"),
-    createdAt = now
+    responseType = "code",
+    authCode = "testAuthCode",
+    scope = Seq("testScope"),
+    clientId = "testClientId",
+    userId = "testUserId",
+    accType = "testType",
+    redirectUri = "testRedirect",
+    createdAt = DateTime.now()
   )
 
   override def beforeAll(): Unit = {
@@ -61,7 +65,7 @@ class GrantStoreISpec extends PlaySpec with IntegrationApp with Assertions with 
   "validateGrant" should {
     "return a Grant" when {
       "matching both the auth code and state" in {
-        awaitAndAssert(testGrantStore.validateGrant(testGrant.authCode, testGrant.state)) {
+        awaitAndAssert(testGrantStore.validateGrant(testGrant.authCode)) {
           _ mustBe Some(testGrant)
         }
       }
@@ -69,7 +73,7 @@ class GrantStoreISpec extends PlaySpec with IntegrationApp with Assertions with 
 
     "return None" when {
       "an app doesn't exist with a matching clientId" in {
-        awaitAndAssert(testGrantStore.validateGrant("invalid-auth-code", "invalid-state")) {
+        awaitAndAssert(testGrantStore.validateGrant("invalid-auth-code")) {
           _ mustBe None
         }
       }

@@ -141,7 +141,7 @@ class AccountServiceSpec
         .foreach { id =>
           s"given $id as the id" in {
             assertOutput(testService.determineAccountTypeFromId(id)) {
-              _ mustBe Right("individual")
+              _ mustBe Some("individual")
             }
           }
         }
@@ -153,7 +153,7 @@ class AccountServiceSpec
         .foreach { id =>
           s"given $id as the id" in {
             assertOutput(testService.determineAccountTypeFromId(id)) {
-              _ mustBe Right("organisation")
+              _ mustBe Some("organisation")
             }
           }
         }
@@ -165,7 +165,7 @@ class AccountServiceSpec
         .foreach { id =>
           s"given ${id} as the id" in {
             assertOutput(testService.determineAccountTypeFromId(id)) {
-              _ mustBe Left(())
+              _ mustBe None
             }
           }
         }

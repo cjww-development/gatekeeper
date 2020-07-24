@@ -49,36 +49,26 @@ class GrantOrchestratorSpec
     clientSecret = Some("testSecret")
   )
 
-  val testAuthReq = AuthorisationRequest(
-    responseType = "code",
-    clientId     = testApp.clientId,
-    redirectUri  = testApp.redirectUrl,
-    scope        = Seq("read:username"),
-    state        = "testState"
-  )
-
-  "initiateGrantRequest" should {
+  "validateIncomingGrant" should {
     "return a ValidatedGrantRequest" when {
       "the app is found and redirects and scopes are valid and the app owner is found" in {
         mockGetRegisteredApp(app = Some(testApp))
-        mockValidateRedirectUrl(valid = true)
         mockValidateRequestedScopes(valid = true)
         mockGetOrganisationAccountInfo(value = Map("userName" -> "test-org"))
         mockMakeScopesFromQuery(scopes = Scopes(Seq("read:username"), Seq()))
 
-        awaitAndAssert(testOrchestrator.initiateGrantRequest(testAuthReq)) {
+        awaitAndAssert(testOrchestrator.validateIncomingGrant("code", testApp.clientId, Seq("read:username"))) {
           _ mustBe ValidatedGrantRequest(testApp.copy(owner = "test-org"), Scopes(Seq("read:username"), Seq()))
         }
       }
 
       "the app is found and redirects and scopes are valid but the app owner isn't found" in {
         mockGetRegisteredApp(app = Some(testApp))
-        mockValidateRedirectUrl(valid = true)
         mockValidateRequestedScopes(valid = true)
         mockGetOrganisationAccountInfo(value = Map())
         mockMakeScopesFromQuery(scopes = Scopes(Seq("read:username"), Seq()))
 
-        awaitAndAssert(testOrchestrator.initiateGrantRequest(testAuthReq)) {
+        awaitAndAssert(testOrchestrator.validateIncomingGrant("code", testApp.clientId, Seq("read:username"))) {
           _ mustBe ValidatedGrantRequest(testApp.copy(owner = ""), Scopes(Seq("read:username"), Seq()))
         }
       }
@@ -88,7 +78,7 @@ class GrantOrchestratorSpec
       "the app wasn't found" in {
         mockGetRegisteredApp(app = None)
 
-        awaitAndAssert(testOrchestrator.initiateGrantRequest(testAuthReq)) {
+        awaitAndAssert(testOrchestrator.validateIncomingGrant("code", testApp.clientId, Seq("read:username"))) {
           _ mustBe InvalidApplication
         }
       }
@@ -97,35 +87,10 @@ class GrantOrchestratorSpec
     "return a InvalidScopesRequested" when {
       "the scopes aren't valid" in {
         mockGetRegisteredApp(app = Some(testApp))
-        mockValidateRedirectUrl(valid = true)
         mockValidateRequestedScopes(valid = false)
 
-        awaitAndAssert(testOrchestrator.initiateGrantRequest(testAuthReq)) {
+        awaitAndAssert(testOrchestrator.validateIncomingGrant("code", testApp.clientId, Seq("read:username"))) {
           _ mustBe InvalidScopesRequested
-        }
-      }
-    }
-
-    "return a InvalidRedirectUrl" when {
-      "the redirect isn't valid" in {
-        mockGetRegisteredApp(app = Some(testApp))
-        mockValidateRedirectUrl(valid = false)
-        mockValidateRequestedScopes(valid = true)
-
-        awaitAndAssert(testOrchestrator.initiateGrantRequest(testAuthReq)) {
-          _ mustBe InvalidRedirectUrl
-        }
-      }
-    }
-
-    "return a InvalidScopesAndRedirect" when {
-      "the redirect and scopes isn't valid" in {
-        mockGetRegisteredApp(app = Some(testApp))
-        mockValidateRedirectUrl(valid = false)
-        mockValidateRequestedScopes(valid = false)
-
-        awaitAndAssert(testOrchestrator.initiateGrantRequest(testAuthReq)) {
-          _ mustBe InvalidScopesAndRedirect
         }
       }
     }

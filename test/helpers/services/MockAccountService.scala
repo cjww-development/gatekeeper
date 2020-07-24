@@ -46,7 +46,7 @@ trait MockAccountService extends MockitoSugar with BeforeAndAfterEach {
       .thenReturn(Future.successful(value))
   }
 
-  def mockDetermineAccountTypeFromId(value: Either[(), String]): OngoingStubbing[Either[(), String]] = {
+  def mockDetermineAccountTypeFromId(value: Option[String]): OngoingStubbing[Option[String]] = {
     when(mockAccountService.determineAccountTypeFromId(ArgumentMatchers.any[String]()))
       .thenReturn(value)
   }

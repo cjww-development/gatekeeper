@@ -16,14 +16,19 @@
 
 package models
 
+import java.util.UUID
+
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import play.api.libs.json._
 
-case class Grant(authCode: String,
+case class Grant(responseType: String,
+                 authCode: String,
                  scope: Seq[String],
+                 clientId: String,
                  userId: String,
                  accType: String,
+                 redirectUri: String,
                  createdAt: DateTime)
 
 object Grant {

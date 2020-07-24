@@ -73,11 +73,11 @@ trait AccountService extends DeObfuscators with SecurityConfiguration {
     }
   }
 
-  def determineAccountTypeFromId(id: String): Either[(), String] = {
+  def determineAccountTypeFromId(id: String): Option[String] = {
     id.startsWith("user-") -> id.startsWith("org-user-") match {
-      case (true, false) => Right("individual")
-      case (false, true) => Right("organisation")
-      case (_, _)        => Left(())
+      case (true, false) => Some("individual")
+      case (false, true) => Some("organisation")
+      case (_, _)        => None
     }
   }
 }

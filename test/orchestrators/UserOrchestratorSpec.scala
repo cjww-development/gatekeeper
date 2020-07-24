@@ -63,7 +63,7 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
   "getUserDetails" should {
     "return an empty map" when {
       "the userId is invalid" in {
-        mockDetermineAccountTypeFromId(value = Left(()))
+        mockDetermineAccountTypeFromId(value = None)
 
         awaitAndAssert(testOrchestrator.getUserDetails(UUID.randomUUID().toString)) {
           _ mustBe Map()
@@ -71,7 +71,7 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
       }
 
       "the individual user cannot be found" in {
-        mockDetermineAccountTypeFromId(value = Right("individual"))
+        mockDetermineAccountTypeFromId(value = Some("individual"))
 
         mockGetIndividualAccountInfo(value = Map())
 
@@ -81,7 +81,7 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
       }
 
       "the organisation user cannot be found" in {
-        mockDetermineAccountTypeFromId(value = Right("organisation"))
+        mockDetermineAccountTypeFromId(value = Some("organisation"))
 
         mockGetOrganisationAccountInfo(value = Map())
 
@@ -93,7 +93,7 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
 
     "return a populated map" when {
       "the individual user was found" in {
-        mockDetermineAccountTypeFromId(value = Right("individual"))
+        mockDetermineAccountTypeFromId(value = Some("individual"))
 
         mockGetIndividualAccountInfo(value = Map(
           "userName"  -> testIndUser.userName,
@@ -111,7 +111,7 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
       }
 
       "the organisation user was found" in {
-        mockDetermineAccountTypeFromId(value = Right("organisation"))
+        mockDetermineAccountTypeFromId(value = Some("organisation"))
 
         mockGetOrganisationAccountInfo(value = Map(
           "userName"  -> testOrgUser.userName,

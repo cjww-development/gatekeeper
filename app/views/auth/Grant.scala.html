@@ -5,7 +5,7 @@
 @import controllers.routes
 
 @import views.html.helper.CSRF
-@(app: RegisteredApplication, scopes: Scopes, authReq: AuthorisationRequest)(implicit rh: RequestHeader)
+@(responseType: String, clientId: String, scopes: Scopes, scope: String, app: RegisteredApplication)(implicit rh: RequestHeader)
 
 @Main("A service would like to access your account") {
     <div class="form-signin">
@@ -20,9 +20,12 @@
             @for(scope <- scopes.reads){
                 <li>@{scope}</li>
             }
+            @for(scope <- scopes.writes){
+                <li>@{scope}</li>
+            }
         </ul>
         <hr>
-        <form class="form-signin" action="@uiRoutes.OAuthController.submitGrant(authReq.responseType, authReq.clientId, authReq.redirectUri, authReq.scope.mkString(","), authReq.state)" method="post">
+        <form class="form-signin" action="@uiRoutes.OAuthController.authorisePost(responseType, clientId, scope)" method="post">
             @CSRF.formField
             <button class="btn btn-lg btn-primary btn-block" id="registration-submit" type="submit">Allow access</button>
         </form>
