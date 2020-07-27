@@ -5,7 +5,7 @@ gatekeeper
 
 Gatekeeper is an OAuth2 and OIDC implementation.
 
-####Feature list
+#### Feature list
 - Client registration
 - User registration
 - Developer registration
