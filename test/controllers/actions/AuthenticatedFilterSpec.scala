@@ -5,13 +5,13 @@ import helpers.orchestrators.MockUserOrchestrator
 import models.ServerCookies
 import orchestrators.UserOrchestrator
 import org.scalatestplus.play.PlaySpec
-import play.api.mvc.{BaseController, ControllerComponents, Result}
-import play.api.test.Helpers._
 import play.api.mvc.Results.Ok
+import play.api.mvc.{BaseController, ControllerComponents, Result}
 import play.api.test.FakeRequest
+import play.api.test.Helpers._
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class AuthenticatedFilterSpec extends PlaySpec with MockUserOrchestrator with Assertions {
 
@@ -41,21 +41,22 @@ class AuthenticatedFilterSpec extends PlaySpec with MockUserOrchestrator with As
       }
     }
 
-    "return a forbidden" when {
+    "return a redirect" when {
       "there is no valid cookie" in {
-        val req = FakeRequest()
+        val req = FakeRequest("GET", "/test-redirect")
 
         val result = testFilter.authenticatedUser {
           _ => user => okFunction(user)
         }.apply(req)
 
         assertOutput(result) { res =>
-          status(res) mustBe FORBIDDEN
+          status(res)           mustBe SEE_OTHER
+          redirectLocation(res) mustBe Some(s"${controllers.ui.routes.LoginController.show().url}?redirect=%2Ftest-redirect")
         }
       }
 
       "there is a valid cookie but no user information" in {
-        val req = FakeRequest()
+        val req = FakeRequest("GET", "/test-redirect")
           .withCookies(ServerCookies.createAuthCookie("testUserId", enc = true))
 
         mockGetUserDetails(details = Map())
@@ -65,7 +66,8 @@ class AuthenticatedFilterSpec extends PlaySpec with MockUserOrchestrator with As
         }.apply(req)
 
         assertOutput(result) { res =>
-          status(res) mustBe FORBIDDEN
+          status(res)           mustBe SEE_OTHER
+          redirectLocation(res) mustBe Some(s"${controllers.ui.routes.LoginController.show().url}?redirect=%2Ftest-redirect")
         }
       }
     }

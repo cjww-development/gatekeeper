@@ -18,11 +18,10 @@ package controllers.ui
 
 import controllers.actions.AuthenticatedFilter
 import javax.inject.Inject
-import models.{AuthRequest, AuthorisationRequest, Grant => GrantModel}
 import orchestrators._
 import org.slf4j.LoggerFactory
-import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, BaseController, BodyParser, ControllerComponents}
+import play.api.libs.json.{JsValue, Json, Writes}
+import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import views.html.auth.Grant
 
 import scala.concurrent.{ExecutionContext => ExC}
@@ -43,18 +42,27 @@ trait OAuthController extends BaseController with AuthenticatedFilter {
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  def getToken(grant_type: String, code: String, redirect_uri: String,
-               client_id: String, client_secret: Option[String]): Action[AnyContent] = Action.async { implicit req =>
-    tokenOrchestrator.issueToken(code) map {
-      case Issued(token) => Ok(Json.parse(s"""{ "access_token" : "$token" }"""))
-      case _ => BadRequest
+  private implicit val issuedWriter: Writes[Issued] = (issued: Issued) => Json.obj(
+    "token_type" -> issued.tokenType,
+    "scope" -> issued.scope,
+    "expires_in" -> issued.expiresIn,
+    "access_token" -> issued.accessToken,
+    "id_token" -> issued.idToken
+  )
+
+  def getToken(): Action[AnyContent] = Action.async { implicit req =>
+    val params = req.body.asFormUrlEncoded.getOrElse(Map())
+    val grantType = params("grant_type").headOption.getOrElse("")
+    val authCode = params("code").headOption.getOrElse("")
+    val clientId = params("client_id").headOption.getOrElse("")
+    val redirectUri = params("redirect_uri").headOption.getOrElse("")
+
+    tokenOrchestrator.issueToken(grantType, authCode, clientId, redirectUri) map {
+      case iss@Issued(_,_,_,_,_) => Ok(Json.toJson(iss))
+      case resp => BadRequest(Json.obj("error" -> resp.toString))
     }
   }
 
-//  def token(): Action[AnyContent] = Action.async(parse.formUrlEncoded) { implicit req =>
-//
-//  }
-//
   def authoriseGet(response_type: String, client_id: String, scope: String): Action[AnyContent] = authenticatedUser { implicit req => _ =>
     val scopes = scope.trim.split(",").map(_.trim).toSeq
     grantOrchestrator.validateIncomingGrant(response_type, client_id, scopes) map {

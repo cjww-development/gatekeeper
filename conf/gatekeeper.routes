@@ -13,6 +13,6 @@ GET         /oauth2/authorize                       controllers.ui.OAuthControll
 POST        /oauth2/authorize                       controllers.ui.OAuthController.authorisePost(response_type, client_id, scope)
 
 + NOCSRF
-POST        /oauth2/token                           controllers.ui.OAuthController.getToken(grant_type, code, redirect_uri, client_id, client_secret: Option[String])
+POST        /oauth2/token                           controllers.ui.OAuthController.getToken()
 
 GET         /assets/*file                           controllers.Assets.at(path="/public", file)

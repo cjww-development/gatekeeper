@@ -16,7 +16,8 @@
 
 package services
 
-import java.time.Clock
+import java.time.{Clock, Instant, LocalDateTime}
+import java.util.Calendar
 
 import javax.inject.Inject
 import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}
@@ -36,17 +37,37 @@ trait TokenService {
 
   private implicit val clock: Clock = Clock.systemUTC
 
-  def createAccessToken(owner: String, accType: String): String = {
+  def createAccessToken(clientId: String, userId: String, scope: String): String = {
+    val now = Instant.now
+
     val claims = JwtClaim()
+      .to(clientId)
       .by(issuer)
-      .about(owner)
-      .expiresIn(expiry)
-      .++[String]("accType" -> accType)
+      .issuedAt(now.getEpochSecond)
+      .startsAt(now.getEpochSecond)
+      .expiresAt(now.plusSeconds(expiry).getEpochSecond)
+      .about(userId)
+      .++[String](
+        "scp" -> scope
+      ).toJson
 
     Jwt.encode(claims, signature, JwtAlgorithm.HS512)
   }
 
-  def validateToken(token: String): Boolean = {
-    Jwt.isValid(token)
+  def createIdToken(clientId: String, userId: String, user: Map[String, String], accType: String): String = {
+    val now = Instant.now
+
+    val claims = JwtClaim()
+      .to(clientId)
+      .by(issuer)
+      .issuedAt(now.getEpochSecond)
+      .startsAt(now.getEpochSecond)
+      .expiresAt(now.plusSeconds(expiry).getEpochSecond)
+      .about(userId)
+      .++[String](
+        "act" -> accType
+      ).toJson
+
+    Jwt.encode(claims, signature, JwtAlgorithm.HS512)
   }
 }

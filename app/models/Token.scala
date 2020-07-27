@@ -16,14 +16,18 @@
 
 package models
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{Json, Writes}
 
-case class AuthorisationRequest(responseType: String,
-                                clientId: String,
-                                redirectUri: String,
-                                scope: Seq[String],
-                                state: String)
+case class Token(accessToken: String,
+                 tokenType: String,
+                 expiresIn: Long,
+                 refreshToken: String)
 
-object AuthorisationRequest {
-  implicit val format: OFormat[AuthorisationRequest] = Json.format[AuthorisationRequest]
+object Token {
+  val outboundWrites: Writes[Token] = (token: Token) => Json.obj(
+    "access_token"  -> token.accessToken,
+    "token_type"    -> token.tokenType,
+    "expires_in"    -> token.expiresIn,
+    "refresh_token" -> token.refreshToken
+  )
 }

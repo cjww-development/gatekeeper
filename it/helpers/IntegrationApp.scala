@@ -25,8 +25,12 @@ trait IntegrationApp extends GuiceOneAppPerSuite {
   self: PlaySpec =>
 
   val appConfig: Map[String, Any] = Map(
-    "scopes.read"  -> Seq("username"),
-    "scopes.write" -> Seq()
+    "scopes.read"                                    -> Seq("username"),
+    "scopes.write"                                   -> Seq(),
+    "database.DefaultIndividualUserStore.database"   -> "gatekeeper-it",
+    "database.DefaultOrganisationUserStore.database" -> "gatekeeper-it",
+    "database.DefaultAppStore.database"              -> "gatekeeper-it",
+    "database.DefaultGrantStore.database"            -> "gatekeeper-it",
   )
 
   override lazy val app: Application = new GuiceApplicationBuilder()

@@ -16,8 +16,8 @@
 
 package database.registries
 
-import org.bson.{BsonReader, BsonWriter}
 import org.bson.codecs.{Codec, DecoderContext, EncoderContext}
+import org.bson.{BsonReader, BsonWriter}
 import org.joda.time.DateTime
 
 class JodaCodec extends Codec[DateTime] {

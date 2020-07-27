@@ -18,7 +18,6 @@ package models
 
 import java.util.UUID
 
-import com.cjwwdev.security.Implicits._
 import com.cjwwdev.security.obfuscation.Obfuscators
 import play.api.libs.json._
 

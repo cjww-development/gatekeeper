@@ -18,17 +18,15 @@ package controllers.ui
 
 import java.util.UUID
 
-import com.cjwwdev.security.Implicits.ImplicitObfuscator
 import com.cjwwdev.security.obfuscation.Obfuscators
 import controllers.ui.{routes => uiRoutes}
 import helpers.Assertions
-import helpers.orchestrators.{MockLoginOrchestrator, MockUserOrchestrator}
+import helpers.orchestrators.MockUserOrchestrator
 import models.{ServerCookies, User}
-import orchestrators.{LoginOrchestrator, UserOrchestrator}
+import orchestrators.UserOrchestrator
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import play.api.mvc.ControllerComponents
-import play.api.test.CSRFTokenHelper.addCSRFToken
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 

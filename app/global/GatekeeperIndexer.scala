@@ -17,10 +17,9 @@
 package global
 
 import com.cjwwdev.mongo.indexing.RepositoryIndexer
-import database.{AppStore, CodecReg, GrantStore, IndividualUserStore, OrganisationUserStore}
+import database._
 import javax.inject.Inject
 import models.{Grant, RegisteredApplication, User}
-import models.User._
 
 import scala.concurrent.{ExecutionContext => ExC}
 

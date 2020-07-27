@@ -14,36 +14,38 @@
  * limitations under the License.
  */
 
-package helpers.orchestrators
+package helpers.services
 
-import models.{RegisteredApplication, User}
-import orchestrators._
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
 import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
+import services.TokenService
 
-import scala.concurrent.Future
-
-trait MockRegistrationOrchestrator extends MockitoSugar with BeforeAndAfterEach {
+trait MockTokenService extends MockitoSugar with BeforeAndAfterEach {
   self: PlaySpec =>
 
-  val mockRegistrationOrchestrator: RegistrationOrchestrator = mock[RegistrationOrchestrator]
+  val mockTokenService: TokenService = mock[TokenService]
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(mockRegistrationOrchestrator)
+    reset(mockTokenService)
   }
 
-  def mockRegisterUser(result: UserRegistrationResponse): OngoingStubbing[Future[UserRegistrationResponse]] = {
-    when(mockRegistrationOrchestrator.registerUser(ArgumentMatchers.any[User]())(ArgumentMatchers.any()))
-      .thenReturn(Future.successful(result))
+  def mockCreateAccessToken(): OngoingStubbing[String] = {
+    when(mockTokenService.createAccessToken(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String]()))
+      .thenReturn("testAccessToken")
   }
 
-  def mockRegisterApplication(success: Boolean): OngoingStubbing[Future[AppRegistrationResponse]] = {
-    when(mockRegistrationOrchestrator.registerApplication(ArgumentMatchers.any[RegisteredApplication]())(ArgumentMatchers.any()))
-      .thenReturn(Future.successful(if(success) AppRegistered else AppRegistrationError))
+  def mockCreateIdToken(): OngoingStubbing[String] = {
+    when(mockTokenService.createIdToken(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[Map[String, String]](), ArgumentMatchers.any[String]()))
+      .thenReturn("testIdToken")
+  }
+
+  def getMockExpiry(expiry: Long): OngoingStubbing[Long] = {
+    when(mockTokenService.expiry)
+      .thenReturn(expiry)
   }
 }

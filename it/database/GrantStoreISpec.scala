@@ -22,6 +22,7 @@ import models.Grant
 import org.joda.time.DateTime
 import org.scalatest.BeforeAndAfterAll
 import org.scalatestplus.play.PlaySpec
+import org.mongodb.scala.model.Filters.{and => mongoAnd, equal => mongoEqual}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -65,7 +66,9 @@ class GrantStoreISpec extends PlaySpec with IntegrationApp with Assertions with 
   "validateGrant" should {
     "return a Grant" when {
       "matching both the auth code and state" in {
-        awaitAndAssert(testGrantStore.validateGrant(testGrant.authCode)) {
+        val query = mongoEqual("authCode", testGrant.authCode)
+
+        awaitAndAssert(testGrantStore.validateGrant(query)) {
           _ mustBe Some(testGrant)
         }
       }
@@ -73,7 +76,9 @@ class GrantStoreISpec extends PlaySpec with IntegrationApp with Assertions with 
 
     "return None" when {
       "an app doesn't exist with a matching clientId" in {
-        awaitAndAssert(testGrantStore.validateGrant("invalid-auth-code")) {
+        val query = mongoEqual("authCode", "invalid-auth-code")
+
+        awaitAndAssert(testGrantStore.validateGrant(query)) {
           _ mustBe None
         }
       }

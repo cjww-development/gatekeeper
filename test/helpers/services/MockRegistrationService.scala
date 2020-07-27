@@ -19,12 +19,12 @@ package helpers.services
 import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
 import models.{RegisteredApplication, User}
 import org.mockito.ArgumentMatchers
+import org.mockito.Mockito.{reset, when}
+import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import services.RegistrationService
-import org.mockito.Mockito.{reset, when}
-import org.mockito.stubbing.OngoingStubbing
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 

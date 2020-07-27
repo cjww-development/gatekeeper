@@ -20,9 +20,9 @@ import com.cjwwdev.mongo.responses.MongoSuccessCreate
 import helpers.{Assertions, IntegrationApp}
 import models.User
 import org.joda.time.DateTime
+import org.mongodb.scala.model.Filters.{and => mongoAnd, equal => mongoEqual}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatestplus.play.PlaySpec
-import org.mongodb.scala.model.Filters.{and => mongoAnd, equal => mongoEqual}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 

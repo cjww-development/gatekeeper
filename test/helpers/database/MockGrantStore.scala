@@ -17,11 +17,12 @@
 package helpers.database
 
 import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
-import database.{AppStore, GrantStore}
-import models.{Grant, RegisteredApplication}
+import database.GrantStore
+import models.Grant
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
 import org.mockito.stubbing.OngoingStubbing
+import org.mongodb.scala.bson.conversions.Bson
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
@@ -44,7 +45,7 @@ trait MockGrantStore extends MockitoSugar with BeforeAndAfterEach {
   }
 
   def mockValidateGrant(app: Option[Grant]): OngoingStubbing[Future[Option[Grant]]] = {
-    when(mockGrantStore.validateGrant(ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
+    when(mockGrantStore.validateGrant(ArgumentMatchers.any[Bson]())(ArgumentMatchers.any()))
       .thenReturn(Future.successful(app))
   }
 }

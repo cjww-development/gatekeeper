@@ -20,6 +20,7 @@ import org.slf4j.{Logger, LoggerFactory}
 import play.api.mvc._
 import orchestrators.UserOrchestrator
 import models.ServerCookies._
+import controllers.ui.routes
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
@@ -42,12 +43,18 @@ trait AuthenticatedFilter {
             f(req)(userId)
           } else {
             logger.warn(s"[authenticatedUser] - Authenticated user found, but could not find user on record")
-            Future.successful(Forbidden)
+            loginRedirect
           }
         }
       case None =>
         logger.warn(s"[authenticatedUser] - No authenticated user found, redirecting to login")
-        Future.successful(Forbidden)
+        loginRedirect
     }
+  }
+
+  private def loginRedirect(implicit req: Request[_]): Future[Result] = {
+    Future.successful(Redirect(routes.LoginController.show().url, Map(
+      "redirect" -> Seq(req.uri)
+    )))
   }
 }

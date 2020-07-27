@@ -22,9 +22,9 @@ import com.cjwwdev.mongo.DatabaseRepository
 import com.cjwwdev.mongo.connection.ConnectionSettings
 import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
 import com.typesafe.config.Config
-import org.mongodb.scala.model.Filters._
 import javax.inject.Inject
 import models.Grant
+import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.{IndexModel, IndexOptions, Indexes}
 import org.slf4j.{Logger, LoggerFactory}
 import play.api.Configuration
@@ -59,9 +59,9 @@ trait GrantStore extends DatabaseRepository with CodecReg {
       }
   }
 
-  def validateGrant(authCode: String)(implicit ec: ExC): Future[Option[Grant]] = {
+  def validateGrant(query: Bson)(implicit ec: ExC): Future[Option[Grant]] = {
     collection[Grant]
-      .find(equal("authCode", authCode))
+      .find(query)
       .first()
       .toFutureOption()
   }

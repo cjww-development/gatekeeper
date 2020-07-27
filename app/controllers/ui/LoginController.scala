@@ -18,7 +18,7 @@ package controllers.ui
 
 import forms.LoginForm.{form => loginForm, _}
 import javax.inject.Inject
-import models.ServerCookies
+import models.{ServerCookies, User}
 import orchestrators.LoginOrchestrator
 import org.slf4j.LoggerFactory
 import play.api.i18n.{I18NSupportLowPriorityImplicits, I18nSupport, Lang}
@@ -51,22 +51,24 @@ trait LoginController extends BaseController with I18NSupportLowPriorityImplicit
   }
 
   def submit(): Action[AnyContent] = Action.async { implicit req =>
+    val redirect = req.body.asFormUrlEncoded.flatMap(_.get("redirect").map(_.head))
     loginForm.bindFromRequest.fold(
-      err   => Future.successful(BadRequest(err.toString)),
+      err   => Future.successful(BadRequest(Login(loginForm.renderErrors))),
       login => loginOrchestrator.authenticateUser(login) map {
-        case Some(user) => Redirect(routes.AccountController.show())
-          .withCookies(ServerCookies.createAuthCookie(user.id, enc = true))
+        case Some(user) => loginRedirect(user, redirect)
         case None       => BadRequest(Login(loginForm.renderErrors))
       }
     )
   }
 
+  private def loginRedirect(user: User, redirect: Option[String]): Result = {
+    Redirect(Call("GET", redirect.getOrElse(routes.AccountController.show().url)))
+      .withCookies(ServerCookies.createAuthCookie(user.id, enc = true))
+  }
+
   def logout(): Action[AnyContent] = Action { implicit req =>
-    checkCookies(
-      block    = Redirect(routes.LoginController.show())
-        .discardingCookies(DiscardingCookie("aas")),
-      continue = Redirect(routes.LoginController.show())
-    )
+    Redirect(routes.LoginController.show())
+      .discardingCookies(DiscardingCookie("aas"))
   }
 
   private def checkCookies(block: => Result, continue: => Result)(implicit req: Request[_]): Result = {

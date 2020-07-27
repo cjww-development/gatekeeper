@@ -19,9 +19,9 @@ package services
 import java.time.Instant
 import java.util.{Date, UUID}
 
+import com.cjwwdev.security.Implicits._
 import com.cjwwdev.security.SecurityConfiguration
 import com.cjwwdev.security.obfuscation.Obfuscators
-import com.cjwwdev.security.Implicits._
 import database.{IndividualUserStore, OrganisationUserStore}
 import helpers.Assertions
 import helpers.database.{MockIndividualStore, MockOrganisationStore}

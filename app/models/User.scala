@@ -19,6 +19,7 @@ package models
 import java.util.UUID
 
 import com.cjwwdev.security.Implicits._
+import com.cjwwdev.security.deobfuscation.DeObfuscators
 import com.cjwwdev.security.obfuscation.Obfuscators
 import org.joda.time.DateTime
 import utils.StringUtils
@@ -33,7 +34,7 @@ case class User(id: String,
                 password: String,
                 createdAt: DateTime)
 
-object User extends Obfuscators {
+object User extends Obfuscators with DeObfuscators {
   override val locale: String = "models.User"
 
   implicit val classTag: ClassTag[User] = ClassTag[User](classOf[User])

@@ -19,16 +19,16 @@ package global
 import com.cjwwdev.featuremanagement.controllers.FeatureController
 import com.cjwwdev.featuremanagement.models.Features
 import com.cjwwdev.shuttering.controllers.ShutteringController
+import controllers.api.{ConfigController, DefaultConfigController, DefaultScopeController, ScopeController, AccountController => ApiAccountController, DefaultAccountController => DefaultApiAccountController}
 import controllers.features.DefaultFeatureController
 import controllers.shuttering.DefaultShutteringController
-import controllers.api.{DefaultScopeController, ScopeController, AccountController => ApiAccountController, DefaultAccountController => DefaultApiAccountController}
-import controllers.ui.{AccountController, DefaultAccountController, DefaultLoginController, DefaultOAuthController, DefaultRegistrationController, LoginController, OAuthController, RegistrationController}
+import controllers.ui._
 import database._
 import filters.DefaultShutteringFilter
-import orchestrators.{DefaultGrantOrchestrator, DefaultLoginOrchestrator, DefaultRegistrationOrchestrator, DefaultTokenOrchestrator, DefaultUserOrchestrator, GrantOrchestrator, LoginOrchestrator, RegistrationOrchestrator, TokenOrchestrator, UserOrchestrator}
+import orchestrators._
 import play.api.inject.{Binding, Module}
 import play.api.{Configuration, Environment}
-import services.{AccountService, DefaultAccountService, DefaultGrantService, DefaultLoginService, DefaultRegistrationService, DefaultScopeService, DefaultTokenService, GrantService, LoginService, RegistrationService, ScopeService, TokenService}
+import services._
 
 class ServiceBindings extends Module {
   override def bindings(environment: Environment, configuration: Configuration): collection.Seq[Binding[_]] = {
@@ -65,7 +65,8 @@ class ServiceBindings extends Module {
     bind[LoginOrchestrator].to[DefaultLoginOrchestrator].eagerly(),
     bind[UserOrchestrator].to[DefaultUserOrchestrator].eagerly(),
     bind[GrantOrchestrator].to[DefaultGrantOrchestrator].eagerly(),
-    bind[TokenOrchestrator].to[DefaultTokenOrchestrator].eagerly()
+    bind[TokenOrchestrator].to[DefaultTokenOrchestrator].eagerly(),
+    bind[WellKnownConfigOrchestrator].to[DefaultWellKnownConfigOrchestrator].eagerly()
   )
 
   private def controllers(): Seq[Binding[_]] = Seq(
@@ -79,6 +80,7 @@ class ServiceBindings extends Module {
 
   private def apiControllers(): Seq[Binding[_]] = Seq(
     bind[ScopeController].to[DefaultScopeController].eagerly(),
-    bind[ApiAccountController].to[DefaultApiAccountController].eagerly()
+    bind[ApiAccountController].to[DefaultApiAccountController].eagerly(),
+    bind[ConfigController].to[DefaultConfigController].eagerly(),
   )
 }

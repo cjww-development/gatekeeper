@@ -1,9 +1,7 @@
-@import views.html.Main
-@import org.joda.time.DateTime
-@import controllers.api.{routes => apiRoutes}
-@import controllers.ui.{routes => uiRoutes}
 @import controllers.routes
-
+@import controllers.ui.{routes => uiRoutes}
+@import org.joda.time.DateTime
+@import views.html.Main
 @import views.html.helper.CSRF
 @(responseType: String, clientId: String, scopes: Scopes, scope: String, app: RegisteredApplication)(implicit rh: RequestHeader)
 

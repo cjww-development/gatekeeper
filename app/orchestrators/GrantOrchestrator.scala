@@ -18,9 +18,9 @@ package orchestrators
 
 import java.util.UUID
 
-import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate, MongoSuccessDelete}
+import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
 import javax.inject.Inject
-import models.{AuthorisationRequest, Grant, RegisteredApplication, Scopes}
+import models.{Grant, RegisteredApplication, Scopes}
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 import services.{AccountService, GrantService, ScopeService}

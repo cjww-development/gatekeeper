@@ -16,16 +16,9 @@
 
 package services
 
-import com.cjwwdev.security.SecurityConfiguration
-import com.cjwwdev.security.deobfuscation.DeObfuscators
-import database.{IndividualUserStore, OrganisationUserStore}
 import javax.inject.Inject
 import models.Scopes
-import org.joda.time.{DateTime, DateTimeZone}
-import org.slf4j.LoggerFactory
 import play.api.Configuration
-
-import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultScopeService @Inject()(val config: Configuration) extends ScopeService
 

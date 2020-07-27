@@ -16,8 +16,8 @@
 
 package models
 
-import com.cjwwdev.security.obfuscation.Obfuscators
 import com.cjwwdev.security.Implicits.ImplicitObfuscator
+import com.cjwwdev.security.obfuscation.Obfuscators
 import play.api.libs.json.{Json, OFormat}
 import utils.StringUtils
 

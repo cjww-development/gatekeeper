@@ -21,9 +21,9 @@ import database.{AppStore, IndividualUserStore, OrganisationUserStore}
 import javax.inject.Inject
 import models.{RegisteredApplication, User}
 import org.mongodb.scala.bson.conversions.Bson
+import org.mongodb.scala.model.Filters._
 import org.slf4j.LoggerFactory
 import utils.StringUtils
-import org.mongodb.scala.model.Filters._
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 

@@ -33,16 +33,39 @@ class TokenServiceSpec
 
   "createAccessToken" should {
     "return a signed access token" when {
-      "given an owner and account type" in {
-        assertOutput(testService.createAccessToken("testOwner", "testAccType")) { token =>
+      "given a clientId, userId and scope" in {
+        assertOutput(testService.createAccessToken("testClientId", "testUserId", "openid")) { token =>
           val split = token.split("\\.")
           split.length mustBe 3
 
           Base64.decodeBase64(split(0)).map(_.toChar).mkString mustBe """{"typ":"JWT","alg":"HS512"}"""
           val payload = Json.parse(Base64.decodeBase64(split(1)).map(_.toChar).mkString)
+          payload.\("aud").as[String] mustBe "testClientId"
           payload.\("iss").as[String] mustBe "testIssuer"
-          payload.\("sub").as[String] mustBe "testOwner"
-          payload.\("accType").as[String] mustBe "testAccType"
+          payload.\("sub").as[String] mustBe "testUserId"
+          payload.\("scp").as[String] mustBe "openid"
+        }
+      }
+    }
+  }
+
+  "createIdToken" should {
+    "return a signed id token" when {
+      "given a clientId, userId, user details and account type" in {
+        val userDetails = Map(
+          "" -> ""
+        )
+
+        assertOutput(testService.createIdToken("testClientId", "testUserId", userDetails, "testAccType")) { token =>
+          val split = token.split("\\.")
+          split.length mustBe 3
+
+          Base64.decodeBase64(split(0)).map(_.toChar).mkString mustBe """{"typ":"JWT","alg":"HS512"}"""
+          val payload = Json.parse(Base64.decodeBase64(split(1)).map(_.toChar).mkString)
+          payload.\("aud").as[String] mustBe "testClientId"
+          payload.\("iss").as[String] mustBe "testIssuer"
+          payload.\("sub").as[String] mustBe "testUserId"
+          payload.\("act").as[String] mustBe "testAccType"
         }
       }
     }

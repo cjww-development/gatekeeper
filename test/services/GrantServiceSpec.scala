@@ -20,7 +20,7 @@ import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
 import database.{AppStore, GrantStore}
 import helpers.Assertions
 import helpers.database.{MockAppStore, MockGrantStore}
-import models.{AuthorisationRequest, Grant, RegisteredApplication, Scopes}
+import models.{Grant, RegisteredApplication, Scopes}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 
@@ -52,18 +52,10 @@ class GrantServiceSpec
     clientSecret = Some("testSecret")
   )
 
-  val testAuthReq: AuthorisationRequest = AuthorisationRequest(
-    responseType = "code",
-    clientId = testApp.clientId,
-    redirectUri = testApp.redirectUrl,
-    scope = Seq("read:username", "read:email"),
-    state = "testState"
-  )
-
   val testGrant: Grant = Grant(
     responseType = "code",
     authCode = "testAuthCode",
-    scope = testAuthReq.scope,
+    scope = Seq("testScope"),
     clientId = testApp.clientId,
     userId = "testUserId",
     accType = "testType",
@@ -156,7 +148,7 @@ class GrantServiceSpec
       "the auth code and state have been validated" in {
         mockValidateGrant(app = Some(testGrant))
 
-        awaitAndAssert(testService.validateGrant(testGrant.authCode)) {
+        awaitAndAssert(testService.validateGrant(testGrant.authCode, testApp.clientId, testApp.redirectUrl)) {
           _ mustBe Some(testGrant)
         }
       }
@@ -166,7 +158,7 @@ class GrantServiceSpec
       "the auth code and state could not be validated" in {
         mockValidateGrant(app = None)
 
-        awaitAndAssert(testService.validateGrant("invalid-auth-code")) {
+        awaitAndAssert(testService.validateGrant(testGrant.authCode, testApp.clientId, testApp.redirectUrl)) {
           _ mustBe None
         }
       }

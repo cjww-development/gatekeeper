@@ -20,8 +20,8 @@ import database.{IndividualUserStore, OrganisationUserStore}
 import javax.inject.Inject
 import models.User
 import org.mongodb.scala.bson.BsonValue
-import org.slf4j.LoggerFactory
 import org.mongodb.scala.model.Filters._
+import org.slf4j.LoggerFactory
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 

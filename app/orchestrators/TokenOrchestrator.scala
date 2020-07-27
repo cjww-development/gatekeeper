@@ -17,35 +17,67 @@
 package orchestrators
 
 import javax.inject.Inject
-import models.{AuthorisationRequest, Grant, RegisteredApplication, Scopes}
 import org.slf4j.LoggerFactory
-import services.{AccountService, GrantService, ScopeService, TokenService}
+import services.{AccountService, GrantService, TokenService}
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
 sealed trait TokenResponse
-case class Issued(token: String) extends TokenResponse
-case object InvalidCodeOrState extends TokenResponse
+case class Issued(tokenType: String, scope: String, expiresIn: Long, accessToken: String, idToken: String) extends TokenResponse
+case object InvalidGrant extends TokenResponse
+case object InvalidGrantType extends TokenResponse
+case object InvalidUser extends TokenResponse
 
 class DefaultTokenOrchestrator @Inject()(val grantService: GrantService,
+                                         val accountService: AccountService,
                                          val tokenService: TokenService) extends TokenOrchestrator
 
 trait TokenOrchestrator {
 
   protected val grantService: GrantService
   protected val tokenService: TokenService
+  protected val accountService: AccountService
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  def issueToken(authCode: String)(implicit ec: ExC): Future[TokenResponse] = {
-    grantService.validateGrant(authCode) map {
+  def issueToken(grantType: String, authCode: String, clientId: String, redirectUri: String)(implicit ec: ExC): Future[TokenResponse] = {
+    grantType match {
+      case "authorization_code" =>
+        logger.info(s"[issueToken] - Issuing tokens using the $grantType grant")
+        authorizationCodeGrant(authCode, clientId, redirectUri)
+      case e =>
+        logger.error(s"[issueToken] - Could not validate grant type $e")
+        Future.successful(InvalidGrantType)
+    }
+  }
+
+  private def authorizationCodeGrant(authCode: String, clientId: String, redirectUri: String)(implicit ec: ExC): Future[TokenResponse] = {
+    grantService.validateGrant(authCode, clientId, redirectUri) flatMap {
       case Some(grant) =>
-        logger.info("[issueToken] - Grant has been validated")
-        val token = tokenService.createAccessToken(grant.userId, grant.accType)
-        Issued(token)
-      case None        =>
-        logger.warn("[issueToken] - Grant could not be validated")
-        InvalidCodeOrState
+        logger.info("[authorizationCodeGrant] - Grant has been validated")
+        val user = grant.accType match {
+          case "individual"   => accountService.getIndividualAccountInfo(grant.userId)
+          case "organisation" => accountService.getOrganisationAccountInfo(grant.userId)
+        }
+
+        user.map { userData =>
+          if(userData.nonEmpty) {
+            logger.info(s"[authorizationCodeGrant] - Issuing new Id and access token for ${grant.userId} for use by clientId ${grant.clientId}")
+            Issued(
+              tokenType = "Bearer",
+              scope = grant.scope.mkString(","),
+              expiresIn = tokenService.expiry,
+              accessToken = tokenService.createAccessToken(grant.clientId, grant.userId, grant.scope.mkString(",")),
+              idToken = tokenService.createIdToken(grant.clientId, grant.userId, userData, grant.accType)
+            )
+          } else {
+            logger.warn(s"[authorizationCodeGrant] - could not validate user on userId ${grant.userId}")
+            InvalidUser
+          }
+        }
+      case None =>
+        logger.warn(s"[authorizationCodeGrant] - Couldn't validate grant")
+        Future.successful(InvalidGrant)
     }
   }
 }

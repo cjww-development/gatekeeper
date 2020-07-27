@@ -19,8 +19,8 @@ package models
 import com.cjwwdev.security.Implicits.ImplicitObfuscator
 import com.cjwwdev.security.deobfuscation.DeObfuscators
 import com.cjwwdev.security.obfuscation.Obfuscators
-import models.ServerCookies.CookieOps
 import helpers.Assertions
+import models.ServerCookies.CookieOps
 import org.scalatestplus.play.PlaySpec
 import play.api.mvc.Cookie
 

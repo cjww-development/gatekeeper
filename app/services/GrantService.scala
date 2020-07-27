@@ -16,13 +16,11 @@
 
 package services
 
-import java.util.UUID
-
 import com.cjwwdev.mongo.responses.MongoCreateResponse
 import database.{AppStore, GrantStore}
 import javax.inject.Inject
-import models.{AuthorisationRequest, Grant, RegisteredApplication, Scopes}
-import org.joda.time.DateTime
+import models.{Grant, RegisteredApplication, Scopes}
+import org.mongodb.scala.model.Filters.{and, equal}
 import org.slf4j.LoggerFactory
 import play.api.Configuration
 
@@ -72,8 +70,14 @@ trait GrantService {
     grantStore.createGrant(grant)
   }
 
-  def validateGrant(authCode: String)(implicit ec: ExC): Future[Option[Grant]] = {
-    grantStore.validateGrant(authCode) map { grant =>
+  def validateGrant(authCode: String, clientId: String, redirectUri: String)(implicit ec: ExC): Future[Option[Grant]] = {
+    val query = and(
+      equal("authCode", authCode),
+      equal("clientId", clientId),
+      equal("redirectUri", redirectUri)
+    )
+
+    grantStore.validateGrant(query) map { grant =>
       if(grant.isDefined) {
         logger.info(s"[validateGrant] - Authorisation grant found")
       } else {

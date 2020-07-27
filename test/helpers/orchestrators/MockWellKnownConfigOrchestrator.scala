@@ -14,34 +14,28 @@
  * limitations under the License.
  */
 
-package helpers.misc
+package helpers.orchestrators
 
-import org.mockito.ArgumentMatchers
+import models.WellKnownConfig
+import orchestrators.WellKnownConfigOrchestrator
 import org.mockito.Mockito.{reset, when}
 import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import play.api.{ConfigLoader, Configuration}
 
-trait MockConfiguration extends MockitoSugar with BeforeAndAfterEach {
+trait MockWellKnownConfigOrchestrator extends MockitoSugar with BeforeAndAfterEach {
   self: PlaySpec =>
 
-  val mockConfiguration: Configuration = mock[Configuration]
+  val mockWellKnownConfigOrchestrator: WellKnownConfigOrchestrator = mock[WellKnownConfigOrchestrator]
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(mockConfiguration)
+    reset(mockWellKnownConfigOrchestrator)
   }
 
-  def mockGetConfig[T](value: T): OngoingStubbing[T] = {
-    when(mockConfiguration.get[T](ArgumentMatchers.any[String]())(ArgumentMatchers.any[ConfigLoader[T]]()))
-      .thenReturn(value)
-  }
-
-  def mockMultipleGetConfig[T](valueOne: T, valueTwo: T): OngoingStubbing[T] = {
-    when(mockConfiguration.get[T](ArgumentMatchers.any[String]())(ArgumentMatchers.any[ConfigLoader[T]]()))
-      .thenReturn(valueOne)
-      .thenReturn(valueTwo)
+  def mockGetWellKnownConfig(wkc: WellKnownConfig): OngoingStubbing[WellKnownConfig] = {
+    when(mockWellKnownConfigOrchestrator.getConfig)
+      .thenReturn(wkc)
   }
 }

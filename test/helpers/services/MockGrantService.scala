@@ -16,7 +16,7 @@
 
 package helpers.services
 
-import models.RegisteredApplication
+import models.{Grant, RegisteredApplication}
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
 import org.mockito.stubbing.OngoingStubbing
@@ -50,5 +50,10 @@ trait MockGrantService extends MockitoSugar with BeforeAndAfterEach {
   def mockValidateRequestedScopes(valid: Boolean): OngoingStubbing[Boolean] = {
     when(mockGrantService.validateRequestedScopes(ArgumentMatchers.any[Seq[String]]()))
       .thenReturn(valid)
+  }
+
+  def mockValidateGrant(grant: Option[Grant]): OngoingStubbing[Future[Option[Grant]]] = {
+    when(mockGrantService.validateGrant(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(grant))
   }
 }
