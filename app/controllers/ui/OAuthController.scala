@@ -20,7 +20,7 @@ import controllers.actions.AuthenticatedFilter
 import javax.inject.Inject
 import orchestrators._
 import org.slf4j.LoggerFactory
-import play.api.libs.json.{JsValue, Json, Writes}
+import play.api.libs.json.{Json, Writes}
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import views.html.auth.Grant
 
@@ -64,9 +64,8 @@ trait OAuthController extends BaseController with AuthenticatedFilter {
   }
 
   def authoriseGet(response_type: String, client_id: String, scope: String): Action[AnyContent] = authenticatedUser { implicit req => _ =>
-    val scopes = scope.trim.split(",").map(_.trim).toSeq
-    grantOrchestrator.validateIncomingGrant(response_type, client_id, scopes) map {
-      case ValidatedGrantRequest(app, scopes) => Ok(Grant(response_type, client_id, scopes, scope, app))
+    grantOrchestrator.validateIncomingGrant(response_type, client_id, scope) map {
+      case ValidatedGrantRequest(app, scopes) => Ok(Grant(response_type, client_id, scopes.split(",").toSeq, scope, app))
       case err => BadRequest(err.toString)
     }
   }

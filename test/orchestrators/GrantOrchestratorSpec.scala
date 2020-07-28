@@ -18,7 +18,7 @@ package orchestrators
 
 import helpers.Assertions
 import helpers.services.{MockAccountService, MockGrantService, MockScopeService}
-import models.{RegisteredApplication, Scopes}
+import models.RegisteredApplication
 import org.scalatestplus.play.PlaySpec
 import services.{AccountService, GrantService, ScopeService}
 
@@ -52,23 +52,21 @@ class GrantOrchestratorSpec
     "return a ValidatedGrantRequest" when {
       "the app is found and redirects and scopes are valid and the app owner is found" in {
         mockGetRegisteredApp(app = Some(testApp))
-        mockValidateRequestedScopes(valid = true)
+        mockValidateScopes(valid = true)
         mockGetOrganisationAccountInfo(value = Map("userName" -> "test-org"))
-        mockMakeScopesFromQuery(scopes = Scopes(Seq("read:username"), Seq()))
 
-        awaitAndAssert(testOrchestrator.validateIncomingGrant("code", testApp.clientId, Seq("read:username"))) {
-          _ mustBe ValidatedGrantRequest(testApp.copy(owner = "test-org"), Scopes(Seq("read:username"), Seq()))
+        awaitAndAssert(testOrchestrator.validateIncomingGrant("code", testApp.clientId, "username")) {
+          _ mustBe ValidatedGrantRequest(testApp.copy(owner = "test-org"), "username")
         }
       }
 
       "the app is found and redirects and scopes are valid but the app owner isn't found" in {
         mockGetRegisteredApp(app = Some(testApp))
-        mockValidateRequestedScopes(valid = true)
+        mockValidateScopes(valid = true)
         mockGetOrganisationAccountInfo(value = Map())
-        mockMakeScopesFromQuery(scopes = Scopes(Seq("read:username"), Seq()))
 
-        awaitAndAssert(testOrchestrator.validateIncomingGrant("code", testApp.clientId, Seq("read:username"))) {
-          _ mustBe ValidatedGrantRequest(testApp.copy(owner = ""), Scopes(Seq("read:username"), Seq()))
+        awaitAndAssert(testOrchestrator.validateIncomingGrant("code", testApp.clientId, "username")) {
+          _ mustBe ValidatedGrantRequest(testApp.copy(owner = ""), "username")
         }
       }
     }
@@ -77,7 +75,7 @@ class GrantOrchestratorSpec
       "the app wasn't found" in {
         mockGetRegisteredApp(app = None)
 
-        awaitAndAssert(testOrchestrator.validateIncomingGrant("code", testApp.clientId, Seq("read:username"))) {
+        awaitAndAssert(testOrchestrator.validateIncomingGrant("code", testApp.clientId, "username")) {
           _ mustBe InvalidApplication
         }
       }
@@ -86,9 +84,9 @@ class GrantOrchestratorSpec
     "return a InvalidScopesRequested" when {
       "the scopes aren't valid" in {
         mockGetRegisteredApp(app = Some(testApp))
-        mockValidateRequestedScopes(valid = false)
+        mockValidateScopes(valid = false)
 
-        awaitAndAssert(testOrchestrator.validateIncomingGrant("code", testApp.clientId, Seq("read:username"))) {
+        awaitAndAssert(testOrchestrator.validateIncomingGrant("code", testApp.clientId, "username")) {
           _ mustBe InvalidScopesRequested
         }
       }

@@ -19,7 +19,7 @@ package global
 import com.cjwwdev.featuremanagement.controllers.FeatureController
 import com.cjwwdev.featuremanagement.models.Features
 import com.cjwwdev.shuttering.controllers.ShutteringController
-import controllers.api.{ConfigController, DefaultConfigController, DefaultScopeController, ScopeController, AccountController => ApiAccountController, DefaultAccountController => DefaultApiAccountController}
+import controllers.api.{ConfigController, DefaultConfigController, AccountController => ApiAccountController, DefaultAccountController => DefaultApiAccountController}
 import controllers.features.DefaultFeatureController
 import controllers.shuttering.DefaultShutteringController
 import controllers.ui._
@@ -79,7 +79,6 @@ class ServiceBindings extends Module {
   )
 
   private def apiControllers(): Seq[Binding[_]] = Seq(
-    bind[ScopeController].to[DefaultScopeController].eagerly(),
     bind[ApiAccountController].to[DefaultApiAccountController].eagerly(),
     bind[ConfigController].to[DefaultConfigController].eagerly(),
   )

@@ -17,43 +17,38 @@
 package services
 
 import helpers.Assertions
-import helpers.misc.MockConfiguration
-import models.Scopes
 import org.scalatestplus.play.PlaySpec
-import play.api.Configuration
 
 class ScopeServiceSpec
   extends PlaySpec
-    with Assertions
-    with MockConfiguration {
+    with Assertions {
 
   private val testService: ScopeService = new ScopeService {
-    override val config: Configuration = mockConfiguration
+    override protected val validScopes: Seq[String] = Seq("read:testRead", "write:testWrite")
   }
 
   "getValidScopes" should {
     "return a Scopes object" in {
-      mockMultipleGetConfig[Seq[String]](
-        valueOne = Seq("testReadValue"),
-        valueTwo = Seq("testWriteValue"),
-      )
-
       assertOutput(testService.getValidScopes) {
-        _ mustBe Scopes(
-          reads  = Seq("testReadValue"),
-          writes = Seq("testWriteValue"),
-        )
+        _ mustBe Seq("read:testRead", "write:testWrite")
       }
     }
   }
 
-  "makeScopesFromQuery" should {
-    "return a scopes" in {
-      assertOutput(testService.makeScopesFromQuery(Seq("read:username", "write:email"))) {
-        _ mustBe Scopes(
-          reads  = Seq("username"),
-          writes = Seq("email")
-        )
+  "validateScopes" should {
+    "return true" when {
+      "the requested scopes are valid" in {
+        assertOutput(testService.validateScopes(scopes = "read:testRead, write:testWrite")) {
+          res => assert(res)
+        }
+      }
+    }
+
+    "return false" when {
+      "the requested scopes aren't valid" in {
+        assertOutput(testService.validateScopes(scopes = "testRead, testWrite")) {
+          res => assert(!res)
+        }
       }
     }
   }

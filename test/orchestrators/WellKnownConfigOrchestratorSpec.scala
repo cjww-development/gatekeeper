@@ -17,12 +17,8 @@
 package orchestrators
 
 import helpers.Assertions
-import helpers.services.{MockAccountService, MockGrantService, MockScopeService}
-import models.{RegisteredApplication, Scopes, WellKnownConfig}
+import models.WellKnownConfig
 import org.scalatestplus.play.PlaySpec
-import services.{AccountService, GrantService, ScopeService}
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class WellKnownConfigOrchestratorSpec
   extends PlaySpec

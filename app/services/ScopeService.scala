@@ -17,29 +17,28 @@
 package services
 
 import javax.inject.Inject
-import models.Scopes
+import org.slf4j.LoggerFactory
 import play.api.Configuration
 
-class DefaultScopeService @Inject()(val config: Configuration) extends ScopeService
+class DefaultScopeService @Inject()(val config: Configuration) extends ScopeService {
+  override protected val validScopes: Seq[String] = config.get[Seq[String]]("well-known-config.scopes")
+}
 
 trait ScopeService {
 
-  val config: Configuration
+  protected val validScopes: Seq[String]
 
-  def getValidScopes: Scopes = {
-    Scopes(
-      reads = config.get[Seq[String]]("scopes.read"),
-      writes = config.get[Seq[String]]("scopes.write")
-    )
+  private val logger = LoggerFactory.getLogger(this.getClass)
+
+  def getValidScopes: Seq[String] = {
+    validScopes
   }
 
-  def makeScopesFromQuery(scopes: Seq[String]): Scopes = {
-    val inboundReads  = scopes.filter(_.startsWith("read:")).map(_.replace("read:", ""))
-    val inboundWrites = scopes.filter(_.startsWith("write:")).map(_.replace("write:", ""))
-
-    Scopes(
-      reads = inboundReads,
-      writes = inboundWrites
-    )
+  def validateScopes(scopes: String): Boolean = {
+    val inboundScopes = scopes.split(",").map(_.trim)
+    val validatedScopes = inboundScopes.map(validScopes.contains)
+    val valid = !validatedScopes.contains(false)
+    logger.info(s"[validateRequestedScopes] - Are the requested scopes valid? $valid")
+    valid
   }
 }

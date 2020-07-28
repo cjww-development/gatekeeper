@@ -3,7 +3,7 @@
 @import org.joda.time.DateTime
 @import views.html.Main
 @import views.html.helper.CSRF
-@(responseType: String, clientId: String, scopes: Scopes, scope: String, app: RegisteredApplication)(implicit rh: RequestHeader)
+@(responseType: String, clientId: String, scopes: Seq[String], scope: String, app: RegisteredApplication)(implicit rh: RequestHeader)
 
 @Main("A service would like to access your account") {
     <div class="form-signin">
@@ -15,10 +15,7 @@
         <p class="default-text">"@{app.desc}"</p>
         <p class="default-text">and would like to access these parts of your account</p>
         <ul class="default-text">
-            @for(scope <- scopes.reads){
-                <li>@{scope}</li>
-            }
-            @for(scope <- scopes.writes){
+            @for(scope <- scopes){
                 <li>@{scope}</li>
             }
         </ul>

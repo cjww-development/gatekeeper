@@ -20,7 +20,7 @@ import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
 import database.{AppStore, GrantStore}
 import helpers.Assertions
 import helpers.database.{MockAppStore, MockGrantStore}
-import models.{Grant, RegisteredApplication, Scopes}
+import models.{Grant, RegisteredApplication}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 
@@ -35,10 +35,6 @@ class GrantServiceSpec
   private val testService: GrantService = new GrantService {
     override val appStore: AppStore = mockAppStore
     override val grantStore: GrantStore = mockGrantStore
-    override protected val scopes: Scopes = Scopes(
-      reads  = Seq("testRead"),
-      writes = Seq("testWrite")
-    )
   }
 
   val testApp: RegisteredApplication = RegisteredApplication(
@@ -97,24 +93,6 @@ class GrantServiceSpec
     "return false" when {
       "the two redirects don't match" in {
         assertOutput(testService.validateRedirectUrl("http://localhost:8080/redirect", "http://localhost:8080/redirect/abc")) {
-          res => assert(!res)
-        }
-      }
-    }
-  }
-
-  "validateRequestedScopes" should {
-    "return true" when {
-      "the requested scopes are valid" in {
-        assertOutput(testService.validateRequestedScopes(inboundScopes = Seq("read:testRead", "write:testWrite"))) {
-          res => assert(res)
-        }
-      }
-    }
-
-    "return false" when {
-      "the requested scopes aren't valid" in {
-        assertOutput(testService.validateRequestedScopes(inboundScopes = Seq("read:testRead", "write:testWriteInvalid"))) {
           res => assert(!res)
         }
       }

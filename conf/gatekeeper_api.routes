@@ -1,5 +1,3 @@
-GET         /scopes                               controllers.api.ScopeController.getValidScopes
-
 GET         /user-details                         controllers.api.AccountController.getUserDetails
 
 GET         /.well-known/openid-configuration     controllers.api.ConfigController.wellKnownConfig()

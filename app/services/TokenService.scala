@@ -16,8 +16,7 @@
 
 package services
 
-import java.time.{Clock, Instant, LocalDateTime}
-import java.util.Calendar
+import java.time.{Clock, Instant}
 
 import javax.inject.Inject
 import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}

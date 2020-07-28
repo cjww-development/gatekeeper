@@ -19,21 +19,14 @@ package services
 import com.cjwwdev.mongo.responses.MongoCreateResponse
 import database.{AppStore, GrantStore}
 import javax.inject.Inject
-import models.{Grant, RegisteredApplication, Scopes}
+import models.{Grant, RegisteredApplication}
 import org.mongodb.scala.model.Filters.{and, equal}
 import org.slf4j.LoggerFactory
-import play.api.Configuration
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultGrantService @Inject()(val appStore: AppStore,
-                                    val grantStore: GrantStore,
-                                    val config: Configuration) extends GrantService {
-  override protected val scopes: Scopes = Scopes(
-    reads = config.get[Seq[String]]("scopes.read").map(_.trim),
-    writes = config.get[Seq[String]]("scopes.write").map(_.trim)
-  )
-}
+                                    val grantStore: GrantStore) extends GrantService
 
 trait GrantService {
 
@@ -42,8 +35,6 @@ trait GrantService {
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  protected val scopes: Scopes
-
   def getRegisteredApp(clientId: String): Future[Option[RegisteredApplication]] = {
     appStore.validateAppOn("clientId", clientId)
   }
@@ -51,18 +42,6 @@ trait GrantService {
   def validateRedirectUrl(redirectUrl: String, savedRedirectUrl: String): Boolean = {
     val valid = redirectUrl.trim == savedRedirectUrl.trim
     logger.info(s"[validateRedirectUrl] - Are the provided redirect urls valid? $valid")
-    valid
-  }
-
-  def validateRequestedScopes(inboundScopes: Seq[String]): Boolean = {
-    val inboundReads  = inboundScopes.filter(_.startsWith("read:")).map(_.replace("read:", "").trim)
-    val inboundWrites = inboundScopes.filter(_.startsWith("write:")).map(_.replace("write:", "").trim)
-
-    val validatedReads  = inboundReads.map(scopes.reads.contains)
-    val validatedWrites = inboundWrites.map(scopes.writes.contains)
-
-    val valid = !(validatedReads.contains(false) || validatedWrites.contains(false))
-    logger.info(s"[validateRequestedScopes] - Are the requested scopes valid? $valid")
     valid
   }
 

@@ -47,11 +47,6 @@ trait MockGrantService extends MockitoSugar with BeforeAndAfterEach {
       .thenReturn(valid)
   }
 
-  def mockValidateRequestedScopes(valid: Boolean): OngoingStubbing[Boolean] = {
-    when(mockGrantService.validateRequestedScopes(ArgumentMatchers.any[Seq[String]]()))
-      .thenReturn(valid)
-  }
-
   def mockValidateGrant(grant: Option[Grant]): OngoingStubbing[Future[Option[Grant]]] = {
     when(mockGrantService.validateGrant(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
       .thenReturn(Future.successful(grant))
