@@ -1,0 +1,23 @@
+@import org.joda.time.DateTime
+@import views.html.Main
+@import controllers.ui.{routes => uiRoutes}
+
+@()(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
+
+@Main("Register an OAuth Service") {
+    <div class="form-signin">
+        <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
+        <h1 class="h3 mb-3 font-weight-normal">Welcome</h1>
+
+        <hr>
+
+        <p class="default-text">Your account has been created, sign in below.</p>
+
+        <hr>
+
+        <a class="btn btn-lg btn-primary btn-block" href="@uiRoutes.LoginController.show()">Sign in</a>
+
+        <hr>
+        <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
+    </div>
+}

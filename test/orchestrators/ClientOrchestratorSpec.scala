@@ -58,7 +58,7 @@ class ClientOrchestratorSpec
       "a valid app was found" in {
         mockGetRegisteredApp(app = Some(testApp))
 
-        awaitAndAssert(testOrchestrator.getRegisteredApp("testOrgId", "testClientId")) {
+        awaitAndAssert(testOrchestrator.getRegisteredApp("testOrgId", "testAppId")) {
           _ mustBe Some(testApp.copy(clientId = "testId", clientSecret = Some("testSecret")))
         }
       }
@@ -68,7 +68,7 @@ class ClientOrchestratorSpec
       "no app was found" in {
         mockGetRegisteredApp(app = None)
 
-        awaitAndAssert(testOrchestrator.getRegisteredApp("testOrgId", "testClientId")) {
+        awaitAndAssert(testOrchestrator.getRegisteredApp("testOrgId", "testAppId")) {
           _ mustBe None
         }
       }

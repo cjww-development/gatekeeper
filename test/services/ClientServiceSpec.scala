@@ -59,7 +59,7 @@ class ClientServiceSpec
       "a valid app was found" in {
         mockValidateAppOn(app = Some(testApp))
 
-        awaitAndAssert(testService.getRegisteredApp("testOrgId", "testClientId")) {
+        awaitAndAssert(testService.getRegisteredApp("testOrgId", "testAppId")) {
           _ mustBe Some(testApp)
         }
       }
@@ -69,7 +69,7 @@ class ClientServiceSpec
       "no app was found" in {
         mockValidateAppOn(app = None)
 
-        awaitAndAssert(testService.getRegisteredApp("testOrgId", "testClientId")) {
+        awaitAndAssert(testService.getRegisteredApp("testOrgId", "testAppId")) {
           _ mustBe None
         }
       }

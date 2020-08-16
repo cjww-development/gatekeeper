@@ -17,14 +17,13 @@
 package controllers.ui
 
 import controllers.actions.AuthenticatedFilter
-import forms.AppRegistrationForm.{form => appRegForm}
 import forms.RegistrationForm.{form => regForm, _}
 import javax.inject.Inject
 import orchestrators._
 import org.slf4j.LoggerFactory
 import play.api.i18n.{I18NSupportLowPriorityImplicits, I18nSupport, Lang}
 import play.api.mvc._
-import views.html.registration.{AppRegistration, UserRegistration}
+import views.html.registration.{UserRegistration, RegSuccess}
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
@@ -52,8 +51,8 @@ trait RegistrationController extends BaseController with I18NSupportLowPriorityI
     regForm.bindFromRequest.fold(
       errs => Future.successful(BadRequest(errs.toString)),
       user => registrationOrchestrator.registerUser(user) map {
-        case Registered        => Ok(user.toString)
-        case RegistrationError => BadRequest("There was a problem registering the new user")
+        case Registered        => Ok(RegSuccess())
+        case RegistrationError => InternalServerError
         case _                 => BadRequest(UserRegistration(regForm.renderErrors))
       }
     )

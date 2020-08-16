@@ -80,22 +80,6 @@ class RegistrationControllerSpec
         }
       }
 
-      "there was a error during registration" in {
-        mockRegisterUser(result = RegistrationError)
-
-        val req = addCSRFToken(FakeRequest().withFormUrlEncodedBody(
-          "userName" -> "test",
-          "email" -> "test@email.com",
-          "accType" -> "individual",
-          "password" -> "testPass",
-          "confirmPassword" -> "testPass"
-        ))
-
-        assertFutureResult(testController.submitUserReg()(req)) {
-          status(_) mustBe BAD_REQUEST
-        }
-      }
-
       "the users email or username is already in use" in {
         mockRegisterUser(result = AccountIdsInUse)
 
@@ -109,6 +93,24 @@ class RegistrationControllerSpec
 
         assertFutureResult(testController.submitUserReg()(req)) {
           status(_) mustBe BAD_REQUEST
+        }
+      }
+    }
+
+    "return an InternalServerError" when {
+      "there was a error during registration" in {
+        mockRegisterUser(result = RegistrationError)
+
+        val req = addCSRFToken(FakeRequest().withFormUrlEncodedBody(
+          "userName" -> "test",
+          "email" -> "test@email.com",
+          "accType" -> "individual",
+          "password" -> "testPass",
+          "confirmPassword" -> "testPass"
+        ))
+
+        assertFutureResult(testController.submitUserReg()(req)) {
+          status(_) mustBe INTERNAL_SERVER_ERROR
         }
       }
     }

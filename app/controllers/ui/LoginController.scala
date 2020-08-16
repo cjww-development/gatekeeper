@@ -62,7 +62,11 @@ trait LoginController extends BaseController with I18NSupportLowPriorityImplicit
   }
 
   private def loginRedirect(user: User, redirect: Option[String]): Result = {
-    Redirect(Call("GET", redirect.getOrElse(routes.AccountController.show().url)))
+    val redirectTo = redirect.fold(routes.AccountController.show().url) {
+      url => if(url.trim == "") routes.AccountController.show().url else url
+    }
+
+    Redirect(Call("GET", redirectTo))
       .withCookies(ServerCookies.createAuthCookie(user.id, enc = true))
   }
 

@@ -13,17 +13,18 @@
         @for((appGroup, i) <- apps.zipWithIndex) {
             <div @if(i != 0) { hidden } id="group-@i">
             @for(app <- appGroup) {
-                <div class="card" style="width: 18rem;">
+                <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">@{app.name}</h5>
                         <p class="default-text">@{app.desc}</p>
-                        <a href="@uiRoutes.ClientController.getClientDetails(app.clientId)" class="btn btn-primary">View</a>
+                        <a href="@uiRoutes.ClientController.getClientDetails(app.appId)" class="btn btn-primary">View</a>
                     </div>
                 </div>
             }
             </div>
         }
 
+        @if(apps.length > 1) {
         <nav>
             <ul class="pagination justify-content-center">
             @for((_, idx) <- apps.zipWithIndex) {
@@ -33,6 +34,7 @@
             }
             </ul>
         </nav>
+        }
 
         <hr>
         <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>

@@ -36,8 +36,8 @@ trait ClientOrchestrator extends Obfuscators with DeObfuscators {
 
   override val logger = LoggerFactory.getLogger(this.getClass)
 
-  def getRegisteredApp(orgUserId: String, clientId: String)(implicit ec: ExC): Future[Option[RegisteredApplication]] = {
-    clientService.getRegisteredApp(orgUserId, clientId.encrypt).map {
+  def getRegisteredApp(orgUserId: String, appId: String)(implicit ec: ExC): Future[Option[RegisteredApplication]] = {
+    clientService.getRegisteredApp(orgUserId, appId).map {
       _.map(app => app.copy(
         clientId = stringDeObfuscate.decrypt(app.clientId).getOrElse(throw new Exception(s"Could not decrypt clientId for app ${app.appId}")),
         clientSecret = app.clientSecret.map(sec => stringDeObfuscate.decrypt(sec).getOrElse(throw new Exception(s"Could not decrypt clientSecret for app ${app.appId}")))
@@ -47,13 +47,12 @@ trait ClientOrchestrator extends Obfuscators with DeObfuscators {
 
   def getRegisteredApps(orgUserId: String, groupedBy: Int)(implicit ec: ExC): Future[Seq[Seq[RegisteredApplication]]] = {
     clientService.getRegisteredAppsFor(orgUserId) map {
-      _
-        .map(app => app.copy(
-          clientId = stringDeObfuscate.decrypt(app.clientId).getOrElse(throw new Exception(s"Could not decrypt clientId for app ${app.appId}")),
-          clientSecret = app.clientSecret.map(sec => stringDeObfuscate.decrypt(sec).getOrElse(throw new Exception(s"Could not decrypt clientSecret for app ${app.appId}")))
-        ))
-        .grouped(groupedBy)
-        .toSeq
+      _.map(app => app.copy(
+        clientId = stringDeObfuscate.decrypt(app.clientId).getOrElse(throw new Exception(s"Could not decrypt clientId for app ${app.appId}")),
+        clientSecret = app.clientSecret.map(sec => stringDeObfuscate.decrypt(sec).getOrElse(throw new Exception(s"Could not decrypt clientSecret for app ${app.appId}")))
+      ))
+      .grouped(groupedBy)
+      .toSeq
     }
   }
 }

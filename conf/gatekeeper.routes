@@ -16,6 +16,6 @@ POST        /oauth2/authorize                       controllers.ui.OAuthControll
 POST        /oauth2/token                           controllers.ui.OAuthController.getToken()
 
 GET         /clients                                controllers.ui.ClientController.getAllClients(groupedBy: Int ?= 5)
-GET         /client                                 controllers.ui.ClientController.getClientDetails(clientId)
+GET         /client                                 controllers.ui.ClientController.getClientDetails(appId)
 
 GET         /assets/*file                           controllers.Assets.at(path="/public", file)

@@ -32,17 +32,17 @@ trait ClientService {
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  def getRegisteredApp(orgUserId: String, clientId: String)(implicit ec: ExC): Future[Option[RegisteredApplication]] = {
+  def getRegisteredApp(orgUserId: String, appId: String)(implicit ec: ExC): Future[Option[RegisteredApplication]] = {
     val query = and(
       equal("owner", orgUserId),
-      equal("clientId", clientId)
+      equal("appId", appId)
     )
 
     appStore.validateAppOn(query) map { app =>
       if(app.isDefined) {
-        logger.info(s"[getRegisteredApp] - Found app ${clientId} belonging to ${orgUserId}")
+        logger.info(s"[getRegisteredApp] - Found app $appId belonging to ${orgUserId}")
       } else {
-        logger.warn(s"[getRegisteredApp] - No app found app ${clientId} belonging to ${orgUserId}")
+        logger.warn(s"[getRegisteredApp] - No app found app $appId belonging to ${orgUserId}")
       }
       app
     }

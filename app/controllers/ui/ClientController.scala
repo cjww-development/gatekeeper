@@ -56,14 +56,14 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
     appRegForm(userId).bindFromRequest.fold(
       errs => Future.successful(BadRequest(errs.toString)),
       app  => registrationOrchestrator.registerApplication(app) map {
-        case AppRegistered        => Ok(s"${app.name} is now registered")
+        case AppRegistered        => Redirect(routes.ClientController.getClientDetails(app.appId))
         case AppRegistrationError => InternalServerError
       }
     )
   }
 
-  def getClientDetails(clientId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => orgUserId =>
-    clientOrchestrator.getRegisteredApp(orgUserId, clientId) map {
+  def getClientDetails(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => orgUserId =>
+    clientOrchestrator.getRegisteredApp(orgUserId, appId) map {
       case Some(app) => Ok(ClientView(app))
       case None      => NotFound(NotFoundView())
     }
