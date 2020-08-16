@@ -17,8 +17,8 @@
 package controllers.ui
 
 import helpers.Assertions
-import helpers.orchestrators.MockRegistrationOrchestrator
-import orchestrators.{AccountIdsInUse, Registered, RegistrationError, RegistrationOrchestrator}
+import helpers.orchestrators.{MockRegistrationOrchestrator, MockUserOrchestrator}
+import orchestrators.{AccountIdsInUse, Registered, RegistrationError, RegistrationOrchestrator, UserOrchestrator}
 import org.scalatestplus.play.PlaySpec
 import play.api.mvc.ControllerComponents
 import play.api.test.CSRFTokenHelper.addCSRFToken
@@ -30,15 +30,17 @@ import scala.concurrent.ExecutionContext
 class RegistrationControllerSpec
   extends PlaySpec
     with Assertions
-    with MockRegistrationOrchestrator {
+    with MockRegistrationOrchestrator
+    with MockUserOrchestrator {
 
   val testController: RegistrationController = new RegistrationController {
     override val registrationOrchestrator: RegistrationOrchestrator = mockRegistrationOrchestrator
     override implicit val ec: ExecutionContext = stubControllerComponents().executionContext
     override protected def controllerComponents: ControllerComponents = stubControllerComponents()
+    override val userOrchestrator: UserOrchestrator = mockUserOrchestrator
   }
 
-  "show" should {
+  "showUserReg" should {
     "return an Ok" when {
       "the page is rendered" in {
         assertFutureResult(testController.showUserReg()(addCSRFToken(FakeRequest()))) {
@@ -48,7 +50,7 @@ class RegistrationControllerSpec
     }
   }
 
-  "submit" should {
+  "submitUserReg" should {
     "return an Ok" when {
       "the user has been registered" in {
         mockRegisterUser(result = Registered)

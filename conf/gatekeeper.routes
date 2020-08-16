@@ -1,7 +1,7 @@
 GET         /register                               controllers.ui.RegistrationController.showUserReg()
 POST        /register                               controllers.ui.RegistrationController.submitUserReg()
-GET         /register/service                       controllers.ui.RegistrationController.showAppReg()
-POST        /register/service                       controllers.ui.RegistrationController.submitAppReg()
+GET         /register/service                       controllers.ui.ClientController.showAppReg()
+POST        /register/service                       controllers.ui.ClientController.submitAppReg()
 
 GET         /login                                  controllers.ui.LoginController.show()
 POST        /login                                  controllers.ui.LoginController.submit()
@@ -14,5 +14,8 @@ POST        /oauth2/authorize                       controllers.ui.OAuthControll
 
 + NOCSRF
 POST        /oauth2/token                           controllers.ui.OAuthController.getToken()
+
+GET         /clients                                controllers.ui.ClientController.getAllClients(groupedBy: Int ?= 5)
+GET         /client                                 controllers.ui.ClientController.getClientDetails(clientId)
 
 GET         /assets/*file                           controllers.Assets.at(path="/public", file)

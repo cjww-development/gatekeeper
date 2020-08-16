@@ -29,19 +29,7 @@ case class Grant(responseType: String,
                  redirectUri: String,
                  createdAt: DateTime)
 
-object Grant {
-  val dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
-
-  implicit val timeFormat = new Format[DateTime] {
-    override def writes(o: DateTime): JsValue = JsString(o.toString())
-
-    override def reads(json: JsValue): JsResult[DateTime] = {
-      json.validate[String].map[DateTime](dtString =>
-        DateTime.parse(dtString, DateTimeFormat.forPattern(dateFormat))
-      )
-    }
-  }
-
+object Grant extends TimeFormat {
   implicit val format: OFormat[Grant] = Json.format[Grant]
 
   val outboundWriter: Writes[Grant] = (o: Grant) => Json.obj(

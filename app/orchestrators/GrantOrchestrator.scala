@@ -30,6 +30,7 @@ import scala.concurrent.{Future, ExecutionContext => ExC}
 sealed trait GrantInitiateResponse
 case object InvalidApplication extends GrantInitiateResponse
 case object InvalidScopesRequested extends GrantInitiateResponse
+case object InvalidResponseType extends GrantInitiateResponse
 case class ValidatedGrantRequest(app: RegisteredApplication, scopes: String) extends GrantInitiateResponse
 
 class DefaultGrantOrchestrator @Inject()(val grantService: GrantService,
@@ -45,23 +46,28 @@ trait GrantOrchestrator {
   private val logger = LoggerFactory.getLogger(this.getClass)
 
   def validateIncomingGrant(responseType: String, clientId: String, scope: String)(implicit ec: ExC): Future[GrantInitiateResponse] = {
-    grantService.getRegisteredApp(clientId) flatMap {
-      case Some(app) =>
-        val validScopes = scopeService.validateScopes(scope)
-        if(validScopes) {
-          accountService.getOrganisationAccountInfo(app.owner) map { user =>
-            ValidatedGrantRequest(
-              app = app.copy(owner = user.getOrElse("userName", "")),
-              scopes = scope
-            )
+    if(responseType == "code") {
+      grantService.getRegisteredApp(clientId) flatMap {
+        case Some(app) =>
+          val validScopes = scopeService.validateScopes(scope)
+          if(validScopes) {
+            accountService.getOrganisationAccountInfo(app.owner) map { user =>
+              ValidatedGrantRequest(
+                app = app.copy(owner = user.getOrElse("userName", "")),
+                scopes = scope
+              )
+            }
+          } else {
+            logger.warn(s"[validateIncomingGrant] - The requested scopes weren't valid")
+            Future.successful(InvalidScopesRequested)
           }
-        } else {
-          logger.warn(s"[validateIncomingGrant] - The requested scopes weren't valid")
-          Future.successful(InvalidScopesRequested)
-        }
-      case None =>
-        logger.warn(s"[validateIncomingGrant] - There are no clients registered against clientId $clientId")
-        Future.successful(InvalidApplication)
+        case None =>
+          logger.warn(s"[validateIncomingGrant] - There are no clients registered against clientId $clientId")
+          Future.successful(InvalidApplication)
+      }
+    } else {
+      logger.warn(s"[validateIncomingGrant] - An invalid response type was found (${responseType})")
+      Future.successful(InvalidResponseType)
     }
   }
 
@@ -96,4 +102,6 @@ trait GrantOrchestrator {
         Future.successful(None)
     }
   }
+
+//  def createErrorResponse()
 }

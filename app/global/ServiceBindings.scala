@@ -57,7 +57,8 @@ class ServiceBindings extends Module {
     bind[AccountService].to[DefaultAccountService].eagerly(),
     bind[ScopeService].to[DefaultScopeService].eagerly(),
     bind[GrantService].to[DefaultGrantService].eagerly(),
-    bind[TokenService].to[DefaultTokenService].eagerly()
+    bind[TokenService].to[DefaultTokenService].eagerly(),
+    bind[ClientService].to[DefaultClientService].eagerly()
   )
 
   private def orchestrators(): Seq[Binding[_]] = Seq(
@@ -66,7 +67,8 @@ class ServiceBindings extends Module {
     bind[UserOrchestrator].to[DefaultUserOrchestrator].eagerly(),
     bind[GrantOrchestrator].to[DefaultGrantOrchestrator].eagerly(),
     bind[TokenOrchestrator].to[DefaultTokenOrchestrator].eagerly(),
-    bind[WellKnownConfigOrchestrator].to[DefaultWellKnownConfigOrchestrator].eagerly()
+    bind[WellKnownConfigOrchestrator].to[DefaultWellKnownConfigOrchestrator].eagerly(),
+    bind[ClientOrchestrator].to[DefaultClientOrchestrator].eagerly()
   )
 
   private def controllers(): Seq[Binding[_]] = Seq(
@@ -76,6 +78,7 @@ class ServiceBindings extends Module {
     bind[FeatureController].to[DefaultFeatureController].eagerly(),
     bind[ShutteringController].to[DefaultShutteringController].eagerly(),
     bind[AccountController].to[DefaultAccountController].eagerly(),
+    bind[ClientController].to[DefaultClientController].eagerly(),
   )
 
   private def apiControllers(): Seq[Binding[_]] = Seq(

@@ -42,9 +42,10 @@ trait AccountService extends DeObfuscators with SecurityConfiguration {
       if(data.nonEmpty) {
         logger.info(s"[getIndividualAccountInfo] - Found user data for user $userId")
         Map(
-          "userName"  -> stringDeObfuscate.decrypt(data("userName").asString().getValue).getOrElse("---"),
-          "email"     -> stringDeObfuscate.decrypt(data("email").asString().getValue).getOrElse("---"),
-          "createdAt" -> new DateTime(
+          "userName"    -> stringDeObfuscate.decrypt(data("userName").asString().getValue).getOrElse("---"),
+          "email"       -> stringDeObfuscate.decrypt(data("email").asString().getValue).getOrElse("---"),
+          "accountType" -> "individual",
+          "createdAt"   -> new DateTime(
             data("createdAt").asDateTime().getValue, DateTimeZone.UTC
           ).toString("yyyy-MM-dd")
         )
@@ -60,9 +61,10 @@ trait AccountService extends DeObfuscators with SecurityConfiguration {
       if(data.nonEmpty) {
         logger.info(s"[getOrganisationAccountInfo] - Found user data for user $userId")
         Map(
-          "userName"  -> stringDeObfuscate.decrypt(data("userName").asString().getValue).getOrElse("---"),
-          "email"     -> stringDeObfuscate.decrypt(data("email").asString().getValue).getOrElse("---"),
-          "createdAt" -> new DateTime(
+          "userName"    -> stringDeObfuscate.decrypt(data("userName").asString().getValue).getOrElse("---"),
+          "email"       -> stringDeObfuscate.decrypt(data("email").asString().getValue).getOrElse("---"),
+          "accountType" -> "organisation",
+          "createdAt"   -> new DateTime(
             data("createdAt").asDateTime().getValue, DateTimeZone.UTC
           ).toString("yyyy-MM-dd")
         )

@@ -42,6 +42,7 @@ class RegistrationOrchestratorSpec extends PlaySpec with Assertions with MockReg
   )
 
   val testApp: RegisteredApplication = RegisteredApplication(
+    appId        = "testAppId",
     owner        = "testOwner",
     name         = "testName",
     desc         = "testDesc",
@@ -49,7 +50,8 @@ class RegistrationOrchestratorSpec extends PlaySpec with Assertions with MockReg
     redirectUrl  = "http://localhost:8080/redirect",
     clientType   = "confidential",
     clientId     = "testId",
-    clientSecret = Some("testSecret")
+    clientSecret = Some("testSecret"),
+    createdAt    = DateTime.now()
   )
 
   "registerUser" should {

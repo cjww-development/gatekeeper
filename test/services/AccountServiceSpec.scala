@@ -78,16 +78,17 @@ class AccountServiceSpec
     "return an populated map" when {
       "the specified user was found" in {
         mockIndividualProjectValue(value = Map(
-          "userName"  -> bson.BsonString(testOrganisationUser.userName),
-          "email"     -> bson.BsonString(testOrganisationUser.email),
-          "createdAt" -> bson.BsonDateTime(Date.from(Instant.ofEpochMilli(now.getMillis))),
+          "userName"    -> bson.BsonString(testOrganisationUser.userName),
+          "email"       -> bson.BsonString(testOrganisationUser.email),
+          "createdAt"   -> bson.BsonDateTime(Date.from(Instant.ofEpochMilli(now.getMillis)))
         ))
 
         awaitAndAssert(testService.getIndividualAccountInfo(testIndividualUser.id)) {
           _ mustBe Map(
-            "userName"  -> "testUserName",
-            "email"     -> "test@email.com",
-            "createdAt" -> nowString
+            "userName"    -> "testUserName",
+            "email"       -> "test@email.com",
+            "createdAt"   -> nowString,
+            "accountType" -> "individual"
           )
         }
       }
@@ -115,9 +116,10 @@ class AccountServiceSpec
 
         awaitAndAssert(testService.getOrganisationAccountInfo(testOrganisationUser.id)) {
           _ mustBe Map(
-            "userName"  -> "testUserName",
-            "email"     -> "test@email.com",
-            "createdAt" -> nowString
+            "userName"    -> "testUserName",
+            "email"       -> "test@email.com",
+            "createdAt"   -> nowString,
+            "accountType" -> "organisation"
           )
         }
       }

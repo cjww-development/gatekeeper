@@ -16,6 +16,7 @@
 
 package controllers.ui
 
+import controllers.actions.AuthenticatedFilter
 import forms.AppRegistrationForm.{form => appRegForm}
 import forms.RegistrationForm.{form => regForm, _}
 import javax.inject.Inject
@@ -28,11 +29,12 @@ import views.html.registration.{AppRegistration, UserRegistration}
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultRegistrationController @Inject()(val controllerComponents: ControllerComponents,
+                                              val userOrchestrator: UserOrchestrator,
                                               val registrationOrchestrator: RegistrationOrchestrator) extends RegistrationController {
   override implicit val ec: ExC = controllerComponents.executionContext
 }
 
-trait RegistrationController extends BaseController with I18NSupportLowPriorityImplicits with I18nSupport {
+trait RegistrationController extends BaseController with I18NSupportLowPriorityImplicits with I18nSupport with AuthenticatedFilter {
 
   val registrationOrchestrator: RegistrationOrchestrator
 
@@ -53,20 +55,6 @@ trait RegistrationController extends BaseController with I18NSupportLowPriorityI
         case Registered        => Ok(user.toString)
         case RegistrationError => BadRequest("There was a problem registering the new user")
         case _                 => BadRequest(UserRegistration(regForm.renderErrors))
-      }
-    )
-  }
-
-  def showAppReg(): Action[AnyContent] = Action { implicit req =>
-    Ok(AppRegistration(appRegForm))
-  }
-
-  def submitAppReg(): Action[AnyContent] = Action.async { implicit req =>
-    appRegForm.bindFromRequest.fold(
-      errs => Future.successful(BadRequest(errs.toString)),
-      app  => registrationOrchestrator.registerApplication(app) map {
-        case AppRegistered        => Ok(s"${app.name} is now registered")
-        case AppRegistrationError => InternalServerError
       }
     )
   }

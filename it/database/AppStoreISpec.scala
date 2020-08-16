@@ -22,6 +22,7 @@ import models.{RegisteredApplication, User}
 import org.joda.time.DateTime
 import org.scalatest.BeforeAndAfterAll
 import org.scalatestplus.play.PlaySpec
+import org.mongodb.scala.model.Filters.{and => mongoAnd, equal => mongoEqual}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -32,6 +33,7 @@ class AppStoreISpec extends PlaySpec with IntegrationApp with Assertions with Be
   val now = DateTime.now()
 
   val testApp: RegisteredApplication = RegisteredApplication(
+    appId        = "testAppId",
     owner        = "testOwner",
     name         = "test-app-name",
     desc         = "test desc",
@@ -39,7 +41,8 @@ class AppStoreISpec extends PlaySpec with IntegrationApp with Assertions with Be
     redirectUrl  = "http://localhost:8080/rediect",
     clientType   = "confidential",
     clientId     = "testClientId",
-    clientSecret = Some("testClientSecret")
+    clientSecret = Some("testClientSecret"),
+    createdAt    = DateTime.now()
   )
 
   override def beforeAll(): Unit = {
@@ -65,13 +68,13 @@ class AppStoreISpec extends PlaySpec with IntegrationApp with Assertions with Be
   "validateAppOn" should {
     "return a RegisteredApplication" when {
       "an app already exists with a matching clientId" in {
-        awaitAndAssert(testAppStore.validateAppOn("clientId", testApp.clientId)) {
+        awaitAndAssert(testAppStore.validateAppOn(mongoEqual("clientId", testApp.clientId))) {
           _ mustBe Some(testApp)
         }
       }
 
       "an app already exists with a matching clientSecret" in {
-        awaitAndAssert(testAppStore.validateAppOn("clientSecret", testApp.clientSecret.get)) {
+        awaitAndAssert(testAppStore.validateAppOn(mongoEqual("clientSecret", testApp.clientSecret.get))) {
           _ mustBe Some(testApp)
         }
       }
@@ -79,13 +82,13 @@ class AppStoreISpec extends PlaySpec with IntegrationApp with Assertions with Be
 
     "return None" when {
       "an app doesn't exist with a matching clientId" in {
-        awaitAndAssert(testAppStore.validateAppOn("clientId", "testId")) {
+        awaitAndAssert(testAppStore.validateAppOn(mongoEqual("clientId", "invalid-id"))) {
           _ mustBe None
         }
       }
 
       "an app doesn't exist with a matching clientSecret" in {
-        awaitAndAssert(testAppStore.validateAppOn("clientSecret", "testSecret")) {
+        awaitAndAssert(testAppStore.validateAppOn(mongoEqual("clientSecret", "invalid-secret"))) {
           _ mustBe None
         }
       }

@@ -1,0 +1,54 @@
+@import controllers.routes
+@import controllers.ui.{routes => uiRoutes}
+@import org.joda.time.DateTime
+@import views.html.Main
+@(apps: Seq[Seq[RegisteredApplication]])(implicit rh: RequestHeader)
+
+@Main("View all your clients") {
+    <div class="form-signin">
+        <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
+        <h1 class="h3 mb-3 font-weight-normal">Registered clients</h1>
+        <hr>
+
+        @for((appGroup, i) <- apps.zipWithIndex) {
+            <div @if(i != 0) { hidden } id="group-@i">
+            @for(app <- appGroup) {
+                <div class="card" style="width: 18rem;">
+                    <div class="card-body">
+                        <h5 class="card-title">@{app.name}</h5>
+                        <p class="default-text">@{app.desc}</p>
+                        <a href="@uiRoutes.ClientController.getClientDetails(app.clientId)" class="btn btn-primary">View</a>
+                    </div>
+                </div>
+            }
+            </div>
+        }
+
+        <nav>
+            <ul class="pagination justify-content-center">
+            @for((_, idx) <- apps.zipWithIndex) {
+                <li class="page-item @if(idx == 0) {active}" id="group-tab-@idx">
+                    <a class="page-link" onclick='changePage(@idx)'>@{idx + 1}</a>
+                </li>
+            }
+            </ul>
+        </nav>
+
+        <hr>
+        <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
+    </div>
+
+    <script>
+        let pageState = 0;
+
+        const changePage = (page) => {
+            document.getElementById(`group-tab-${pageState}`).classList.remove("active");
+            document.getElementById(`group-tab-${page}`).classList.add("active");
+
+            document.getElementById(`group-${page}`).removeAttribute("hidden")
+            document.getElementById(`group-${pageState}`).setAttribute("hidden", "")
+
+            pageState = page;
+        };
+    </script>
+}

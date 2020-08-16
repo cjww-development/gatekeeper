@@ -14,24 +14,22 @@
  * limitations under the License.
  */
 
-package forms
+package models
 
-import models.RegisteredApplication
-import org.slf4j.LoggerFactory
-import play.api.data.Form
-import play.api.data.Forms._
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
+import play.api.libs.json.{Format, JsResult, JsString, JsValue}
 
-object AppRegistrationForm {
+trait TimeFormat {
+  val dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
 
-  private val logger = LoggerFactory.getLogger(this.getClass)
+  implicit val timeFormat: Format[DateTime] = new Format[DateTime] {
+    override def writes(o: DateTime): JsValue = JsString(o.toString())
 
-  def form(owner: String): Form[RegisteredApplication] = Form(
-    mapping(
-      "name" -> text,
-      "desc" -> text,
-      "homeUrl" -> text,
-      "redirectUrl" -> text,
-      "clientType" -> text
-    )(RegisteredApplication.apply(owner, _, _, _, _, _))(RegisteredApplication.unapply)
-  )
+    override def reads(json: JsValue): JsResult[DateTime] = {
+      json.validate[String].map[DateTime](dtString =>
+        DateTime.parse(dtString, DateTimeFormat.forPattern(dateFormat))
+      )
+    }
+  }
 }

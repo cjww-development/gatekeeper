@@ -41,7 +41,7 @@ class AccountControllerSpec
   override val locale: String = "models.ServerCookies"
 
   val testController: AccountController = new AccountController {
-    override protected val userOrchestrator: UserOrchestrator = mockUserOrchestrator
+    override val userOrchestrator: UserOrchestrator = mockUserOrchestrator
     override implicit val ec: ExecutionContext = stubControllerComponents().executionContext
 
     override protected def controllerComponents: ControllerComponents = stubControllerComponents()
@@ -76,11 +76,11 @@ class AccountControllerSpec
 
     "return a Redirect" when {
       "the user isn't authenticated" in {
-        val req = FakeRequest()
+        val req = FakeRequest("GET", "/test")
 
         assertFutureResult(testController.show()(req)) { res =>
           status(res)           mustBe SEE_OTHER
-          redirectLocation(res) mustBe Some(uiRoutes.LoginController.show().url)
+          redirectLocation(res) mustBe Some(s"${uiRoutes.LoginController.show().url}?redirect=%2Ftest")
         }
       }
     }

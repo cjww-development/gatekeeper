@@ -1,0 +1,19 @@
+@import org.joda.time.DateTime
+@import views.html.Main
+
+@()
+
+@Main("Page not found") {
+    <div class="form-signin">
+        <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
+        <h1 class="h3 mb-3 font-weight-normal">Not found</h1>
+
+        <hr>
+
+        <p class="default-text">This page could not be found.</p>
+
+        <hr>
+
+        <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
+    </div>
+}

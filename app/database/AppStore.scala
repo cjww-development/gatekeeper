@@ -21,7 +21,8 @@ import com.cjwwdev.mongo.connection.ConnectionSettings
 import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
 import com.typesafe.config.Config
 import javax.inject.Inject
-import models.RegisteredApplication
+import models.{RegisteredApplication, User}
+import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.{IndexModel, IndexOptions, Indexes}
 import org.slf4j.{Logger, LoggerFactory}
@@ -56,10 +57,16 @@ trait AppStore extends DatabaseRepository with CodecReg {
       }
   }
 
-  def validateAppOn(key: String, value: String): Future[Option[RegisteredApplication]] = {
+  def validateAppOn(query: Bson): Future[Option[RegisteredApplication]] = {
     collection[RegisteredApplication]
-      .find(equal(key, value))
+      .find(query)
       .first()
       .toFutureOption()
+  }
+
+  def getAppsOwnedBy(orgUserId: String): Future[Seq[RegisteredApplication]] = {
+    collection[RegisteredApplication]
+      .find(equal("owner", orgUserId))
+      .toFuture()
   }
 }

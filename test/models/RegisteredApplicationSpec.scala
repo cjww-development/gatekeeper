@@ -17,8 +17,9 @@
 package models
 
 import helpers.Assertions
+import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import play.api.libs.json.{JsError, JsPath, Json}
+import play.api.libs.json.{JsError, JsPath, JsString, Json}
 
 class RegisteredApplicationSpec extends PlaySpec with Assertions {
 
@@ -26,12 +27,14 @@ class RegisteredApplicationSpec extends PlaySpec with Assertions {
     "be transformed into a valid case class" when {
       "the client type is confidential" in {
         val testJson = Json.obj(
+          "appId"       -> "testAppId",
           "owner"       -> "testOwner",
           "name"        -> "test-confidential-app",
           "desc"        -> "test app",
           "homeUrl"     -> "http://localhost:5678",
           "redirectUrl" -> "http://localhost:5678/redirect",
-          "clientType"  -> "confidential"
+          "clientType"  -> "confidential",
+          "createdAt"   -> JsString(DateTime.now().toString)
         )
 
         val result = Json.fromJson[RegisteredApplication](testJson).get
@@ -50,12 +53,14 @@ class RegisteredApplicationSpec extends PlaySpec with Assertions {
 
       "the client type is public" in {
         val testJson = Json.obj(
+          "appId"       -> "testAppId",
           "owner"       -> "testOwner",
           "name"        -> "test-public-app",
           "desc"        -> "test app",
           "homeUrl"     -> "http://localhost:5678",
           "redirectUrl" -> "http://localhost:5678/redirect",
-          "clientType"  -> "public"
+          "clientType"  -> "public",
+          "createdAt"   -> JsString(DateTime.now().toString)
         )
 
         val result = Json.fromJson[RegisteredApplication](testJson).get
@@ -76,12 +81,14 @@ class RegisteredApplicationSpec extends PlaySpec with Assertions {
     "return a JsError" when {
       "the client type is unknown" in {
         val testJson = Json.obj(
+          "appId"       -> "testAppId",
           "owner"       -> "testOwner",
           "name"        -> "test",
           "desc"        -> "test app",
           "homeUrl"     -> "http://localhost:5678",
           "redirectUrl" -> "http://localhost:5678/redirect",
-          "clientType"  -> "invalid"
+          "clientType"  -> "invalid",
+          "createdAt"   -> JsString(DateTime.now().toString)
         )
 
         val result = Json.fromJson[RegisteredApplication](testJson)

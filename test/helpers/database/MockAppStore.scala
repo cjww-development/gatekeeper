@@ -22,6 +22,7 @@ import models.RegisteredApplication
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
 import org.mockito.stubbing.OngoingStubbing
+import org.mongodb.scala.bson.conversions.Bson
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
@@ -44,7 +45,7 @@ trait MockAppStore extends MockitoSugar with BeforeAndAfterEach {
   }
 
   def mockValidateAppOn(app: Option[RegisteredApplication]): OngoingStubbing[Future[Option[RegisteredApplication]]] = {
-    when(mockAppStore.validateAppOn(ArgumentMatchers.any[String](), ArgumentMatchers.any[String]()))
+    when(mockAppStore.validateAppOn(ArgumentMatchers.any[Bson]()))
       .thenReturn(Future.successful(app))
   }
 
@@ -52,10 +53,15 @@ trait MockAppStore extends MockitoSugar with BeforeAndAfterEach {
                                 appTwo: Option[RegisteredApplication],
                                 appThree: Option[RegisteredApplication],
                                 appFour: Option[RegisteredApplication]): OngoingStubbing[Future[Option[RegisteredApplication]]] = {
-    when(mockAppStore.validateAppOn(ArgumentMatchers.any[String](), ArgumentMatchers.any[String]()))
+    when(mockAppStore.validateAppOn(ArgumentMatchers.any[Bson]()))
       .thenReturn(Future.successful(appOne))
       .thenReturn(Future.successful(appTwo))
       .thenReturn(Future.successful(appThree))
       .thenReturn(Future.successful(appFour))
+  }
+
+  def mockGetAppsOwnedBy(apps: Seq[RegisteredApplication]): OngoingStubbing[Future[Seq[RegisteredApplication]]] = {
+    when(mockAppStore.getAppsOwnedBy(ArgumentMatchers.any[String]()))
+      .thenReturn(Future.successful(apps))
   }
 }

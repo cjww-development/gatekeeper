@@ -88,4 +88,73 @@ class AuthenticatedFilterSpec extends PlaySpec with MockUserOrchestrator with As
       }
     }
   }
+
+
+  "authenticatedOrgUser" should {
+    "return an ok" when {
+      "there is a valid cookie and org user information was found" in {
+        val req = FakeRequest()
+          .withCookies(ServerCookies.createAuthCookie("testUserId", enc = true))
+
+        mockGetUserDetails(details = Map("userId" -> "testUserId", "accountType" -> "organisation"))
+
+        val result = testFilter.authenticatedOrgUser {
+          _ => user => okFunction(user)
+        }.apply(req)
+
+        assertOutput(result) { res =>
+          status(res)          mustBe OK
+          contentAsString(res) mustBe "I am user testUserId"
+        }
+      }
+    }
+
+    "return a Not found" when {
+      "there is a valid cookie but no org user information was found" in {
+        val req = FakeRequest()
+          .withCookies(ServerCookies.createAuthCookie("testUserId", enc = true))
+
+        mockGetUserDetails(details = Map("userId" -> "testUserId", "accountType" -> "individual"))
+
+        val result = testFilter.authenticatedOrgUser {
+          _ => user => okFunction(user)
+        }.apply(req)
+
+        assertOutput(result) { res =>
+          status(res) mustBe NOT_FOUND
+        }
+      }
+    }
+
+    "return a redirect" when {
+      "there is no valid cookie" in {
+        val req = FakeRequest("GET", "/test-redirect")
+
+        val result = testFilter.authenticatedUser {
+          _ => user => okFunction(user)
+        }.apply(req)
+
+        assertOutput(result) { res =>
+          status(res)           mustBe SEE_OTHER
+          redirectLocation(res) mustBe Some(s"${controllers.ui.routes.LoginController.show().url}?redirect=%2Ftest-redirect")
+        }
+      }
+
+      "there is a valid cookie but no user information" in {
+        val req = FakeRequest("GET", "/test-redirect")
+          .withCookies(ServerCookies.createAuthCookie("testUserId", enc = true))
+
+        mockGetUserDetails(details = Map())
+
+        val result = testFilter.authenticatedUser {
+          _ => user => okFunction(user)
+        }.apply(req)
+
+        assertOutput(result) { res =>
+          status(res)           mustBe SEE_OTHER
+          redirectLocation(res) mustBe Some(s"${controllers.ui.routes.LoginController.show().url}?redirect=%2Ftest-redirect")
+        }
+      }
+    }
+  }
 }

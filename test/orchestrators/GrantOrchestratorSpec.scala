@@ -16,9 +16,12 @@
 
 package orchestrators
 
+import com.cjwwdev.security.Implicits._
+import com.cjwwdev.security.obfuscation.Obfuscators
 import helpers.Assertions
 import helpers.services.{MockAccountService, MockGrantService, MockScopeService}
 import models.RegisteredApplication
+import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import services.{AccountService, GrantService, ScopeService}
 
@@ -27,9 +30,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class GrantOrchestratorSpec
   extends PlaySpec
     with Assertions
+    with Obfuscators
     with MockGrantService
     with MockAccountService
     with MockScopeService {
+
+  override val locale: String = ""
 
   val testOrchestrator: GrantOrchestrator = new GrantOrchestrator {
     override protected val scopeService: ScopeService = mockScopeService
@@ -38,14 +44,16 @@ class GrantOrchestratorSpec
   }
 
   val testApp: RegisteredApplication = RegisteredApplication(
+    appId        = "testAppId",
     owner        = "testOwner",
     name         = "testName",
     desc         = "testDesc",
     homeUrl      = "http://localhost:8080",
     redirectUrl  = "http://localhost:8080/redirect",
     clientType   = "confidential",
-    clientId     = "testId",
-    clientSecret = Some("testSecret")
+    clientId     = "testId".encrypt,
+    clientSecret = Some("testSecret".encrypt),
+    createdAt    = DateTime.now()
   )
 
   "validateIncomingGrant" should {
@@ -77,6 +85,16 @@ class GrantOrchestratorSpec
 
         awaitAndAssert(testOrchestrator.validateIncomingGrant("code", testApp.clientId, "username")) {
           _ mustBe InvalidApplication
+        }
+      }
+    }
+
+    "return a InvalidResponseType" when {
+      "the response type was not code" in {
+        mockGetRegisteredApp(app = None)
+
+        awaitAndAssert(testOrchestrator.validateIncomingGrant("codez", testApp.clientId, "username")) {
+          _ mustBe InvalidResponseType
         }
       }
     }

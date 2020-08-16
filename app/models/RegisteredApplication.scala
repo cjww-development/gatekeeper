@@ -19,27 +19,31 @@ package models
 import java.util.UUID
 
 import com.cjwwdev.security.obfuscation.Obfuscators
+import com.cjwwdev.security.Implicits._
+import org.joda.time.DateTime
 import play.api.libs.json._
 
 import scala.collection.Seq
 
-case class RegisteredApplication(owner: String,
+case class RegisteredApplication(appId: String,
+                                 owner: String,
                                  name: String,
                                  desc: String,
                                  homeUrl: String,
                                  redirectUrl: String,
                                  clientType: String,
                                  clientId: String,
-                                 clientSecret: Option[String])
+                                 clientSecret: Option[String],
+                                 createdAt: DateTime)
 
-object RegisteredApplication extends Obfuscators {
+object RegisteredApplication extends Obfuscators with TimeFormat {
   override val locale: String = this.getClass.getCanonicalName
 
   private def generateIds(iterations: Int): String = {
     (0 to iterations)
       .map(_ => UUID.randomUUID().toString.replace("-", ""))
       .mkString
-//      .encrypt
+      .encrypt
   }
 
   implicit class RegisteredApplicationOps(app: RegisteredApplication) {
@@ -54,9 +58,10 @@ object RegisteredApplication extends Obfuscators {
     }
   }
 
-  def apply(name: String, desc: String, homeUrl: String, redirectUrl: String, clientType: String): RegisteredApplication = {
+  def apply(owner: String, name: String, desc: String, homeUrl: String, redirectUrl: String, clientType: String): RegisteredApplication = {
     new RegisteredApplication(
-      "testOwner",
+      s"appId-${UUID.randomUUID().toString}",
+      owner,
       name,
       desc,
       homeUrl,
@@ -66,7 +71,8 @@ object RegisteredApplication extends Obfuscators {
       clientType match {
         case "confidential" => Some(generateIds(iterations = 1))
         case "public"       => None
-      }
+      },
+      DateTime.now()
     )
   }
 
@@ -92,6 +98,7 @@ object RegisteredApplication extends Obfuscators {
       val clientType: String = problemFields("clientType").get.asInstanceOf[String]
 
       JsSuccess(RegisteredApplication(
+        appId = json.\("appId").as[String],
         owner = json.\("owner").as[String],
         name = json.\("name").as[String],
         desc = json.\("desc").as[String],
@@ -102,7 +109,8 @@ object RegisteredApplication extends Obfuscators {
         clientSecret = clientType match {
           case "confidential" => Some(generateIds(iterations = 2))
           case "public"       => None
-        }
+        },
+        createdAt = json.\("createdAt").as[DateTime]
       ))
     }
   }

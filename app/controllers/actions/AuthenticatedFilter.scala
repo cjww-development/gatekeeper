@@ -16,11 +16,12 @@
 
 package controllers.actions
 
-import org.slf4j.{Logger, LoggerFactory}
-import play.api.mvc._
-import orchestrators.UserOrchestrator
-import models.ServerCookies._
 import controllers.ui.routes
+import models.ServerCookies._
+import orchestrators.UserOrchestrator
+import org.slf4j.LoggerFactory
+import play.api.mvc._
+import views.html.misc.{NotFound => NotFoundView}
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
@@ -41,6 +42,30 @@ trait AuthenticatedFilter {
           user => if(user.nonEmpty) {
             logger.info(s"[authenticatedUser] - Authenticated user found, authenticated as user $userId")
             f(req)(userId)
+          } else {
+            logger.warn(s"[authenticatedUser] - Authenticated user found, but could not find user on record")
+            loginRedirect
+          }
+        }
+      case None =>
+        logger.warn(s"[authenticatedUser] - No authenticated user found, redirecting to login")
+        loginRedirect
+    }
+  }
+
+  def authenticatedOrgUser(f: AuthenticatedRequest)(implicit ec: ExC): Action[AnyContent] = Action.async { implicit req =>
+    req.cookies.get("aas") match {
+      case Some(cookie) =>
+        val userId = cookie.getValue()
+        userOrchestrator.getUserDetails(userId) flatMap {
+          user => if(user.nonEmpty) {
+            logger.info(s"[authenticatedUser] - Authenticated user found, authenticated as user $userId")
+            if(user.get("accountType").contains("organisation")) {
+              f(req)(userId)
+            } else {
+              logger.warn(s"[authenticatedUser] - Authenticated user found, but user is not an org user")
+              Future.successful(NotFound(NotFoundView()))
+            }
           } else {
             logger.warn(s"[authenticatedUser] - Authenticated user found, but could not find user on record")
             loginRedirect

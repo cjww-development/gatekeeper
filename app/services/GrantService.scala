@@ -36,7 +36,7 @@ trait GrantService {
   private val logger = LoggerFactory.getLogger(this.getClass)
 
   def getRegisteredApp(clientId: String): Future[Option[RegisteredApplication]] = {
-    appStore.validateAppOn("clientId", clientId)
+    appStore.validateAppOn(equal("clientId", clientId))
   }
 
   def validateRedirectUrl(redirectUrl: String, savedRedirectUrl: String): Boolean = {

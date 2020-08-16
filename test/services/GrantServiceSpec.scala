@@ -16,6 +16,8 @@
 
 package services
 
+import com.cjwwdev.security.Implicits._
+import com.cjwwdev.security.obfuscation.Obfuscators
 import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
 import database.{AppStore, GrantStore}
 import helpers.Assertions
@@ -29,8 +31,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class GrantServiceSpec
   extends PlaySpec
     with Assertions
+    with Obfuscators
     with MockGrantStore
     with MockAppStore {
+
+  override val locale: String = ""
 
   private val testService: GrantService = new GrantService {
     override val appStore: AppStore = mockAppStore
@@ -38,14 +43,16 @@ class GrantServiceSpec
   }
 
   val testApp: RegisteredApplication = RegisteredApplication(
+    appId        = "testAppId",
     owner        = "testOwner",
     name         = "testName",
     desc         = "testDesc",
     homeUrl      = "http://localhost:8080",
     redirectUrl  = "http://localhost:8080/redirect",
     clientType   = "confidential",
-    clientId     = "testId",
-    clientSecret = Some("testSecret")
+    clientId     = "testId".encrypt,
+    clientSecret = Some("testSecret".encrypt),
+    createdAt    = DateTime.now()
   )
 
   val testGrant: Grant = Grant(

@@ -16,6 +16,7 @@
 
 package controllers.ui
 
+import controllers.actions.AuthenticatedFilter
 import javax.inject.Inject
 import models.ServerCookies._
 import orchestrators.UserOrchestrator
@@ -32,9 +33,9 @@ class DefaultAccountController @Inject()(val controllerComponents: ControllerCom
   override implicit val ec: ExC = controllerComponents.executionContext
 }
 
-trait AccountController extends BaseController with I18NSupportLowPriorityImplicits with I18nSupport {
+trait AccountController extends BaseController with I18NSupportLowPriorityImplicits with I18nSupport with AuthenticatedFilter {
 
-  protected val userOrchestrator: UserOrchestrator
+  val userOrchestrator: UserOrchestrator
 
   implicit val ec: ExC
 
@@ -42,12 +43,9 @@ trait AccountController extends BaseController with I18NSupportLowPriorityImplic
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  def show(): Action[AnyContent] = Action.async { implicit req =>
-    req.cookies.get("aas") match {
-      case Some(value) => userOrchestrator.getUserDetails(value.getValue()) map {
-        userDetails => Ok(Account(userDetails))
-      }
-      case None => Future.successful(Redirect(routes.LoginController.show()))
+  def show(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+    userOrchestrator.getUserDetails(userId) map {
+      userDetails => Ok(Account(userDetails))
     }
   }
 }

@@ -7,7 +7,7 @@
 @(form: Form[RegisteredApplication])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
 
 @Main("Register an OAuth Service") {
-    <form class="form-signin" action="@{uiRoutes.RegistrationController.submitAppReg()}" method="post">
+    <form class="form-signin" action="@{uiRoutes.ClientController.submitAppReg()}" method="post">
         <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
         <h1 class="h3 mb-3 font-weight-normal">Register a Service</h1>
 

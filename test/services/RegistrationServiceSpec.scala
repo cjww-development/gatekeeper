@@ -18,6 +18,8 @@ package services
 
 import java.util.UUID
 
+import com.cjwwdev.security.Implicits._
+import com.cjwwdev.security.obfuscation.Obfuscators
 import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
 import database.{AppStore, IndividualUserStore, OrganisationUserStore}
 import helpers.Assertions
@@ -32,9 +34,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class RegistrationServiceSpec
   extends PlaySpec
     with Assertions
+    with Obfuscators
     with MockIndividualStore
     with MockOrganisationStore
     with MockAppStore {
+
+  override val locale: String = ""
 
   private val testService: RegistrationService = new RegistrationService {
     override val userStore: IndividualUserStore = mockIndividualStore
@@ -63,14 +68,16 @@ class RegistrationServiceSpec
   )
 
   val testApp: RegisteredApplication = RegisteredApplication(
+    appId        = "testAppId",
     owner        = "testOwner",
     name         = "testName",
     desc         = "testDesc",
     homeUrl      = "http://localhost:8080",
     redirectUrl  = "http://localhost:8080/redirect",
     clientType   = "confidential",
-    clientId     = "testId",
-    clientSecret = Some("testSecret")
+    clientId     = "testId".encrypt,
+    clientSecret = Some("testSecret".encrypt),
+    createdAt    = DateTime.now()
   )
 
   "createNewUser" should {

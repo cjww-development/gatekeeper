@@ -91,9 +91,9 @@ trait RegistrationService {
   def validateIdsAndSecrets(app: RegisteredApplication)(implicit ec: ExC): Future[RegisteredApplication] = {
     def validate(clientId: String, clientSecret: Option[String])(implicit ec: ExC): Future[Boolean] = {
       for {
-        appId     <- appStore.validateAppOn("clientId", clientId)
+        appId     <- appStore.validateAppOn(equal("clientId", clientId))
         appSecret <- clientSecret.fold(Future.successful(Option.empty[RegisteredApplication])) {
-          sec => appStore.validateAppOn("clientSecret", sec)
+          sec => appStore.validateAppOn(equal("clientSecret", sec))
         }
       } yield {
         val inUse = appId.nonEmpty || appSecret.nonEmpty
