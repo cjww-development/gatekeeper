@@ -11,6 +11,7 @@ Gatekeeper is an OAuth2 and OIDC implementation.
 - Developer registration
 - Grant types
 	- authorization_code
+	- client_credentials
 
 
 Prerequisites
