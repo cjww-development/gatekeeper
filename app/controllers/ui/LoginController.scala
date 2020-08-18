@@ -52,7 +52,7 @@ trait LoginController extends BaseController with I18NSupportLowPriorityImplicit
 
   def submit(): Action[AnyContent] = Action.async { implicit req =>
     val redirect = req.body.asFormUrlEncoded.flatMap(_.get("redirect").map(_.head))
-    loginForm.bindFromRequest.fold(
+    loginForm.bindFromRequest().fold(
       err   => Future.successful(BadRequest(Login(loginForm.renderErrors))),
       login => loginOrchestrator.authenticateUser(login) map {
         case Some(user) => loginRedirect(user, redirect)

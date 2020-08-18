@@ -3,13 +3,14 @@
 @import org.joda.time.DateTime
 @import views.html.Main
 @import views.html.components.forms.{SlidingCheckbox, TextInput}
+@import views.AuthForView
 
 @(form: Form[RegisteredApplication])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
 
-@Main("Register an OAuth Service") {
+@Main("Register an OAuth Client", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <form class="form-signin" action="@{uiRoutes.ClientController.submitAppReg()}" method="post">
         <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
-        <h1 class="h3 mb-3 font-weight-normal">Register a Service</h1>
+        <h1 class="h3 mb-3 font-weight-normal">Register a Client</h1>
 
         <hr>
 
@@ -27,7 +28,7 @@
 
         <hr>
 
-        <button class="btn btn-lg btn-primary btn-block" id="registration-submit" type="submit">Create service</button>
+        <button class="btn btn-lg btn-primary btn-block" id="registration-submit" type="submit">Create client</button>
         <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
     </form>
 }

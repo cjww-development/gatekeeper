@@ -3,24 +3,78 @@
 @import org.joda.time.DateTime
 @import views.html.Main
 @import views.html.helper.CSRF
+@import views.AuthForView
+
 @(app: RegisteredApplication)(implicit rh: RequestHeader)
 
-@Main("View a registered client") {
+@Main("View a registered client", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <div class="form-signin">
         <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
         <h1 class="h3 mb-3 font-weight-normal">Registered client</h1>
         <hr>
 
-        <p class="default-text">@{app.name}</p>
-        <p class="default-text">@{app.desc}</p>
-        <p class="default-text">@{app.homeUrl}</p>
-        <p class="default-text">@{app.redirectUrl}</p>
-        <p class="default-text">@{app.clientType}</p>
-        <p class="default-text">@{app.clientId}</p>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon1">Name</span>
+            </div>
+            <input type="text" class="form-control" value="@{app.name}">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon1">Desc</span>
+            </div>
+            <input type="text" class="form-control" value="@{app.desc}">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon1">Home</span>
+            </div>
+            <input type="text" class="form-control" value="@{app.homeUrl}">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon1">Redirect</span>
+            </div>
+            <input type="text" class="form-control" value="@{app.redirectUrl}">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon1">Type</span>
+            </div>
+            <input type="text" class="form-control" value="@{app.clientType}" disabled>
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon1">Id</span>
+            </div>
+            <input type="text" class="form-control" value="@{app.clientId}">
+        </div>
+
         @if(app.clientSecret.isDefined) {
-            <p class="default-text">@{app.clientSecret.get}</p>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="basic-addon1">Secret</span>
+                </div>
+                <input type="text" class="form-control" value="@{app.clientSecret.get}">
+            </div>
         }
-        <p class="default-text">@{app.createdAt}</p>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon1">Created at</span>
+            </div>
+            <input type="text" class="form-control" value="@{app.createdAt}" disabled>
+        </div>
+
+        <hr>
+
+        <a class="btn btn-lg btn-primary btn-block" href="@uiRoutes.ClientController.getAllClients()">Show all clients</a>
+
         <hr>
         <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
     </div>

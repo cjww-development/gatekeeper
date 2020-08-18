@@ -48,7 +48,7 @@ trait RegistrationController extends BaseController with I18NSupportLowPriorityI
   }
 
   def submitUserReg(): Action[AnyContent] = Action.async { implicit req =>
-    regForm.bindFromRequest.fold(
+    regForm.bindFromRequest().fold(
       errs => Future.successful(BadRequest(errs.toString)),
       user => registrationOrchestrator.registerUser(user) map {
         case Registered        => Ok(RegSuccess())

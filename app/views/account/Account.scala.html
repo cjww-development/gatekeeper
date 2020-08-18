@@ -1,10 +1,11 @@
 @import controllers.ui.{routes => uiRoutes}
 @import org.joda.time.DateTime
 @import views.html.Main
+@import views.AuthForView
 
 @(userDetails: Map[String, String])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
 
-@Main("Your account") {
+@Main("Your account", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <div class="form-signin">
         <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
         <h1 class="h3 mb-3 font-weight-normal">Your account</h1>
