@@ -23,7 +23,7 @@ import javax.inject.Inject
 import models.{Grant, RegisteredApplication}
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
-import services.{AccountService, GrantService, ScopeService}
+import services.{AccountService, ClientService, GrantService, ScopeService}
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
@@ -34,12 +34,14 @@ case object InvalidResponseType extends GrantInitiateResponse
 case class ValidatedGrantRequest(app: RegisteredApplication, scopes: String) extends GrantInitiateResponse
 
 class DefaultGrantOrchestrator @Inject()(val grantService: GrantService,
+                                         val clientService: ClientService,
                                          val accountService: AccountService,
                                          val scopeService: ScopeService) extends GrantOrchestrator
 
 trait GrantOrchestrator {
 
   protected val grantService: GrantService
+  protected val clientService: ClientService
   protected val accountService: AccountService
   protected val scopeService: ScopeService
 
@@ -47,7 +49,7 @@ trait GrantOrchestrator {
 
   def validateIncomingGrant(responseType: String, clientId: String, scope: String)(implicit ec: ExC): Future[GrantInitiateResponse] = {
     if(responseType == "code") {
-      grantService.getRegisteredApp(clientId) flatMap {
+      clientService.getRegisteredAppById(clientId) flatMap {
         case Some(app) =>
           val validScopes = scopeService.validateScopes(scope)
           if(validScopes) {
@@ -73,7 +75,7 @@ trait GrantOrchestrator {
 
   def saveIncomingGrant(responseType: String, clientId: String, userId: String, scope: Seq[String])(implicit ec: ExC): Future[Option[Grant]] = {
     accountService.determineAccountTypeFromId(userId) match {
-      case Some(accType) => grantService.getRegisteredApp(clientId) flatMap {
+      case Some(accType) => clientService.getRegisteredAppById(clientId) flatMap {
         case Some(app) =>
           val grant = Grant(
             responseType,

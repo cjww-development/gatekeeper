@@ -70,4 +70,21 @@ class TokenServiceSpec
       }
     }
   }
+
+  "createClientAccessToken" should {
+    "return a signed access token" when {
+      "given a clientId" in {
+        assertOutput(testService.createClientAccessToken("testClientId")) { token =>
+          val split = token.split("\\.")
+          split.length mustBe 3
+
+          Base64.decodeBase64(split(0)).map(_.toChar).mkString mustBe """{"typ":"JWT","alg":"HS512"}"""
+          val payload = Json.parse(Base64.decodeBase64(split(1)).map(_.toChar).mkString)
+          payload.\("aud").as[String] mustBe "testClientId"
+          payload.\("iss").as[String] mustBe "testIssuer"
+          payload.\("sub").as[String] mustBe "testClientId"
+        }
+      }
+    }
+  }
 }

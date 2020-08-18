@@ -18,12 +18,16 @@ package orchestrators
 
 import java.util.UUID
 
+import com.cjwwdev.security.obfuscation.Obfuscators
+import com.cjwwdev.security.Implicits._
 import helpers.Assertions
-import helpers.services.{MockAccountService, MockGrantService, MockTokenService}
-import models.{Grant, User}
+import helpers.services.{MockAccountService, MockClientService, MockGrantService, MockTokenService}
+import models.{Grant, RegisteredApplication, User}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import services.{AccountService, GrantService, TokenService}
+import play.api.test.FakeRequest
+import services.{AccountService, ClientService, GrantService, TokenService}
+import utils.BasicAuth
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -32,12 +36,18 @@ class TokenOrchestratorSpec
     with Assertions
     with MockAccountService
     with MockGrantService
-    with MockTokenService {
+    with MockClientService
+    with MockTokenService
+    with Obfuscators {
+
+  override val locale: String = ""
 
   val testOrchestrator: TokenOrchestrator = new TokenOrchestrator {
     override protected val grantService: GrantService = mockGrantService
     override protected val tokenService: TokenService = mockTokenService
     override protected val accountService: AccountService = mockAccountService
+    override protected val clientService: ClientService = mockClientService
+    override protected val basicAuth: BasicAuth = BasicAuth
   }
 
   val now: DateTime = DateTime.now()
@@ -46,6 +56,19 @@ class TokenOrchestratorSpec
   val month = f"$monthInt%02d"
 
   val nowString = s"${now.getYear}-${month}-${now.getDayOfMonth}"
+
+  val testApp: RegisteredApplication = RegisteredApplication(
+    appId        = "testAppId",
+    owner        = "testOwner",
+    name         = "testName",
+    desc         = "testDesc",
+    homeUrl      = "http://localhost:8080",
+    redirectUrl  = "http://localhost:8080/redirect",
+    clientType   = "confidential",
+    clientId     = "testId".encrypt,
+    clientSecret = Some("testSecret".encrypt),
+    createdAt    = DateTime.now()
+  )
 
   val testIndUser: User = User(
     id        = s"user-${UUID.randomUUID()}",
@@ -78,7 +101,7 @@ class TokenOrchestratorSpec
     createdAt = DateTime.now()
   )
 
-  "issueToken" should {
+  "authorizationCodeGrant" should {
     "return an issued token" when {
       "the grant type is authorization_code (individual)" in {
         mockValidateGrant(grant = Some(testGrant))
@@ -87,13 +110,13 @@ class TokenOrchestratorSpec
         mockCreateIdToken()
         getMockExpiry(expiry = 900000)
 
-        awaitAndAssert(testOrchestrator.issueToken("authorization_code", "testAuthCode", "testClientId", "testRedirect")) {
+        awaitAndAssert(testOrchestrator.authorizationCodeGrant("testAuthCode", "testClientId", "testRedirect")) {
           _ mustBe Issued(
             tokenType = "Bearer",
             scope = "testScope",
             expiresIn = 900000,
             "testAccessToken",
-            "testIdToken"
+            Some("testIdToken")
           )
         }
       }
@@ -105,13 +128,13 @@ class TokenOrchestratorSpec
         mockCreateIdToken()
         getMockExpiry(expiry = 900000)
 
-        awaitAndAssert(testOrchestrator.issueToken("authorization_code", "testAuthCode", "testClientId", "testRedirect")) {
+        awaitAndAssert(testOrchestrator.authorizationCodeGrant("testAuthCode", "testClientId", "testRedirect")) {
           _ mustBe Issued(
             tokenType = "Bearer",
             scope = "testScope",
             expiresIn = 900000,
             "testAccessToken",
-            "testIdToken"
+            Some("testIdToken")
           )
         }
       }
@@ -125,7 +148,7 @@ class TokenOrchestratorSpec
         mockCreateIdToken()
         getMockExpiry(expiry = 900000)
 
-        awaitAndAssert(testOrchestrator.issueToken("authorization_code", "testAuthCode", "testClientId", "testRedirect")) {
+        awaitAndAssert(testOrchestrator.authorizationCodeGrant("testAuthCode", "testClientId", "testRedirect")) {
           _ mustBe InvalidUser
         }
       }
@@ -135,16 +158,52 @@ class TokenOrchestratorSpec
       "the grant could not be validated" in {
         mockValidateGrant(grant = None)
 
-        awaitAndAssert(testOrchestrator.issueToken("authorization_code", "testAuthCode", "testClientId", "testRedirect")) {
+        awaitAndAssert(testOrchestrator.authorizationCodeGrant("testAuthCode", "testClientId", "testRedirect")) {
           _ mustBe InvalidGrant
         }
       }
     }
+  }
 
-    "return an invalid grant type" when {
-      "the grant type is not recognised" in {
-        awaitAndAssert(testOrchestrator.issueToken("invalid-grant", "testAuthCode", "testClientId", "testRedirect")) {
-          _ mustBe InvalidGrantType
+  "clientCredentialsGrant" should {
+    "return issued" when {
+      "the client was validated" in {
+        implicit val req = FakeRequest()
+          .withHeaders("Authorization" -> "Basic dGVzdElkOnRlc3RTZWNyZXQ=")
+
+        mockGetRegisteredAppByIdAndSecret(app = Some(testApp))
+        getMockExpiry(expiry = 900000)
+        mockCreateClientAccessToken()
+
+        awaitAndAssert(testOrchestrator.clientCredentialsGrant("testScope")) {
+          _ mustBe Issued(
+            tokenType = "Bearer",
+            scope = "testScope",
+            expiresIn = 900000,
+            "testAccessToken",
+            None
+          )
+        }
+      }
+    }
+
+    "return InvalidClient" when {
+      "the client could not be found" in {
+        implicit val req = FakeRequest()
+          .withHeaders("Authorization" -> "Basic dGVzdElkOnRlc3RTZWNyZXQ=")
+
+        mockGetRegisteredAppByIdAndSecret(app = None)
+
+        awaitAndAssert(testOrchestrator.clientCredentialsGrant("testScope")) {
+          _ mustBe InvalidClient
+        }
+      }
+
+      "the basic auth header was invalid" in {
+        implicit val req = FakeRequest()
+
+        awaitAndAssert(testOrchestrator.clientCredentialsGrant("testScope")) {
+          _ mustBe InvalidClient
         }
       }
     }

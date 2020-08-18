@@ -29,7 +29,9 @@ case object NoAuthHeader extends BasicAuthResponse
 case object InvalidPrefix extends BasicAuthResponse
 case object MalformedHeader extends BasicAuthResponse
 
-object BasicAuth {
+object BasicAuth extends BasicAuth
+
+trait BasicAuth {
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 

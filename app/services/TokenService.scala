@@ -69,4 +69,19 @@ trait TokenService {
 
     Jwt.encode(claims, signature, JwtAlgorithm.HS512)
   }
+
+  def createClientAccessToken(clientId: String): String = {
+    val now = Instant.now
+
+    val claims = JwtClaim()
+      .to(clientId)
+      .by(issuer)
+      .issuedAt(now.getEpochSecond)
+      .startsAt(now.getEpochSecond)
+      .expiresAt(now.plusSeconds(expiry).getEpochSecond)
+      .about(clientId)
+      .toJson
+
+    Jwt.encode(claims, signature, JwtAlgorithm.HS512)
+  }
 }

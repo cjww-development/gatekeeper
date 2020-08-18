@@ -19,11 +19,11 @@ package orchestrators
 import com.cjwwdev.security.Implicits._
 import com.cjwwdev.security.obfuscation.Obfuscators
 import helpers.Assertions
-import helpers.services.{MockAccountService, MockGrantService, MockScopeService}
+import helpers.services.{MockAccountService, MockClientService, MockGrantService, MockScopeService}
 import models.RegisteredApplication
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import services.{AccountService, GrantService, ScopeService}
+import services.{AccountService, ClientService, GrantService, ScopeService}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -32,12 +32,14 @@ class GrantOrchestratorSpec
     with Assertions
     with Obfuscators
     with MockGrantService
+    with MockClientService
     with MockAccountService
     with MockScopeService {
 
   override val locale: String = ""
 
   val testOrchestrator: GrantOrchestrator = new GrantOrchestrator {
+    override protected val clientService: ClientService = mockClientService
     override protected val scopeService: ScopeService = mockScopeService
     override protected val grantService: GrantService = mockGrantService
     override protected val accountService: AccountService = mockAccountService
@@ -59,7 +61,7 @@ class GrantOrchestratorSpec
   "validateIncomingGrant" should {
     "return a ValidatedGrantRequest" when {
       "the app is found and redirects and scopes are valid and the app owner is found" in {
-        mockGetRegisteredApp(app = Some(testApp))
+        mockGetRegisteredAppById(app = Some(testApp))
         mockValidateScopes(valid = true)
         mockGetOrganisationAccountInfo(value = Map("userName" -> "test-org"))
 
@@ -69,7 +71,7 @@ class GrantOrchestratorSpec
       }
 
       "the app is found and redirects and scopes are valid but the app owner isn't found" in {
-        mockGetRegisteredApp(app = Some(testApp))
+        mockGetRegisteredAppById(app = Some(testApp))
         mockValidateScopes(valid = true)
         mockGetOrganisationAccountInfo(value = Map())
 
@@ -81,7 +83,7 @@ class GrantOrchestratorSpec
 
     "return a InvalidApplication" when {
       "the app wasn't found" in {
-        mockGetRegisteredApp(app = None)
+        mockGetRegisteredAppById(app = None)
 
         awaitAndAssert(testOrchestrator.validateIncomingGrant("code", testApp.clientId, "username")) {
           _ mustBe InvalidApplication
@@ -91,7 +93,7 @@ class GrantOrchestratorSpec
 
     "return a InvalidResponseType" when {
       "the response type was not code" in {
-        mockGetRegisteredApp(app = None)
+        mockGetRegisteredAppById(app = None)
 
         awaitAndAssert(testOrchestrator.validateIncomingGrant("codez", testApp.clientId, "username")) {
           _ mustBe InvalidResponseType
@@ -101,7 +103,7 @@ class GrantOrchestratorSpec
 
     "return a InvalidScopesRequested" when {
       "the scopes aren't valid" in {
-        mockGetRegisteredApp(app = Some(testApp))
+        mockGetRegisteredAppById(app = Some(testApp))
         mockValidateScopes(valid = false)
 
         awaitAndAssert(testOrchestrator.validateIncomingGrant("code", testApp.clientId, "username")) {

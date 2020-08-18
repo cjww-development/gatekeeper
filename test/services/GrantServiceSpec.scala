@@ -66,28 +66,6 @@ class GrantServiceSpec
     createdAt = DateTime.now()
   )
 
-  "getRegisteredApp" should {
-    "return a registered app" when {
-      "a valid client id is provided" in {
-        mockValidateAppOn(app = Some(testApp))
-
-        awaitAndAssert(testService.getRegisteredApp(testApp.clientId)) {
-          _ mustBe Some(testApp)
-        }
-      }
-    }
-
-    "return None" when {
-      "no registered app could be found" in {
-        mockValidateAppOn(app = None)
-
-        awaitAndAssert(testService.getRegisteredApp(testApp.clientId)) {
-          _ mustBe None
-        }
-      }
-    }
-  }
-
   "validateRedirectUrl" should {
     "return true" when {
       "the two redirects match" in {

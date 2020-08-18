@@ -42,6 +42,16 @@ trait MockClientService extends MockitoSugar with BeforeAndAfterEach {
       .thenReturn(Future.successful(app))
   }
 
+  def mockGetRegisteredAppByIdAndSecret(app: Option[RegisteredApplication]): OngoingStubbing[Future[Option[RegisteredApplication]]] = {
+    when(mockClientService.getRegisteredAppByIdAndSecret(ArgumentMatchers.any[String](), ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(app))
+  }
+
+  def mockGetRegisteredAppById(app: Option[RegisteredApplication]): OngoingStubbing[Future[Option[RegisteredApplication]]] = {
+    when(mockClientService.getRegisteredAppById(ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(app))
+  }
+
   def mockGetRegisteredApps(apps: Seq[RegisteredApplication]): OngoingStubbing[Future[Seq[RegisteredApplication]]] = {
     when(mockClientService.getRegisteredAppsFor(ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
       .thenReturn(Future.successful(apps))

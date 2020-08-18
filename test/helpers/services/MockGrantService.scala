@@ -37,11 +37,6 @@ trait MockGrantService extends MockitoSugar with BeforeAndAfterEach {
     reset(mockGrantService)
   }
 
-  def mockGetRegisteredApp(app: Option[RegisteredApplication]): OngoingStubbing[Future[Option[RegisteredApplication]]] = {
-    when(mockGrantService.getRegisteredApp(ArgumentMatchers.any[String]()))
-      .thenReturn(Future.successful(app))
-  }
-
   def mockValidateRedirectUrl(valid: Boolean): OngoingStubbing[Boolean] = {
     when(mockGrantService.validateRedirectUrl(ArgumentMatchers.any[String](), ArgumentMatchers.any[String]()))
       .thenReturn(valid)

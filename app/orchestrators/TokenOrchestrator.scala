@@ -16,42 +16,42 @@
 
 package orchestrators
 
+import com.cjwwdev.security.deobfuscation.DeObfuscators
 import javax.inject.Inject
 import org.slf4j.LoggerFactory
-import services.{AccountService, GrantService, TokenService}
+import play.api.mvc.Request
+import services.{AccountService, ClientService, GrantService, TokenService}
+import utils.BasicAuth
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
 sealed trait TokenResponse
-case class Issued(tokenType: String, scope: String, expiresIn: Long, accessToken: String, idToken: String) extends TokenResponse
+case class Issued(tokenType: String, scope: String, expiresIn: Long, accessToken: String, idToken: Option[String]) extends TokenResponse
 case object InvalidGrant extends TokenResponse
 case object InvalidGrantType extends TokenResponse
 case object InvalidUser extends TokenResponse
+case object InvalidClient extends TokenResponse
 
 class DefaultTokenOrchestrator @Inject()(val grantService: GrantService,
                                          val accountService: AccountService,
-                                         val tokenService: TokenService) extends TokenOrchestrator
+                                         val clientService: ClientService,
+                                         val tokenService: TokenService) extends TokenOrchestrator {
+  override protected val basicAuth: BasicAuth = BasicAuth
+}
 
-trait TokenOrchestrator {
+trait TokenOrchestrator extends DeObfuscators {
+
+  override val locale: String = ""
 
   protected val grantService: GrantService
   protected val tokenService: TokenService
   protected val accountService: AccountService
+  protected val clientService: ClientService
+  protected val basicAuth: BasicAuth
 
-  private val logger = LoggerFactory.getLogger(this.getClass)
+  override val logger = LoggerFactory.getLogger(this.getClass)
 
-  def issueToken(grantType: String, authCode: String, clientId: String, redirectUri: String)(implicit ec: ExC): Future[TokenResponse] = {
-    grantType match {
-      case "authorization_code" =>
-        logger.info(s"[issueToken] - Issuing tokens using the $grantType grant")
-        authorizationCodeGrant(authCode, clientId, redirectUri)
-      case e =>
-        logger.error(s"[issueToken] - Could not validate grant type $e")
-        Future.successful(InvalidGrantType)
-    }
-  }
-
-  private def authorizationCodeGrant(authCode: String, clientId: String, redirectUri: String)(implicit ec: ExC): Future[TokenResponse] = {
+  def authorizationCodeGrant(authCode: String, clientId: String, redirectUri: String)(implicit ec: ExC): Future[TokenResponse] = {
     grantService.validateGrant(authCode, clientId, redirectUri) flatMap {
       case Some(grant) =>
         logger.info("[authorizationCodeGrant] - Grant has been validated")
@@ -68,7 +68,7 @@ trait TokenOrchestrator {
               scope = grant.scope.mkString(","),
               expiresIn = tokenService.expiry,
               accessToken = tokenService.createAccessToken(grant.clientId, grant.userId, grant.scope.mkString(",")),
-              idToken = tokenService.createIdToken(grant.clientId, grant.userId, userData, grant.accType)
+              idToken = Some(tokenService.createIdToken(grant.clientId, grant.userId, userData, grant.accType))
             )
           } else {
             logger.warn(s"[authorizationCodeGrant] - could not validate user on userId ${grant.userId}")
@@ -81,5 +81,28 @@ trait TokenOrchestrator {
     }
   }
 
-
+  def clientCredentialsGrant(scope: String)(implicit ec: ExC, req: Request[_]): Future[TokenResponse] = {
+    basicAuth.decode.fold({
+      case (clientId, clientSecret) => clientService.getRegisteredAppByIdAndSecret(clientId, clientSecret) map {
+        case Some(app) =>
+          logger.info(s"[clientCredentialsGrant] - Issuing new access token for client ${app.appId} for use by client ${app.appId}")
+          Issued(
+            tokenType = "Bearer",
+            scope,
+            expiresIn = tokenService.expiry,
+            accessToken = tokenService
+              .createClientAccessToken(stringDeObfuscate.decrypt(app.clientId)
+              .getOrElse(throw new Exception(s"Could not decrypt clientId for client ${app.appId}"))),
+            idToken = None
+          )
+        case None      =>
+          logger.warn(s"[clientCredentialsGrant] - No matching client was found, unable to issue client token")
+          InvalidClient
+      }
+    },{
+      _ =>
+        logger.warn(s"[clientCredentialsGrant] - Could not validate the requested client")
+        Future.successful(InvalidClient)
+    })
+  }
 }

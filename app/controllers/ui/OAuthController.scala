@@ -24,7 +24,7 @@ import play.api.libs.json.{Json, Writes}
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import views.html.auth.Grant
 
-import scala.concurrent.{ExecutionContext => ExC}
+import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultOAuthController @Inject()(val controllerComponents: ControllerComponents,
                                        val tokenOrchestrator: TokenOrchestrator,
@@ -42,24 +42,40 @@ trait OAuthController extends BaseController with AuthenticatedFilter {
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  private implicit val issuedWriter: Writes[Issued] = (issued: Issued) => Json.obj(
-    "token_type" -> issued.tokenType,
-    "scope" -> issued.scope,
-    "expires_in" -> issued.expiresIn,
-    "access_token" -> issued.accessToken,
-    "id_token" -> issued.idToken
-  )
+  private implicit val issuedWriter: Writes[Issued] = (issued: Issued) => {
+    val idToken = issued.idToken.fold(Json.obj())(id => Json.obj("id_token" -> id))
+    
+    Json.obj(
+      "token_type" -> issued.tokenType,
+      "scope" -> issued.scope,
+      "expires_in" -> issued.expiresIn,
+      "access_token" -> issued.accessToken,
+    ) ++ idToken
+  }
 
   def getToken(): Action[AnyContent] = Action.async { implicit req =>
     val params = req.body.asFormUrlEncoded.getOrElse(Map())
     val grantType = params("grant_type").headOption.getOrElse("")
-    val authCode = params("code").headOption.getOrElse("")
-    val clientId = params("client_id").headOption.getOrElse("")
-    val redirectUri = params("redirect_uri").headOption.getOrElse("")
 
-    tokenOrchestrator.issueToken(grantType, authCode, clientId, redirectUri) map {
-      case iss@Issued(_,_,_,_,_) => Ok(Json.toJson(iss))
-      case resp => BadRequest(Json.obj("error" -> resp.toString))
+    logger.info(s"[getToken] - Attempting to issue tokens using the $grantType grant")
+    grantType match {
+      case "authorization_code" =>
+        val authCode = params("code").headOption.getOrElse("")
+        val clientId = params("client_id").headOption.getOrElse("")
+        val redirectUri = params("redirect_uri").headOption.getOrElse("")
+        tokenOrchestrator.authorizationCodeGrant(authCode, clientId, redirectUri) map {
+          case iss@Issued(_,_,_,_,_) => Ok(Json.toJson(iss))
+          case resp => BadRequest(Json.obj("error" -> resp.toString))
+        }
+      case "client_credentials" =>
+        val scope = params("scope").headOption.getOrElse("")
+        tokenOrchestrator.clientCredentialsGrant(scope) map {
+          case iss@Issued(_,_,_,_,_) => Ok(Json.toJson(iss))
+          case resp => BadRequest(Json.obj("error" -> resp.toString))
+        }
+      case e =>
+        logger.error(s"[issueToken] - Could not validate grant type $e")
+        Future.successful(BadRequest(Json.obj("error" -> InvalidGrantType.toString)))
     }
   }
 

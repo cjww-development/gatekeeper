@@ -16,6 +16,8 @@
 
 package services
 
+import com.cjwwdev.security.obfuscation.Obfuscators
+import com.cjwwdev.security.Implicits._
 import database.AppStore
 import javax.inject.Inject
 import models.RegisteredApplication
@@ -26,11 +28,12 @@ import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultClientService @Inject()(val appStore: AppStore) extends ClientService
 
-trait ClientService {
+trait ClientService extends Obfuscators {
+  override val locale: String = ""
 
   val appStore: AppStore
 
-  private val logger = LoggerFactory.getLogger(this.getClass)
+  override val logger = LoggerFactory.getLogger(this.getClass)
 
   def getRegisteredApp(orgUserId: String, appId: String)(implicit ec: ExC): Future[Option[RegisteredApplication]] = {
     val query = and(
@@ -43,6 +46,37 @@ trait ClientService {
         logger.info(s"[getRegisteredApp] - Found app $appId belonging to ${orgUserId}")
       } else {
         logger.warn(s"[getRegisteredApp] - No app found app $appId belonging to ${orgUserId}")
+      }
+      app
+    }
+  }
+
+  def getRegisteredAppByIdAndSecret(clientId: String, clientSecret: String)(implicit ec: ExC): Future[Option[RegisteredApplication]] = {
+    val query = and(
+      equal("clientId", clientId.encrypt),
+      equal("clientSecret", clientSecret.encrypt)
+    )
+
+    appStore.validateAppOn(query) map { app =>
+      if(app.isDefined) {
+        logger.info(s"[getRegisteredAppByIdAndSecret] - Found app ${app.get.appId} belonging to ${app.get.owner}")
+      } else {
+        logger.warn(s"[getRegisteredAppByIdAndSecret] - No app found matching the given clientId and clientSecret")
+      }
+      app
+    }
+  }
+
+  def getRegisteredAppById(clientId: String)(implicit ec: ExC): Future[Option[RegisteredApplication]] = {
+    val query = and(
+      equal("clientId", clientId)
+    )
+
+    appStore.validateAppOn(query) map { app =>
+      if(app.isDefined) {
+        logger.info(s"[getRegisteredAppById] - Found app ${app.get.appId} belonging to ${app.get.owner}")
+      } else {
+        logger.warn(s"[getRegisteredAppById] - No app found matching the given clientId")
       }
       app
     }

@@ -76,6 +76,50 @@ class ClientServiceSpec
     }
   }
 
+  "getRegisteredAppByIdAndSecret" should {
+    "return a registered app" when {
+      "a valid app was found against the client id and secret" in {
+        mockValidateAppOn(app = Some(testApp))
+
+        awaitAndAssert(testService.getRegisteredAppByIdAndSecret("testClientId", "testClientSecret")) {
+          _ mustBe Some(testApp)
+        }
+      }
+    }
+
+    "return None" when {
+      "no app was found" in {
+        mockValidateAppOn(app = None)
+
+        awaitAndAssert(testService.getRegisteredAppByIdAndSecret("testClientId", "testClientSecret")) {
+          _ mustBe None
+        }
+      }
+    }
+  }
+
+  "getRegisteredAppById" should {
+    "return a registered app" when {
+      "a valid app was found against the client id" in {
+        mockValidateAppOn(app = Some(testApp))
+
+        awaitAndAssert(testService.getRegisteredAppById("testClientId")) {
+          _ mustBe Some(testApp)
+        }
+      }
+    }
+
+    "return None" when {
+      "no app was found" in {
+        mockValidateAppOn(app = None)
+
+        awaitAndAssert(testService.getRegisteredAppById("testClientId")) {
+          _ mustBe None
+        }
+      }
+    }
+  }
+
   "getRegisteredAppsFor" should {
     "return a registered app" when {
       "a valid app was found" in {
