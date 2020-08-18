@@ -44,7 +44,7 @@ trait OAuthController extends BaseController with AuthenticatedFilter {
 
   private implicit val issuedWriter: Writes[Issued] = (issued: Issued) => {
     val idToken = issued.idToken.fold(Json.obj())(id => Json.obj("id_token" -> id))
-    
+
     Json.obj(
       "token_type" -> issued.tokenType,
       "scope" -> issued.scope,
