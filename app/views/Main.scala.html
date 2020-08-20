@@ -53,9 +53,11 @@
                     }
                 </ul>
 
-                <div class="form-inline my-2 my-lg-0">
-                    <a class="btn btn-outline-primary my-2 my-sm-0" href="@uiRoutes.LoginController.logout()">Logout</a>
-                </div>
+                @if(isAuthenticated) {
+                    <div class="form-inline my-2 my-lg-0">
+                        <a class="btn btn-outline-primary my-2 my-sm-0" href="@uiRoutes.LoginController.logout()">Logout</a>
+                    </div>
+                }
             </div>
         </nav>
         <div class="main-body text-center">

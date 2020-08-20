@@ -21,9 +21,9 @@ import java.util.UUID
 import com.cjwwdev.security.obfuscation.Obfuscators
 import controllers.ui.{routes => uiRoutes}
 import helpers.Assertions
-import helpers.orchestrators.MockUserOrchestrator
+import helpers.orchestrators.{MockClientOrchestrator, MockUserOrchestrator}
 import models.{ServerCookies, User}
-import orchestrators.UserOrchestrator
+import orchestrators.{ClientOrchestrator, UserOrchestrator}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import play.api.mvc.ControllerComponents
@@ -36,12 +36,14 @@ class AccountControllerSpec
   extends PlaySpec
     with Assertions
     with MockUserOrchestrator
+    with MockClientOrchestrator
     with Obfuscators {
 
   override val locale: String = "models.ServerCookies"
 
   val testController: AccountController = new AccountController {
     override val userOrchestrator: UserOrchestrator = mockUserOrchestrator
+    override val clientOrchestrator: ClientOrchestrator = mockClientOrchestrator
     override implicit val ec: ExecutionContext = stubControllerComponents().executionContext
 
     override protected def controllerComponents: ControllerComponents = stubControllerComponents()
@@ -67,6 +69,8 @@ class AccountControllerSpec
           "email" -> testIndividualUser.email,
           "createdAt" -> "2020-01-01"
         ))
+
+        mockGetRegisteredApps(apps = Seq())
 
         assertFutureResult(testController.show()(req)) {
           status(_) mustBe OK

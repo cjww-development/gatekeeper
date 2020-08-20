@@ -19,7 +19,7 @@ package controllers.ui
 import controllers.actions.AuthenticatedFilter
 import javax.inject.Inject
 import models.ServerCookies._
-import orchestrators.UserOrchestrator
+import orchestrators.{ClientOrchestrator, UserOrchestrator}
 import org.slf4j.LoggerFactory
 import play.api.i18n.{I18NSupportLowPriorityImplicits, I18nSupport, Lang}
 import play.api.mvc._
@@ -29,6 +29,7 @@ import controllers.ui.routes
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultAccountController @Inject()(val controllerComponents: ControllerComponents,
+                                         val clientOrchestrator: ClientOrchestrator,
                                          val userOrchestrator: UserOrchestrator) extends AccountController {
   override implicit val ec: ExC = controllerComponents.executionContext
 }
@@ -36,6 +37,7 @@ class DefaultAccountController @Inject()(val controllerComponents: ControllerCom
 trait AccountController extends BaseController with I18NSupportLowPriorityImplicits with I18nSupport with AuthenticatedFilter {
 
   val userOrchestrator: UserOrchestrator
+  val clientOrchestrator: ClientOrchestrator
 
   implicit val ec: ExC
 
@@ -44,8 +46,14 @@ trait AccountController extends BaseController with I18NSupportLowPriorityImplic
   private val logger = LoggerFactory.getLogger(this.getClass)
 
   def show(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
-    userOrchestrator.getUserDetails(userId) map {
-      userDetails => Ok(Account(userDetails))
+    userOrchestrator.getUserDetails(userId) flatMap { userDetails =>
+      if(userId.startsWith("org-user-")) {
+        clientOrchestrator.getRegisteredApps(userId, 1) map { clients =>
+          Ok(Account(userDetails, clients.flatten))
+        }
+      } else {
+        Future.successful(Ok(Account(userDetails, Seq())))
+      }
     }
   }
 }
