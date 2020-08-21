@@ -16,6 +16,7 @@
 
 package services
 
+import com.cjwwdev.mongo.responses.{MongoFailedUpdate, MongoSuccessUpdate}
 import database.AppStore
 import helpers.Assertions
 import helpers.database.MockAppStore
@@ -137,6 +138,38 @@ class ClientServiceSpec
 
         awaitAndAssert(testService.getRegisteredAppsFor("testOrgId")) {
           _ mustBe Seq()
+        }
+      }
+    }
+  }
+
+  "regenerateClientIdAndSecret" should {
+    "return a RegeneratedIdAndSecret" when {
+      "the ids and secret were updated and the app was confidential" in {
+        mockUpdateApp(resp = MongoSuccessUpdate)
+
+        awaitAndAssert(testService.regenerateClientIdAndSecret("testOrgId", "testAppId", isConfidential = true)) {
+          _ mustBe RegeneratedIdAndSecret
+        }
+      }
+    }
+
+    "return a RegeneratedId" when {
+      "the id was updated and the app was individual" in {
+        mockUpdateApp(resp = MongoSuccessUpdate)
+
+        awaitAndAssert(testService.regenerateClientIdAndSecret("testOrgId", "testAppId", isConfidential = false)) {
+          _ mustBe RegeneratedId
+        }
+      }
+    }
+
+    "return a RegeneratedFailed" when {
+      "there was a problem updating the app" in {
+        mockUpdateApp(resp = MongoFailedUpdate)
+
+        awaitAndAssert(testService.regenerateClientIdAndSecret("testOrgId", "testAppId", isConfidential = false)) {
+          _ mustBe RegenerationFailed
         }
       }
     }

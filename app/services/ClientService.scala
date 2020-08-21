@@ -16,6 +16,7 @@
 
 package services
 
+import com.cjwwdev.mongo.responses.{MongoFailedUpdate, MongoSuccessUpdate}
 import com.cjwwdev.security.obfuscation.Obfuscators
 import com.cjwwdev.security.Implicits._
 import database.AppStore
@@ -23,8 +24,14 @@ import javax.inject.Inject
 import models.RegisteredApplication
 import org.slf4j.LoggerFactory
 import org.mongodb.scala.model.Filters.{and, equal}
+import org.mongodb.scala.model.Updates.set
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
+
+sealed trait RegenerationResponse
+case object RegeneratedId extends RegenerationResponse
+case object RegeneratedIdAndSecret extends RegenerationResponse
+case object RegenerationFailed extends RegenerationResponse
 
 class DefaultClientService @Inject()(val appStore: AppStore) extends ClientService
 
@@ -90,6 +97,30 @@ trait ClientService extends Obfuscators {
         logger.warn(s"[getRegisteredAppsFor] - No apps found belonging to ${orgUserId}")
       }
       apps
+    }
+  }
+
+  def regenerateClientIdAndSecret(orgUserId: String, appId: String, isConfidential: Boolean)(implicit ec: ExC): Future[RegenerationResponse] = {
+    val clientId = RegisteredApplication.generateIds(iterations = 1)
+    val clientSecret = RegisteredApplication.generateIds(iterations = 2)
+    val query = and(
+      equal("owner", orgUserId),
+      equal("appId", appId)
+    )
+
+    val update = if(isConfidential) {
+      and(set("clientId", clientId), set("clientSecret", clientSecret))
+    } else {
+      and(set("clientId", clientId))
+    }
+
+    appStore.updateApp(query, update) map {
+      case MongoSuccessUpdate =>
+        logger.info(s"[regenerateClientIdAndSecret] - Regenerated clientId ${if(isConfidential) "and clientSecret"} for appId $appId")
+        if(isConfidential) RegeneratedIdAndSecret else RegeneratedId
+      case MongoFailedUpdate =>
+        logger.warn(s"[regenerateClientIdAndSecret] - There was a problem regenerating Ids and or secrets for appId $appId")
+        RegenerationFailed
     }
   }
 }

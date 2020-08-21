@@ -16,13 +16,14 @@
 
 package database
 
-import com.cjwwdev.mongo.responses.MongoSuccessCreate
+import com.cjwwdev.mongo.responses.{MongoSuccessCreate, MongoSuccessUpdate}
 import helpers.{Assertions, IntegrationApp}
 import models.{RegisteredApplication, User}
 import org.joda.time.DateTime
 import org.scalatest.BeforeAndAfterAll
 import org.scalatestplus.play.PlaySpec
 import org.mongodb.scala.model.Filters.{and => mongoAnd, equal => mongoEqual}
+import org.mongodb.scala.model.Updates.set
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -90,6 +91,42 @@ class AppStoreISpec extends PlaySpec with IntegrationApp with Assertions with Be
       "an app doesn't exist with a matching clientSecret" in {
         awaitAndAssert(testAppStore.validateAppOn(mongoEqual("clientSecret", "invalid-secret"))) {
           _ mustBe None
+        }
+      }
+    }
+  }
+
+  "getAppsOwnedBy" should {
+    "return a Sequence of apps" when {
+      "there are apps owned by the user" in {
+        awaitAndAssert(testAppStore.getAppsOwnedBy(testApp.owner)) {
+          _ mustBe Seq(testApp)
+        }
+      }
+    }
+
+    "return an empty Sequence of apps" when {
+      "there are no apps owned by the user" in {
+        awaitAndAssert(testAppStore.getAppsOwnedBy("invalid-owner")) {
+          _ mustBe Seq()
+        }
+      }
+    }
+  }
+
+  "updateApp" should {
+    "return a MongoSuccessUpdate" when {
+      "the app has been updated" in {
+        awaitAndAssert(testAppStore.validateAppOn(mongoEqual("clientId", testApp.clientId))) {
+          _.get.desc mustBe testApp.desc
+        }
+
+        awaitAndAssert(testAppStore.updateApp(mongoEqual("clientId", testApp.clientId), set("desc", "new set desc"))) {
+          _ mustBe MongoSuccessUpdate
+        }
+
+        awaitAndAssert(testAppStore.validateAppOn(mongoEqual("clientId", testApp.clientId))) {
+          _.get.desc mustBe "new set desc"
         }
       }
     }

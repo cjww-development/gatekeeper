@@ -39,7 +39,7 @@ case class RegisteredApplication(appId: String,
 object RegisteredApplication extends Obfuscators with TimeFormat {
   override val locale: String = this.getClass.getCanonicalName
 
-  private def generateIds(iterations: Int): String = {
+  def generateIds(iterations: Int): String = {
     (0 to iterations)
       .map(_ => UUID.randomUUID().toString.replace("-", ""))
       .mkString

@@ -1,0 +1,37 @@
+@import controllers.routes
+@import controllers.ui.{routes => uiRoutes}
+@import org.joda.time.DateTime
+@import views.html.Main
+@import views.html.helper.CSRF
+@import views.AuthForView
+
+@(app: RegisteredApplication)(implicit rh: RequestHeader)
+
+@Main("Regenerate client", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
+    <form class="form-signin" action="@uiRoutes.ClientController.regenerateIdAndSecretShow(app.appId)" method="post">
+        <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
+        <h1 class="h3 mb-3 font-weight-normal">Registered client</h1>
+        <hr>
+
+        @CSRF.formField
+
+        <p class="default-text">
+            If you believe your registered clients Id and, or secret has been compromised, you can get a new client Id and, or secret by clicking the button below.
+        </p>
+
+        <div class="alert alert-warning" role="alert">
+            When you have regenerated the client Id and, or secret for your client, your client will stop working. You will need to reconfigure your client to use the new client Id and, or secret.
+        </div>
+
+        <hr>
+
+        @if(app.clientType == "confidential") {
+            <button class="btn btn-lg btn-warning btn-block" type="submit">Regenerate client Id and secret</button>
+        } else {
+            <button class="btn btn-lg btn-warning btn-block" type="submit">Regenerate client id</button>
+        }
+
+        <hr>
+        <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
+    </form>
+}

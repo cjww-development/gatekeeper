@@ -23,7 +23,7 @@ import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import services.ClientService
+import services.{ClientService, RegenerationResponse}
 
 import scala.concurrent.Future
 
@@ -55,5 +55,10 @@ trait MockClientService extends MockitoSugar with BeforeAndAfterEach {
   def mockGetRegisteredApps(apps: Seq[RegisteredApplication]): OngoingStubbing[Future[Seq[RegisteredApplication]]] = {
     when(mockClientService.getRegisteredAppsFor(ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
       .thenReturn(Future.successful(apps))
+  }
+
+  def mockRegenerateClientIdAndSecret(resp: RegenerationResponse): OngoingStubbing[Future[RegenerationResponse]] = {
+    when(mockClientService.regenerateClientIdAndSecret(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[Boolean]())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(resp))
   }
 }

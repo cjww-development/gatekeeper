@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory
 import play.api.i18n.{I18NSupportLowPriorityImplicits, I18nSupport, Lang}
 import play.api.mvc._
 import views.html.registration.{AppRegistration, UserRegistration}
-import views.html.client.{ClientView, ClientsView}
+import views.html.client.{ClientView, ClientsView, RegenerateClientIdView}
 import views.html.misc.{NotFound => NotFoundView}
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
@@ -72,6 +72,20 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
   def getAllClients(groupedBy: Int): Action[AnyContent] = authenticatedOrgUser { implicit req => orgUserId =>
     clientOrchestrator.getRegisteredApps(orgUserId, groupedBy) map { apps =>
       Ok(ClientsView(apps))
+    }
+  }
+
+  def regenerateIdAndSecretShow(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => orgUserId =>
+    clientOrchestrator.getRegisteredApp(orgUserId, appId) map {
+      case Some(app) => Ok(RegenerateClientIdView(app))
+      case None      => NotFound(NotFoundView())
+    }
+  }
+
+  def regenerateIdAndSecretSubmit(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => orgUserId =>
+    clientOrchestrator.regenerateClientIdAndSecret(orgUserId, appId) map {
+      case SecretsUpdated => Redirect(routes.ClientController.getClientDetails(appId))
+      case NoAppFound => NotFound(NotFoundView())
     }
   }
 }

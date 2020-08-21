@@ -18,7 +18,7 @@ package database
 
 import com.cjwwdev.mongo.DatabaseRepository
 import com.cjwwdev.mongo.connection.ConnectionSettings
-import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
+import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoFailedUpdate, MongoSuccessCreate, MongoSuccessUpdate, MongoUpdatedResponse}
 import com.typesafe.config.Config
 import javax.inject.Inject
 import models.{RegisteredApplication, User}
@@ -68,5 +68,19 @@ trait AppStore extends DatabaseRepository with CodecReg {
     collection[RegisteredApplication]
       .find(equal("owner", orgUserId))
       .toFuture()
+  }
+
+  def updateApp(query: Bson, update: Bson)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
+    collection[RegisteredApplication]
+      .updateOne(query, update)
+      .toFuture()
+      .map { _ =>
+        logger.info(s"[updateApp] - Updated application")
+        MongoSuccessUpdate
+      }.recover {
+        case e =>
+          logger.warn(s"[updateApp] - There was a problem updating the app", e)
+          MongoFailedUpdate
+      }
   }
 }

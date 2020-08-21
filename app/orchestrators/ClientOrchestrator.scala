@@ -19,12 +19,16 @@ package orchestrators
 import javax.inject.Inject
 import models.RegisteredApplication
 import org.slf4j.LoggerFactory
-import services.ClientService
-import com.cjwwdev.security.Implicits._
+import services.{ClientService, RegeneratedId, RegeneratedIdAndSecret, RegenerationFailed, RegenerationResponse}
 import com.cjwwdev.security.deobfuscation.DeObfuscators
 import com.cjwwdev.security.obfuscation.Obfuscators
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
+
+sealed trait AppUpdateResponse
+case object SecretsUpdated extends AppUpdateResponse
+case object NoAppFound extends AppUpdateResponse
+case object UpdatedFailed extends AppUpdateResponse
 
 class DefaultClientOrchestrator @Inject()(val clientService: ClientService) extends ClientOrchestrator {
   override val locale: String = ""
@@ -53,6 +57,19 @@ trait ClientOrchestrator extends Obfuscators with DeObfuscators {
       ))
       .grouped(groupedBy)
       .toSeq
+    }
+  }
+
+  def regenerateClientIdAndSecret(orgUserId: String, appId: String)(implicit ec: ExC): Future[AppUpdateResponse] = {
+    clientService.getRegisteredApp(orgUserId, appId) flatMap {
+      case Some(app) =>
+        clientService.regenerateClientIdAndSecret(app.owner, app.appId, app.clientType == "confidential") map {
+          case RegeneratedId | RegeneratedIdAndSecret => SecretsUpdated
+          case RegenerationFailed => UpdatedFailed
+        }
+      case None =>
+        logger.warn(s"[regenerateClientIdAndSecret] - There was no matching app found for appId $appId owned by $orgUserId")
+        Future.successful(NoAppFound)
     }
   }
 }

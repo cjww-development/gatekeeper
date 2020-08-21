@@ -17,5 +17,7 @@ POST        /oauth2/token                           controllers.ui.OAuthControll
 
 GET         /clients                                controllers.ui.ClientController.getAllClients(groupedBy: Int ?= 5)
 GET         /client                                 controllers.ui.ClientController.getClientDetails(appId)
+GET         /regenerate-client                      controllers.ui.ClientController.regenerateIdAndSecretShow(appId)
+POST        /regenerate-client                      controllers.ui.ClientController.regenerateIdAndSecretSubmit(appId)
 
 GET         /assets/*file                           controllers.Assets.at(path="/public", file)

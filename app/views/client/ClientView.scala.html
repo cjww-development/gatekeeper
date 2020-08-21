@@ -73,6 +73,15 @@
 
         <hr>
 
+        @if(app.clientType == "confidential") {
+            <a class="btn btn-lg btn-warning btn-block" href="@uiRoutes.ClientController.regenerateIdAndSecretShow(app.appId)">Regenerate id and secret</a>
+
+        } else {
+            <a class="btn btn-lg btn-warning btn-block" href="@uiRoutes.ClientController.regenerateIdAndSecretShow(app.appId)">Regenerate id</a>
+        }
+
+        <hr>
+
         <a class="btn btn-lg btn-primary btn-block" href="@uiRoutes.ClientController.getAllClients()">Show all clients</a>
 
         <hr>

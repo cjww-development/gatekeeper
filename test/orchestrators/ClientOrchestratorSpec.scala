@@ -23,7 +23,7 @@ import helpers.services.MockClientService
 import models.RegisteredApplication
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import services.ClientService
+import services.{ClientService, RegeneratedId, RegeneratedIdAndSecret, RegenerationFailed}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -92,6 +92,49 @@ class ClientOrchestratorSpec
 
         awaitAndAssert(testOrchestrator.getRegisteredApps("testOrgId", 1)) {
           _ mustBe Seq()
+        }
+      }
+    }
+  }
+
+  "regenerateClientIdAndSecret" should {
+    "return a SecretsUpdated" when {
+      "the client id and secret have been updated" in {
+        mockGetRegisteredApp(app = Some(testApp))
+        mockRegenerateClientIdAndSecret(resp = RegeneratedIdAndSecret)
+
+        awaitAndAssert(testOrchestrator.regenerateClientIdAndSecret(testApp.owner, testApp.appId)) {
+          _ mustBe SecretsUpdated
+        }
+      }
+
+      "the client id have been updated" in {
+        mockGetRegisteredApp(app = Some(testApp.copy(clientType = "public", clientSecret = None)))
+        mockRegenerateClientIdAndSecret(resp = RegeneratedId)
+
+        awaitAndAssert(testOrchestrator.regenerateClientIdAndSecret(testApp.owner, testApp.appId)) {
+          _ mustBe SecretsUpdated
+        }
+      }
+    }
+
+    "return a UpdateFailed" when {
+      "there was an issue regenerating the secrets" in {
+        mockGetRegisteredApp(app = Some(testApp))
+        mockRegenerateClientIdAndSecret(resp = RegenerationFailed)
+
+        awaitAndAssert(testOrchestrator.regenerateClientIdAndSecret(testApp.owner, testApp.appId)) {
+          _ mustBe UpdatedFailed
+        }
+      }
+    }
+
+    "return a NoAppFound" when {
+      "the app could not be found first" in {
+        mockGetRegisteredApp(app = None)
+
+        awaitAndAssert(testOrchestrator.regenerateClientIdAndSecret(testApp.owner, testApp.appId)) {
+          _ mustBe NoAppFound
         }
       }
     }
