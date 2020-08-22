@@ -8,68 +8,77 @@
 @(app: RegisteredApplication)(implicit rh: RequestHeader)
 
 @Main("View a registered client", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
+    <script src="https://cdn.jsdelivr.net/npm/jdenticon@@3.0.1" async></script>
+
     <div class="form-signin">
         <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
         <h1 class="h3 mb-3 font-weight-normal">Registered client</h1>
         <hr>
 
-        <div class="input-group mb-3">
-            <div class="input-group-prepend">
-                <span class="input-group-text" id="basic-addon1">Name</span>
+        <div class="card card-blue">
+            <div class="card-body">
+                <svg data-jdenticon-value="@{app.name}" width="100" height="100"/>
+                <h4 class="card-title">@{app.name}</h4>
+                <p>@{app.desc}</p>
             </div>
-            <input type="text" class="form-control" value="@{app.name}">
         </div>
 
-        <div class="input-group mb-3">
-            <div class="input-group-prepend">
-                <span class="input-group-text" id="basic-addon1">Desc</span>
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title default-text">Client details</h4>
+                <p class="default-text"><strong>Client Id</strong></p>
+                <p class="default-text">@{app.clientId}</p>
+                <hr>
+                <p class="default-text"><strong>Client type</strong></p>
+                <p class="default-text">@{app.clientType}</p>
+                <hr>
+                <p class="default-text"><strong>Created at</strong></p>
+                <p class="default-text">@{app.createdAt.toLocalDate}</p>
             </div>
-            <input type="text" class="form-control" value="@{app.desc}">
         </div>
 
-        <div class="input-group mb-3">
-            <div class="input-group-prepend">
-                <span class="input-group-text" id="basic-addon1">Home</span>
-            </div>
-            <input type="text" class="form-control" value="@{app.homeUrl}">
-        </div>
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title default-text">Redirects</h4>
+                <form action="" method="post">
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="basic-addon1">Home</span>
+                        </div>
+                        <input type="text" class="form-control" value="@{app.homeUrl}">
+                    </div>
 
-        <div class="input-group mb-3">
-            <div class="input-group-prepend">
-                <span class="input-group-text" id="basic-addon1">Redirect</span>
-            </div>
-            <input type="text" class="form-control" value="@{app.redirectUrl}">
-        </div>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="basic-addon1">Redirect</span>
+                        </div>
+                        <input type="text" class="form-control" value="@{app.redirectUrl}">
+                    </div>
 
-        <div class="input-group mb-3">
-            <div class="input-group-prepend">
-                <span class="input-group-text" id="basic-addon1">Type</span>
+                    <button class="btn btn-lg btn-primary btn-block" type="submit">Update @{app.name}</button>
+                </form>
             </div>
-            <input type="text" class="form-control" value="@{app.clientType}" disabled>
-        </div>
-
-        <div class="input-group mb-3">
-            <div class="input-group-prepend">
-                <span class="input-group-text" id="basic-addon1">Id</span>
-            </div>
-            <input type="text" class="form-control" value="@{app.clientId}">
         </div>
 
         @if(app.clientSecret.isDefined) {
-            <div class="input-group mb-3">
-                <div class="input-group-prepend">
-                    <span class="input-group-text" id="basic-addon1">Secret</span>
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title default-text">Secret</h4>
+
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="basic-addon1">Secret</span>
+                        </div>
+                        <input type="password" id="secret-pass" class="form-control" value="@{app.clientSecret.get}">
+                        <input type="text" id="secret-text" class="form-control" hidden value="@{app.clientSecret.get}">
+                    </div>
+
+                    <div class="white-text">
+                        <a class="btn btn-lg btn-success btn-block" id="secret-button" onclick="changeInputType()">Reveal secret</a>
+                    </div>
                 </div>
-                <input type="text" class="form-control" value="@{app.clientSecret.get}">
             </div>
         }
-
-        <div class="input-group mb-3">
-            <div class="input-group-prepend">
-                <span class="input-group-text" id="basic-addon1">Created at</span>
-            </div>
-            <input type="text" class="form-control" value="@{app.createdAt}" disabled>
-        </div>
 
         <hr>
 
@@ -91,4 +100,17 @@
         <hr>
         <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
     </div>
+
+    <script>
+        const changeInputType = () => {
+            if(document.getElementById("secret-text").hidden) {
+                document.getElementById("secret-pass").setAttribute("hidden", "")
+                document.getElementById("secret-text").removeAttribute("hidden")
+            } else {
+                document.getElementById("secret-text").setAttribute("hidden", "")
+                document.getElementById("secret-pass").removeAttribute("hidden")
+
+            }
+        }
+    </script>
 }
