@@ -18,7 +18,7 @@ package database
 
 import com.cjwwdev.mongo.DatabaseRepository
 import com.cjwwdev.mongo.connection.ConnectionSettings
-import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoFailedUpdate, MongoSuccessCreate, MongoSuccessUpdate, MongoUpdatedResponse}
+import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoDeleteResponse, MongoFailedCreate, MongoFailedDelete, MongoFailedUpdate, MongoSuccessCreate, MongoSuccessDelete, MongoSuccessUpdate, MongoUpdatedResponse}
 import com.typesafe.config.Config
 import javax.inject.Inject
 import models.{RegisteredApplication, User}
@@ -81,6 +81,20 @@ trait AppStore extends DatabaseRepository with CodecReg {
         case e =>
           logger.warn(s"[updateApp] - There was a problem updating the app", e)
           MongoFailedUpdate
+      }
+  }
+
+  def deleteApp(query: Bson)(implicit ec: ExC): Future[MongoDeleteResponse] = {
+    collection[RegisteredApplication]
+      .deleteOne(query)
+      .toFuture()
+      .map { _ =>
+        logger.info(s"[deleteApp] - The app was successfully deleted")
+        MongoSuccessDelete
+      } recover {
+        case e =>
+          logger.warn(s"[updateApp] - There was a problem deleting the app", e)
+          MongoFailedDelete
       }
   }
 }

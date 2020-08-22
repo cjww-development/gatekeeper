@@ -16,7 +16,7 @@
 
 package services
 
-import com.cjwwdev.mongo.responses.{MongoFailedUpdate, MongoSuccessUpdate}
+import com.cjwwdev.mongo.responses.{MongoDeleteResponse, MongoFailedUpdate, MongoSuccessUpdate}
 import com.cjwwdev.security.obfuscation.Obfuscators
 import com.cjwwdev.security.Implicits._
 import database.AppStore
@@ -122,5 +122,14 @@ trait ClientService extends Obfuscators {
         logger.warn(s"[regenerateClientIdAndSecret] - There was a problem regenerating Ids and or secrets for appId $appId")
         RegenerationFailed
     }
+  }
+
+  def deleteClient(orgUserId: String, appId: String)(implicit ec: ExC): Future[MongoDeleteResponse] = {
+    val query = and(
+      equal("owner", orgUserId),
+      equal("appId", appId)
+    )
+
+    appStore.deleteApp(query)
   }
 }

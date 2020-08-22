@@ -16,6 +16,7 @@
 
 package orchestrators
 
+import com.cjwwdev.mongo.responses.{MongoDeleteResponse, MongoFailedDelete, MongoSuccessDelete}
 import javax.inject.Inject
 import models.RegisteredApplication
 import org.slf4j.LoggerFactory
@@ -70,6 +71,17 @@ trait ClientOrchestrator extends Obfuscators with DeObfuscators {
       case None =>
         logger.warn(s"[regenerateClientIdAndSecret] - There was no matching app found for appId $appId owned by $orgUserId")
         Future.successful(NoAppFound)
+    }
+  }
+
+  def deleteClient(orgUserId: String, appId: String)(implicit ec: ExC): Future[MongoDeleteResponse] = {
+    clientService.deleteClient(orgUserId, appId) map {
+      case resp@MongoSuccessDelete =>
+        logger.info(s"[deleteClient] - Deleted the app $appId owned by $orgUserId")
+        resp
+      case resp@MongoFailedDelete =>
+        logger.warn(s"[deleteClient] - There was a problem deleting the app $appId owned by $orgUserId")
+        resp
     }
   }
 }

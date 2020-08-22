@@ -16,16 +16,16 @@
 
 package controllers.ui
 
+import com.cjwwdev.mongo.responses.{MongoFailedDelete, MongoSuccessDelete}
 import controllers.actions.AuthenticatedFilter
 import forms.AppRegistrationForm.{form => appRegForm}
-import forms.RegistrationForm.{form => regForm, _}
 import javax.inject.Inject
 import orchestrators._
 import org.slf4j.LoggerFactory
 import play.api.i18n.{I18NSupportLowPriorityImplicits, I18nSupport, Lang}
 import play.api.mvc._
-import views.html.registration.{AppRegistration, UserRegistration}
-import views.html.client.{ClientView, ClientsView, RegenerateClientIdView}
+import views.html.registration.AppRegistration
+import views.html.client.{ClientView, ClientsView, RegenerateClientIdView, DeleteClientView}
 import views.html.misc.{NotFound => NotFoundView}
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
@@ -53,7 +53,7 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
   }
 
   def submitAppReg(): Action[AnyContent] = authenticatedOrgUser { implicit req => userId =>
-    appRegForm(userId).bindFromRequest.fold(
+    appRegForm(userId).bindFromRequest().fold(
       errs => Future.successful(BadRequest(errs.toString)),
       app  => registrationOrchestrator.registerApplication(app) map {
         case AppRegistered        => Redirect(routes.ClientController.getClientDetails(app.appId))
@@ -86,6 +86,20 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
     clientOrchestrator.regenerateClientIdAndSecret(orgUserId, appId) map {
       case SecretsUpdated => Redirect(routes.ClientController.getClientDetails(appId))
       case NoAppFound => NotFound(NotFoundView())
+    }
+  }
+
+  def deleteClientShow(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => orgUserId =>
+    clientOrchestrator.getRegisteredApp(orgUserId, appId) map {
+      case Some(app) => Ok(DeleteClientView(app))
+      case None      => NotFound(NotFoundView())
+    }
+  }
+
+  def deleteClientSubmit(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => orgUserId =>
+    clientOrchestrator.deleteClient(orgUserId, appId) map {
+      case MongoSuccessDelete => Redirect(routes.ClientController.getAllClients())
+      case MongoFailedDelete  => NotFound(NotFoundView())
     }
   }
 }

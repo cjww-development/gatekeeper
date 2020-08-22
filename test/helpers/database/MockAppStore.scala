@@ -16,7 +16,7 @@
 
 package helpers.database
 
-import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate, MongoUpdatedResponse}
+import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoDeleteResponse, MongoFailedCreate, MongoSuccessCreate, MongoUpdatedResponse}
 import database.AppStore
 import models.RegisteredApplication
 import org.mockito.ArgumentMatchers
@@ -67,6 +67,11 @@ trait MockAppStore extends MockitoSugar with BeforeAndAfterEach {
 
   def mockUpdateApp(resp: MongoUpdatedResponse): OngoingStubbing[Future[MongoUpdatedResponse]] = {
     when(mockAppStore.updateApp(ArgumentMatchers.any[Bson](), ArgumentMatchers.any[Bson]())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(resp))
+  }
+
+  def mockDeleteApp(resp: MongoDeleteResponse): OngoingStubbing[Future[MongoDeleteResponse]] = {
+    when(mockAppStore.deleteApp(ArgumentMatchers.any[Bson]())(ArgumentMatchers.any()))
       .thenReturn(Future.successful(resp))
   }
 }

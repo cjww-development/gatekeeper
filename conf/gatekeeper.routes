@@ -1,7 +1,6 @@
 GET         /register                               controllers.ui.RegistrationController.showUserReg()
 POST        /register                               controllers.ui.RegistrationController.submitUserReg()
-GET         /register/service                       controllers.ui.ClientController.showAppReg()
-POST        /register/service                       controllers.ui.ClientController.submitAppReg()
+
 
 GET         /login                                  controllers.ui.LoginController.show()
 POST        /login                                  controllers.ui.LoginController.submit()
@@ -16,8 +15,12 @@ POST        /oauth2/authorize                       controllers.ui.OAuthControll
 POST        /oauth2/token                           controllers.ui.OAuthController.getToken()
 
 GET         /clients                                controllers.ui.ClientController.getAllClients(groupedBy: Int ?= 5)
+GET         /client/register                        controllers.ui.ClientController.showAppReg()
+POST        /client/register                        controllers.ui.ClientController.submitAppReg()
 GET         /client                                 controllers.ui.ClientController.getClientDetails(appId)
-GET         /regenerate-client                      controllers.ui.ClientController.regenerateIdAndSecretShow(appId)
-POST        /regenerate-client                      controllers.ui.ClientController.regenerateIdAndSecretSubmit(appId)
+GET         /client/regenerate                      controllers.ui.ClientController.regenerateIdAndSecretShow(appId)
+POST        /client/regenerate                      controllers.ui.ClientController.regenerateIdAndSecretSubmit(appId)
+GET         /client/delete                          controllers.ui.ClientController.deleteClientShow(appId)
+POST        /client/delete                          controllers.ui.ClientController.deleteClientSubmit(appId)
 
 GET         /assets/*file                           controllers.Assets.at(path="/public", file)

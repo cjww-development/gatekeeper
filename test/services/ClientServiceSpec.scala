@@ -16,7 +16,7 @@
 
 package services
 
-import com.cjwwdev.mongo.responses.{MongoFailedUpdate, MongoSuccessUpdate}
+import com.cjwwdev.mongo.responses.{MongoFailedDelete, MongoFailedUpdate, MongoSuccessDelete, MongoSuccessUpdate}
 import database.AppStore
 import helpers.Assertions
 import helpers.database.MockAppStore
@@ -170,6 +170,28 @@ class ClientServiceSpec
 
         awaitAndAssert(testService.regenerateClientIdAndSecret("testOrgId", "testAppId", isConfidential = false)) {
           _ mustBe RegenerationFailed
+        }
+      }
+    }
+  }
+
+  "deleteClient" should {
+    "return a MongoSuccessDelete" when {
+      "the app was deleted" in {
+        mockDeleteApp(resp = MongoSuccessDelete)
+
+        awaitAndAssert(testService.deleteClient("testOrgId", "testAppId")) {
+          _ mustBe MongoSuccessDelete
+        }
+      }
+    }
+
+    "return a MongoFailedDelete" when {
+      "the app was deleted" in {
+        mockDeleteApp(resp = MongoFailedDelete)
+
+        awaitAndAssert(testService.deleteClient("testOrgId", "testAppId")) {
+          _ mustBe MongoFailedDelete
         }
       }
     }

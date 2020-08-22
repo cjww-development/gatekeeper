@@ -16,6 +16,7 @@
 
 package orchestrators
 
+import com.cjwwdev.mongo.responses.{MongoFailedDelete, MongoSuccessDelete}
 import com.cjwwdev.security.Implicits._
 import com.cjwwdev.security.obfuscation.Obfuscators
 import helpers.Assertions
@@ -135,6 +136,28 @@ class ClientOrchestratorSpec
 
         awaitAndAssert(testOrchestrator.regenerateClientIdAndSecret(testApp.owner, testApp.appId)) {
           _ mustBe NoAppFound
+        }
+      }
+    }
+  }
+
+  "deleteClient" should {
+    "return MongoSuccessDelete" when {
+      "the app was deleted" in {
+        mockDeleteClient(resp = MongoSuccessDelete)
+
+        awaitAndAssert(testOrchestrator.deleteClient("testOrgId", "testAppId")) {
+          _ mustBe MongoSuccessDelete
+        }
+      }
+    }
+
+    "return MongoFailedDelete" when {
+      "the app was deleted" in {
+        mockDeleteClient(resp = MongoFailedDelete)
+
+        awaitAndAssert(testOrchestrator.deleteClient("testOrgId", "testAppId")) {
+          _ mustBe MongoFailedDelete
         }
       }
     }

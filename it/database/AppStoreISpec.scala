@@ -16,7 +16,7 @@
 
 package database
 
-import com.cjwwdev.mongo.responses.{MongoSuccessCreate, MongoSuccessUpdate}
+import com.cjwwdev.mongo.responses.{MongoSuccessCreate, MongoSuccessDelete, MongoSuccessUpdate}
 import helpers.{Assertions, IntegrationApp}
 import models.{RegisteredApplication, User}
 import org.joda.time.DateTime
@@ -127,6 +127,16 @@ class AppStoreISpec extends PlaySpec with IntegrationApp with Assertions with Be
 
         awaitAndAssert(testAppStore.validateAppOn(mongoEqual("clientId", testApp.clientId))) {
           _.get.desc mustBe "new set desc"
+        }
+      }
+    }
+  }
+
+  "deleteApp" should {
+    "return a MongoSuccessDelete" when {
+      "the app has been deleted" in {
+        awaitAndAssert(testAppStore.deleteApp(mongoEqual("clientId", testApp.clientId))) {
+          _ mustBe MongoSuccessDelete
         }
       }
     }

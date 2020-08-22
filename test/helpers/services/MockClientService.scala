@@ -16,6 +16,7 @@
 
 package helpers.services
 
+import com.cjwwdev.mongo.responses.MongoDeleteResponse
 import models.RegisteredApplication
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
@@ -59,6 +60,11 @@ trait MockClientService extends MockitoSugar with BeforeAndAfterEach {
 
   def mockRegenerateClientIdAndSecret(resp: RegenerationResponse): OngoingStubbing[Future[RegenerationResponse]] = {
     when(mockClientService.regenerateClientIdAndSecret(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[Boolean]())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(resp))
+  }
+
+  def mockDeleteClient(resp: MongoDeleteResponse): OngoingStubbing[Future[MongoDeleteResponse]] = {
+    when(mockClientService.deleteClient(ArgumentMatchers.any[String](), ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
       .thenReturn(Future.successful(resp))
   }
 }
