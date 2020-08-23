@@ -17,6 +17,7 @@ POST        /oauth2/token                           controllers.ui.OAuthControll
 GET         /clients                                controllers.ui.ClientController.getAllClients(groupedBy: Int ?= 5)
 GET         /clients/authorised                     controllers.ui.ClientController.getAuthorisedAppsForUser()
 GET         /client/authorised                      controllers.ui.ClientController.getAuthorisedApp(appId)
+GET         /client/delete                          controllers.ui.ClientController.revokeAppAccess(appId)
 GET         /client/register                        controllers.ui.ClientController.showAppReg()
 POST        /client/register                        controllers.ui.ClientController.submitAppReg()
 GET         /client                                 controllers.ui.ClientController.getClientDetails(appId)

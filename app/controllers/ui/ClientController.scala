@@ -115,4 +115,10 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
       case None      => NotFound(NotFoundView())
     }
   }
+
+  def revokeAppAccess(appId: String): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+    clientOrchestrator.unlinkAppFromUser(appId, userId) map {
+      _ => Redirect(routes.ClientController.getAuthorisedAppsForUser())
+    }
+  }
 }

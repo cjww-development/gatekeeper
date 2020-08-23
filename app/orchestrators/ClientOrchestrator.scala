@@ -20,7 +20,7 @@ import com.cjwwdev.mongo.responses.{MongoDeleteResponse, MongoFailedDelete, Mong
 import javax.inject.Inject
 import models.RegisteredApplication
 import org.slf4j.{Logger, LoggerFactory}
-import services.{AccountService, ClientService, RegeneratedId, RegeneratedIdAndSecret, RegenerationFailed, RegenerationResponse}
+import services.{AccountService, ClientService, LinkResponse, RegeneratedId, RegeneratedIdAndSecret, RegenerationFailed, RegenerationResponse}
 import com.cjwwdev.security.deobfuscation.DeObfuscators
 import com.cjwwdev.security.obfuscation.Obfuscators
 
@@ -125,5 +125,9 @@ trait ClientOrchestrator extends Obfuscators with DeObfuscators {
         logger.warn(s"[getAuthorisedApp] - No user found whilst getting a users authorised app")
         Future.successful(None)
     }
+  }
+
+  def unlinkAppFromUser(appId: String, userId: String)(implicit ec: ExC): Future[LinkResponse] = {
+    accountService.unlinkAppFromUser(userId, appId)
   }
 }

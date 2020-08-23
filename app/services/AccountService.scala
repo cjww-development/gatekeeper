@@ -16,7 +16,7 @@
 
 package services
 
-import com.cjwwdev.mongo.responses.{MongoFailedUpdate, MongoSuccessUpdate}
+import com.cjwwdev.mongo.responses.{MongoFailedUpdate, MongoSuccessUpdate, MongoUpdatedResponse}
 import com.cjwwdev.security.SecurityConfiguration
 import com.cjwwdev.security.deobfuscation.DeObfuscators
 import database.{IndividualUserStore, OrganisationUserStore}
@@ -35,6 +35,7 @@ sealed trait LinkResponse
 case object LinkSuccess extends LinkResponse
 case object LinkFailed extends LinkResponse
 case object LinkExists extends LinkResponse
+case object LinkRemoved extends LinkResponse
 case object NoUserFound extends LinkResponse
 
 class DefaultAccountService @Inject()(val userStore: IndividualUserStore,
@@ -154,6 +155,51 @@ trait AccountService extends DeObfuscators with SecurityConfiguration {
     userId match {
       case id if id.startsWith("user-") => linkAppToIndUser
       case id if id.startsWith("org-user-") => linkAppToOrgUser
+      case _ =>
+        logger.error(s"[linkAuthorisedClientTo] - Invalid user Id $userId")
+        Future.successful(NoUserFound)
+    }
+  }
+
+  def unlinkAppFromUser(userId: String, appId: String)(implicit ec: ExC): Future[LinkResponse] = {
+    val query = equal("id", userId)
+    val update: List[String] => Bson = clients => set("authorisedClients", clients)
+
+    def unlinkAppFromIndUser: Future[LinkResponse] = {
+      userStore.validateUserOn(query) flatMap {
+        case Some(user) => userStore.updateUser(query, update(user.authorisedClients.getOrElse(List()).filterNot(_ == appId))) map {
+          case MongoSuccessUpdate =>
+            logger.info(s"[unlinkAppFromUser] - Successfully unlinked $appId from user $userId")
+            LinkSuccess
+          case MongoFailedUpdate =>
+            logger.warn(s"[unlinkAppFromUser] - There was a problem unlinking $appId from user $userId")
+            LinkFailed
+        }
+        case None =>
+          logger.warn(s"[unlinkAppFromUser] - Failed to unlink client to user; user not found")
+          Future.successful(NoUserFound)
+      }
+    }
+
+    def unlinkAppFromOrgUser: Future[LinkResponse] = {
+      orgUserStore.validateUserOn(query) flatMap {
+        case Some(user) => orgUserStore.updateUser(query, update(user.authorisedClients.getOrElse(List()).filterNot(_ == appId))) map {
+          case MongoSuccessUpdate =>
+            logger.info(s"[unlinkAppFromUser] - Successfully unlinked $appId from user $userId")
+            LinkSuccess
+          case MongoFailedUpdate =>
+            logger.warn(s"[unlinkAppFromUser] - There was a problem unlinking $appId from user $userId")
+            LinkFailed
+        }
+        case None =>
+          logger.warn(s"[unlinkAppFromUser] - Failed to unlink client to user; user not found")
+          Future.successful(NoUserFound)
+      }
+    }
+
+    userId match {
+      case id if id.startsWith("user-") => unlinkAppFromIndUser
+      case id if id.startsWith("org-user-") => unlinkAppFromOrgUser
       case _ =>
         logger.error(s"[linkAuthorisedClientTo] - Invalid user Id $userId")
         Future.successful(NoUserFound)
