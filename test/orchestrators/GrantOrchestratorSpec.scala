@@ -16,11 +16,13 @@
 
 package orchestrators
 
+import java.util.UUID
+
 import com.cjwwdev.security.Implicits._
 import com.cjwwdev.security.obfuscation.Obfuscators
 import helpers.Assertions
 import helpers.services.{MockAccountService, MockClientService, MockGrantService, MockScopeService}
-import models.{RegisteredApplication, UserInfo}
+import models.{RegisteredApplication, User, UserInfo}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import services.{AccountService, ClientService, GrantService, ScopeService}
@@ -58,6 +60,17 @@ class GrantOrchestratorSpec
     createdAt    = DateTime.now()
   )
 
+  val testUser: User = User(
+    id        = s"org-user-${UUID.randomUUID().toString}",
+    userName  = "testUsername",
+    email     = "test@email.com",
+    accType   = "organisation",
+    password  = "testPassword",
+    salt      = "testSalt",
+    authorisedClients = Some(List(testApp.appId)),
+    createdAt = DateTime.now()
+  )
+
   val now: DateTime = DateTime.now()
 
   "validateIncomingGrant" should {
@@ -74,18 +87,8 @@ class GrantOrchestratorSpec
           createdAt = now
         )))
 
-        awaitAndAssert(testOrchestrator.validateIncomingGrant("code", testApp.clientId, "username")) {
+        awaitAndAssert(testOrchestrator.validateIncomingGrant("code", testApp.clientId, "username", testUser.id)) {
           _ mustBe ValidatedGrantRequest(testApp.copy(owner = "test-org"), "username")
-        }
-      }
-
-      "the app is found and redirects and scopes are valid but the app owner isn't found" in {
-        mockGetRegisteredAppById(app = Some(testApp))
-        mockValidateScopes(valid = true)
-        mockGetOrganisationAccountInfo(value = None)
-
-        awaitAndAssert(testOrchestrator.validateIncomingGrant("code", testApp.clientId, "username")) {
-          _ mustBe ValidatedGrantRequest(testApp.copy(owner = ""), "username")
         }
       }
     }
@@ -94,7 +97,7 @@ class GrantOrchestratorSpec
       "the app wasn't found" in {
         mockGetRegisteredAppById(app = None)
 
-        awaitAndAssert(testOrchestrator.validateIncomingGrant("code", testApp.clientId, "username")) {
+        awaitAndAssert(testOrchestrator.validateIncomingGrant("code", testApp.clientId, "username", testUser.id)) {
           _ mustBe InvalidApplication
         }
       }
@@ -104,7 +107,7 @@ class GrantOrchestratorSpec
       "the response type was not code" in {
         mockGetRegisteredAppById(app = None)
 
-        awaitAndAssert(testOrchestrator.validateIncomingGrant("codez", testApp.clientId, "username")) {
+        awaitAndAssert(testOrchestrator.validateIncomingGrant("codez", testApp.clientId, "username", testUser.id)) {
           _ mustBe InvalidResponseType
         }
       }
@@ -115,7 +118,7 @@ class GrantOrchestratorSpec
         mockGetRegisteredAppById(app = Some(testApp))
         mockValidateScopes(valid = false)
 
-        awaitAndAssert(testOrchestrator.validateIncomingGrant("code", testApp.clientId, "username")) {
+        awaitAndAssert(testOrchestrator.validateIncomingGrant("code", testApp.clientId, "username", testUser.id)) {
           _ mustBe InvalidScopesRequested
         }
       }

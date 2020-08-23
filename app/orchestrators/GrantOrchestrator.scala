@@ -32,6 +32,7 @@ case object InvalidApplication extends GrantInitiateResponse
 case object InvalidScopesRequested extends GrantInitiateResponse
 case object InvalidResponseType extends GrantInitiateResponse
 case class ValidatedGrantRequest(app: RegisteredApplication, scopes: String) extends GrantInitiateResponse
+case object PreviouslyAuthorised extends GrantInitiateResponse
 
 class DefaultGrantOrchestrator @Inject()(val grantService: GrantService,
                                          val clientService: ClientService,
@@ -47,15 +48,23 @@ trait GrantOrchestrator {
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  def validateIncomingGrant(responseType: String, clientId: String, scope: String)(implicit ec: ExC): Future[GrantInitiateResponse] = {
+  def validateIncomingGrant(responseType: String, clientId: String, scope: String, requestingUserId: String)(implicit ec: ExC): Future[GrantInitiateResponse] = {
     if(responseType == "code") {
       clientService.getRegisteredAppById(clientId) flatMap {
         case Some(app) =>
           val validScopes = scopeService.validateScopes(scope)
           if(validScopes) {
-            accountService.getOrganisationAccountInfo(app.owner) map { user =>
+            for {
+              Some(orgUser) <- accountService.getOrganisationAccountInfo(app.owner)
+              Some(reqUser) <- requestingUserId match {
+                case id if id.startsWith("user-") => accountService.getIndividualAccountInfo(requestingUserId)
+                case id if id.startsWith("org-user-") => accountService.getOrganisationAccountInfo(requestingUserId)
+              }
+            } yield if(reqUser.authorisedClients.contains(app.appId)) {
+              PreviouslyAuthorised
+            } else {
               ValidatedGrantRequest(
-                app = app.copy(owner = user.map(_.userName).getOrElse("")),
+                app = app.copy(owner = orgUser.userName),
                 scopes = scope
               )
             }

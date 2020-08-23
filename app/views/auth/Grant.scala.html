@@ -8,19 +8,32 @@
 @(responseType: String, clientId: String, scopes: Seq[String], scope: String, app: RegisteredApplication)(implicit rh: RequestHeader)
 
 @Main("A service would like to access your account", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
+    <script src="https://cdn.jsdelivr.net/npm/jdenticon@@3.0.1" async></script>
+
     <div class="form-signin">
         <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
         <h1 class="h3 mb-3 font-weight-normal">Allow access</h1>
         <hr>
 
-        <p class="default-text">@{app.name} by @{app.owner} would like to access your account</p>
-        <p class="default-text">"@{app.desc}"</p>
-        <p class="default-text">and would like to access these parts of your account</p>
-        <ul class="default-text">
-            @for(scope <- scopes){
-                <li>@{scope}</li>
-            }
-        </ul>
+        <div class="card card-blue">
+            <div class="card-body">
+                <svg data-jdenticon-value="@{app.name}" width="100" height="100"/>
+                <h4 class="card-title">@{app.name}</h4>
+                <h4 class="card-title">by @{app.owner}</h4>
+                <p>@{app.desc}</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="default-text">The app would like to access these parts of your account</div>
+                <br>
+                @for(scope <- scopes){
+                <div class="default-text">@{scope}</div>
+                }
+            </div>
+        </div>
+
         <hr>
         <form class="form-signin" action="@uiRoutes.OAuthController.authorisePost(responseType, clientId, scope)" method="post">
             @CSRF.formField

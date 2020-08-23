@@ -34,6 +34,7 @@ import scala.concurrent.{Future, ExecutionContext => ExC}
 sealed trait LinkResponse
 case object LinkSuccess extends LinkResponse
 case object LinkFailed extends LinkResponse
+case object LinkExists extends LinkResponse
 case object NoUserFound extends LinkResponse
 
 class DefaultAccountService @Inject()(val userStore: IndividualUserStore,
@@ -110,13 +111,18 @@ trait AccountService extends DeObfuscators with SecurityConfiguration {
 
     def linkAppToIndUser: Future[LinkResponse] = {
       userStore.validateUserOn(query) flatMap {
-        case Some(user) => userStore.updateUser(query, update(user.authorisedClients.getOrElse(List()) ++ List(appId))) map {
-          case MongoSuccessUpdate =>
-            logger.info(s"[linkAuthorisedClientTo] - Successfully linked $appId to user $userId")
-            LinkSuccess
-          case MongoFailedUpdate =>
-            logger.warn(s"[linkAuthorisedClientTo] - There was a problem linking $appId to user $userId")
-            LinkFailed
+        case Some(user) => if(user.authorisedClients.exists(_.contains(appId))) {
+          logger.info(s"[linkAuthorisedClientTo] - Link between app $appId and user $userId already exists")
+          Future.successful(LinkExists)
+        } else {
+          userStore.updateUser(query, update(user.authorisedClients.getOrElse(List()) ++ List(appId))) map {
+            case MongoSuccessUpdate =>
+              logger.info(s"[linkAuthorisedClientTo] - Successfully linked $appId to user $userId")
+              LinkSuccess
+            case MongoFailedUpdate =>
+              logger.warn(s"[linkAuthorisedClientTo] - There was a problem linking $appId to user $userId")
+              LinkFailed
+          }
         }
         case None =>
           logger.warn(s"[linkAuthorisedClientTo] - Failed to link client to user; user not found")
@@ -126,13 +132,18 @@ trait AccountService extends DeObfuscators with SecurityConfiguration {
 
     def linkAppToOrgUser: Future[LinkResponse] = {
       orgUserStore.validateUserOn(query) flatMap {
-        case Some(user) => orgUserStore.updateUser(query, update(user.authorisedClients.getOrElse(List()) ++ List(appId))) map {
-          case MongoSuccessUpdate =>
-            logger.info(s"[linkAuthorisedClientTo] - Successfully linked $appId to user $userId")
-            LinkSuccess
-          case MongoFailedUpdate =>
-            logger.warn(s"[linkAuthorisedClientTo] - There was a problem linking $appId to user $userId")
-            LinkFailed
+        case Some(user) => if(user.authorisedClients.exists(_.contains(appId))) {
+          logger.info(s"[linkAuthorisedClientTo] - Link between app $appId and user $userId already exists")
+          Future.successful(LinkExists)
+        } else {
+          orgUserStore.updateUser(query, update(user.authorisedClients.getOrElse(List()) ++ List(appId))) map {
+            case MongoSuccessUpdate =>
+              logger.info(s"[linkAuthorisedClientTo] - Successfully linked $appId to user $userId")
+              LinkSuccess
+            case MongoFailedUpdate =>
+              logger.warn(s"[linkAuthorisedClientTo] - There was a problem linking $appId to user $userId")
+              LinkFailed
+          }
         }
         case None =>
           logger.warn(s"[linkAuthorisedClientTo] - Failed to link client to user; user not found")

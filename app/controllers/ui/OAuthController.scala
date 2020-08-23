@@ -21,7 +21,7 @@ import javax.inject.Inject
 import orchestrators._
 import org.slf4j.LoggerFactory
 import play.api.libs.json.{Json, Writes}
-import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, BaseController, Call, ControllerComponents}
 import views.html.auth.Grant
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
@@ -79,10 +79,11 @@ trait OAuthController extends BaseController with AuthenticatedFilter {
     }
   }
 
-  def authoriseGet(response_type: String, client_id: String, scope: String): Action[AnyContent] = authenticatedUser { implicit req => _ =>
-    grantOrchestrator.validateIncomingGrant(response_type, client_id, scope) map {
-      case ValidatedGrantRequest(app, scopes) => Ok(Grant(response_type, client_id, scopes.split(",").toSeq, scope, app))
-      case err => BadRequest(err.toString)
+  def authoriseGet(response_type: String, client_id: String, scope: String): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+    grantOrchestrator.validateIncomingGrant(response_type, client_id, scope, userId) flatMap {
+      case ValidatedGrantRequest(app, scopes) => Future.successful(Ok(Grant(response_type, client_id, scopes.split(",").toSeq, scope, app)))
+      case PreviouslyAuthorised => authorisePost(response_type, client_id, scope)(req)
+      case err => Future.successful(BadRequest(err.toString))
     }
   }
 
