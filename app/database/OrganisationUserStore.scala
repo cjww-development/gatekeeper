@@ -18,7 +18,7 @@ package database
 
 import com.cjwwdev.mongo.DatabaseRepository
 import com.cjwwdev.mongo.connection.ConnectionSettings
-import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
+import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoFailedUpdate, MongoSuccessCreate, MongoSuccessUpdate, MongoUpdatedResponse}
 import com.typesafe.config.Config
 import javax.inject.Inject
 import models.User
@@ -84,5 +84,19 @@ trait OrganisationUserStore extends DatabaseRepository with CodecReg {
       .toFutureOption()
       .map(buildMap)
       .recover(_ => Map())
+  }
+
+  def updateUser(query: Bson, update: Bson)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
+    collection[User]
+      .updateOne(query, update)
+      .toFuture()
+      .map { _ =>
+        logger.info(s"[updateUser] - Updated org user information")
+        MongoSuccessUpdate
+      }.recover {
+        case e =>
+          logger.warn(s"[updateUser] - There was a problem updating the org user", e)
+          MongoFailedUpdate
+      }
   }
 }

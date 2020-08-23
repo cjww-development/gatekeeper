@@ -17,7 +17,9 @@
 package services
 
 import helpers.Assertions
+import models.UserInfo
 import org.apache.commons.net.util.Base64
+import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
 
@@ -30,6 +32,17 @@ class TokenServiceSpec
     override val expiry: Long      = 30000
     override val signature: String = "testSignature"
   }
+
+  val now: DateTime = DateTime.now()
+
+  val userInfo = UserInfo(
+    id = "",
+    userName = "test-org",
+    email = "",
+    accType = "",
+    authorisedClients = List.empty[String],
+    createdAt = now
+  )
 
   "createAccessToken" should {
     "return a signed access token" when {
@@ -56,7 +69,7 @@ class TokenServiceSpec
           "" -> ""
         )
 
-        assertOutput(testService.createIdToken("testClientId", "testUserId", userDetails, "testAccType")) { token =>
+        assertOutput(testService.createIdToken("testClientId", "testUserId", userInfo, "testAccType")) { token =>
           val split = token.split("\\.")
           split.length mustBe 3
 

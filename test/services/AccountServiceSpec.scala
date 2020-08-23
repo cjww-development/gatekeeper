@@ -19,14 +19,15 @@ package services
 import java.time.Instant
 import java.util.{Date, UUID}
 
+import com.cjwwdev.mongo.responses.{MongoFailedUpdate, MongoSuccessUpdate}
 import com.cjwwdev.security.Implicits._
 import com.cjwwdev.security.SecurityConfiguration
 import com.cjwwdev.security.obfuscation.Obfuscators
 import database.{IndividualUserStore, OrganisationUserStore}
 import helpers.Assertions
 import helpers.database.{MockIndividualStore, MockOrganisationStore}
-import models.User
-import org.joda.time.DateTime
+import models.{User, UserInfo}
+import org.joda.time.{DateTime, DateTimeZone}
 import org.mongodb.scala.bson
 import org.scalatestplus.play.PlaySpec
 
@@ -60,6 +61,7 @@ class AccountServiceSpec
     email     = "test@email.com".encrypt,
     accType   = "individual",
     password  = "testPassword",
+    authorisedClients = None,
     salt      = "testSalt",
     createdAt = now
   )
@@ -70,6 +72,7 @@ class AccountServiceSpec
     email     = "test@email.com".encrypt,
     accType   = "organisation",
     password  = "testPassword",
+    authorisedClients = None,
     salt      = "testSalt",
     createdAt = now
   )
@@ -78,18 +81,21 @@ class AccountServiceSpec
     "return an populated map" when {
       "the specified user was found" in {
         mockIndividualProjectValue(value = Map(
-          "userName"    -> bson.BsonString(testOrganisationUser.userName),
-          "email"       -> bson.BsonString(testOrganisationUser.email),
-          "createdAt"   -> bson.BsonDateTime(Date.from(Instant.ofEpochMilli(now.getMillis)))
+          "id"        -> bson.BsonString(testIndividualUser.id),
+          "userName"  -> bson.BsonString(testIndividualUser.userName),
+          "email"     -> bson.BsonString(testIndividualUser.email),
+          "createdAt" -> bson.BsonDateTime(Date.from(Instant.ofEpochMilli(now.getMillis))),
         ))
 
         awaitAndAssert(testService.getIndividualAccountInfo(testIndividualUser.id)) {
-          _ mustBe Map(
-            "userName"    -> "testUserName",
-            "email"       -> "test@email.com",
-            "createdAt"   -> nowString,
-            "accountType" -> "individual"
-          )
+          _ mustBe Some(UserInfo(
+            id = testIndividualUser.id,
+            userName = "testUserName",
+            email = "test@email.com",
+            accType = testIndividualUser.accType,
+            authorisedClients = List.empty[String],
+            createdAt = now.withZone(DateTimeZone.UTC)
+          ))
         }
       }
     }
@@ -99,7 +105,7 @@ class AccountServiceSpec
         mockIndividualProjectValue(value = Map())
 
         awaitAndAssert(testService.getIndividualAccountInfo(testIndividualUser.id)) {
-          _ mustBe Map()
+          _ mustBe None
         }
       }
     }
@@ -109,18 +115,21 @@ class AccountServiceSpec
     "return an populated map" when {
       "the specified user was found" in {
         mockOrganisationProjectValue(value = Map(
+          "id"        -> bson.BsonString(testOrganisationUser.id),
           "userName"  -> bson.BsonString(testOrganisationUser.userName),
           "email"     -> bson.BsonString(testOrganisationUser.email),
           "createdAt" -> bson.BsonDateTime(Date.from(Instant.ofEpochMilli(now.getMillis))),
         ))
 
         awaitAndAssert(testService.getOrganisationAccountInfo(testOrganisationUser.id)) {
-          _ mustBe Map(
-            "userName"    -> "testUserName",
-            "email"       -> "test@email.com",
-            "createdAt"   -> nowString,
-            "accountType" -> "organisation"
-          )
+          _ mustBe Some(UserInfo(
+            id = testOrganisationUser.id,
+            userName = "testUserName",
+            email = "test@email.com",
+            accType = testOrganisationUser.accType,
+            authorisedClients = List.empty[String],
+            createdAt = now.withZone(DateTimeZone.UTC)
+          ))
         }
       }
     }
@@ -130,7 +139,7 @@ class AccountServiceSpec
         mockOrganisationProjectValue(value = Map())
 
         awaitAndAssert(testService.getOrganisationAccountInfo(testOrganisationUser.id)) {
-          _ mustBe Map()
+          _ mustBe None
         }
       }
     }
@@ -171,6 +180,72 @@ class AccountServiceSpec
             }
           }
         }
+    }
+  }
+
+  "linkAuthorisedClientTo" should {
+    "return a LinkSuccess" when {
+      "the individual user has been linked to a client" in {
+        mockIndividualValidateUserOn(user = Some(testIndividualUser))
+        mockUpdateIndUser(resp = MongoSuccessUpdate)
+
+        awaitAndAssert(testService.linkAuthorisedClientTo(testIndividualUser.id, "testAppId")) {
+          _ mustBe LinkSuccess
+        }
+      }
+
+      "the organisation user has been linked to a client" in {
+        mockOrganisationValidateUserOn(user = Some(testOrganisationUser))
+        mockUpdateOrgUser(resp = MongoSuccessUpdate)
+
+        awaitAndAssert(testService.linkAuthorisedClientTo(testOrganisationUser.id, "testAppId")) {
+          _ mustBe LinkSuccess
+        }
+      }
+    }
+
+    "return a LinkFailed" when {
+      "the individual user hasn't been linked to a client" in {
+        mockIndividualValidateUserOn(user = Some(testIndividualUser))
+        mockUpdateIndUser(resp = MongoFailedUpdate)
+
+        awaitAndAssert(testService.linkAuthorisedClientTo(testIndividualUser.id, "testAppId")) {
+          _ mustBe LinkFailed
+        }
+      }
+
+      "the organisation user hasn't been linked to a client" in {
+        mockOrganisationValidateUserOn(user = Some(testOrganisationUser))
+        mockUpdateOrgUser(resp = MongoFailedUpdate)
+
+        awaitAndAssert(testService.linkAuthorisedClientTo(testOrganisationUser.id, "testAppId")) {
+          _ mustBe LinkFailed
+        }
+      }
+    }
+
+    "return a NoUserFound" when {
+      "the individual user doesn't exist" in {
+        mockIndividualValidateUserOn(user = None)
+
+        awaitAndAssert(testService.linkAuthorisedClientTo(testIndividualUser.id, "testAppId")) {
+          _ mustBe NoUserFound
+        }
+      }
+
+      "the organisation user doesn't exist" in {
+        mockOrganisationValidateUserOn(user = None)
+
+        awaitAndAssert(testService.linkAuthorisedClientTo(testOrganisationUser.id, "testAppId")) {
+          _ mustBe NoUserFound
+        }
+      }
+
+      "the user Id is invalid" in {
+        awaitAndAssert(testService.linkAuthorisedClientTo("invalid-user-id", "testAppId")) {
+          _ mustBe NoUserFound
+        }
+      }
     }
   }
 }

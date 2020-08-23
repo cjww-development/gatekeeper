@@ -16,13 +16,14 @@
 
 package helpers.services
 
+import models.UserInfo
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
 import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import services.AccountService
+import services.{AccountService, LinkResponse}
 
 import scala.concurrent.Future
 
@@ -36,12 +37,12 @@ trait MockAccountService extends MockitoSugar with BeforeAndAfterEach {
     reset(mockAccountService)
   }
 
-  def mockGetIndividualAccountInfo(value: Map[String, String]): OngoingStubbing[Future[Map[String, String]]] = {
+  def mockGetIndividualAccountInfo(value: Option[UserInfo]): OngoingStubbing[Future[Option[UserInfo]]] = {
     when(mockAccountService.getIndividualAccountInfo(ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
       .thenReturn(Future.successful(value))
   }
 
-  def mockGetOrganisationAccountInfo(value: Map[String, String]): OngoingStubbing[Future[Map[String, String]]] = {
+  def mockGetOrganisationAccountInfo(value: Option[UserInfo]): OngoingStubbing[Future[Option[UserInfo]]] = {
     when(mockAccountService.getOrganisationAccountInfo(ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
       .thenReturn(Future.successful(value))
   }
@@ -49,5 +50,10 @@ trait MockAccountService extends MockitoSugar with BeforeAndAfterEach {
   def mockDetermineAccountTypeFromId(value: Option[String]): OngoingStubbing[Option[String]] = {
     when(mockAccountService.determineAccountTypeFromId(ArgumentMatchers.any[String]()))
       .thenReturn(value)
+  }
+
+  def mockLinkAuthorisedClientTo(resp: LinkResponse): OngoingStubbing[Future[LinkResponse]] = {
+    when(mockAccountService.linkAuthorisedClientTo(ArgumentMatchers.any[String](), ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(resp))
   }
 }

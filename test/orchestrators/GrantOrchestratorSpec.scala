@@ -20,7 +20,7 @@ import com.cjwwdev.security.Implicits._
 import com.cjwwdev.security.obfuscation.Obfuscators
 import helpers.Assertions
 import helpers.services.{MockAccountService, MockClientService, MockGrantService, MockScopeService}
-import models.RegisteredApplication
+import models.{RegisteredApplication, UserInfo}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import services.{AccountService, ClientService, GrantService, ScopeService}
@@ -58,12 +58,21 @@ class GrantOrchestratorSpec
     createdAt    = DateTime.now()
   )
 
+  val now: DateTime = DateTime.now()
+
   "validateIncomingGrant" should {
     "return a ValidatedGrantRequest" when {
       "the app is found and redirects and scopes are valid and the app owner is found" in {
         mockGetRegisteredAppById(app = Some(testApp))
         mockValidateScopes(valid = true)
-        mockGetOrganisationAccountInfo(value = Map("userName" -> "test-org"))
+        mockGetOrganisationAccountInfo(value = Some(UserInfo(
+          id = "",
+          userName = "test-org",
+          email = "",
+          accType = "",
+          authorisedClients = List.empty[String],
+          createdAt = now
+        )))
 
         awaitAndAssert(testOrchestrator.validateIncomingGrant("code", testApp.clientId, "username")) {
           _ mustBe ValidatedGrantRequest(testApp.copy(owner = "test-org"), "username")
@@ -73,7 +82,7 @@ class GrantOrchestratorSpec
       "the app is found and redirects and scopes are valid but the app owner isn't found" in {
         mockGetRegisteredAppById(app = Some(testApp))
         mockValidateScopes(valid = true)
-        mockGetOrganisationAccountInfo(value = Map())
+        mockGetOrganisationAccountInfo(value = None)
 
         awaitAndAssert(testOrchestrator.validateIncomingGrant("code", testApp.clientId, "username")) {
           _ mustBe ValidatedGrantRequest(testApp.copy(owner = ""), "username")

@@ -16,6 +16,7 @@
 
 package helpers.orchestrators
 
+import models.UserInfo
 import orchestrators.UserOrchestrator
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
@@ -36,7 +37,7 @@ trait MockUserOrchestrator extends MockitoSugar with BeforeAndAfterEach {
     reset(mockUserOrchestrator)
   }
 
-  def mockGetUserDetails(details: Map[String, String]): OngoingStubbing[Future[Map[String, String]]] = {
+  def mockGetUserDetails(details: Option[UserInfo]): OngoingStubbing[Future[Option[UserInfo]]] = {
     when(mockUserOrchestrator.getUserDetails(ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
       .thenReturn(Future.successful(details))
   }

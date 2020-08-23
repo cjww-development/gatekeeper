@@ -3,7 +3,7 @@
 @import views.html.Main
 @import views.AuthForView
 
-@(userDetails: Map[String, String], registeredClients: Seq[RegisteredApplication])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
+@(userDetails: UserInfo, registeredClients: Seq[RegisteredApplication])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
 
 @Main("Your account", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <script src="https://cdn.jsdelivr.net/npm/jdenticon@@3.0.1" async></script>
@@ -16,16 +16,16 @@
 
         <div class="card card-blue">
             <div class="card-body">
-                <svg data-jdenticon-value="@{userDetails("email")}" width="100" height="100"/>
-                <h4 class="card-title">@{userDetails("userName")}</h4>
+                <svg data-jdenticon-value="@{userDetails.email}" width="100" height="100"/>
+                <h4 class="card-title">@{userDetails.userName}</h4>
             </div>
         </div>
 
         <div class="card">
             <div class="card-body">
                 <h5 class="card-title">Your details</h5>
-                <p class="default-text">@{userDetails("email")}</p>
-                <p class="default-text">Member since @{userDetails("createdAt")}</p>
+                <p class="default-text">@{userDetails.email}</p>
+                <p class="default-text">Member since @{userDetails.createdAt.toString("yyyy-MM-dd")}</p>
                 <a href="" class="btn btn-primary btn-block">Update your details</a>
             </div>
         </div>
@@ -41,6 +41,16 @@
                 </div>
             </div>
         }
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Authorised apps</h5>
+                <p class="default-text">You have authorised</p>
+                <p class="default-text display-3">@{userDetails.authorisedClients.length}</p>
+                <p class="default-text">app@if(userDetails.authorisedClients.length != 1) {s}, to access your data</p>
+                <a href="@uiRoutes.ClientController.getAuthorisedAppsForUser()" class="btn btn-primary btn-block">View authorised apps</a>
+            </div>
+        </div>
 
         <hr>
 

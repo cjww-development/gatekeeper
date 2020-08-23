@@ -16,7 +16,7 @@
 
 package helpers.database
 
-import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
+import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate, MongoUpdatedResponse}
 import database.IndividualUserStore
 import models.User
 import org.mockito.ArgumentMatchers
@@ -65,5 +65,10 @@ trait MockIndividualStore extends MockitoSugar with BeforeAndAfterEach {
     when(mockIndividualStore.projectValue(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
       .thenReturn(Future.successful(valueOne))
       .thenReturn(Future.successful(valueTwo))
+  }
+
+  def mockUpdateIndUser(resp: MongoUpdatedResponse): OngoingStubbing[Future[MongoUpdatedResponse]] = {
+    when(mockIndividualStore.updateUser(ArgumentMatchers.any[Bson](), ArgumentMatchers.any[Bson]())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(resp))
   }
 }

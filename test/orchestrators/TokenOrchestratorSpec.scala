@@ -22,7 +22,7 @@ import com.cjwwdev.security.obfuscation.Obfuscators
 import com.cjwwdev.security.Implicits._
 import helpers.Assertions
 import helpers.services.{MockAccountService, MockClientService, MockGrantService, MockTokenService}
-import models.{Grant, RegisteredApplication, User}
+import models.{Grant, RegisteredApplication, User, UserInfo}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import play.api.test.FakeRequest
@@ -77,6 +77,7 @@ class TokenOrchestratorSpec
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",
+    authorisedClients = None,
     createdAt = now
   )
 
@@ -87,6 +88,7 @@ class TokenOrchestratorSpec
     accType   = "individual",
     password  = "testPassword",
     salt      = "testSalt",
+    authorisedClients = None,
     createdAt = now
   )
 
@@ -105,7 +107,14 @@ class TokenOrchestratorSpec
     "return an issued token" when {
       "the grant type is authorization_code (individual)" in {
         mockValidateGrant(grant = Some(testGrant))
-        mockGetIndividualAccountInfo(value = Map("id" -> "testUserId"))
+        mockGetIndividualAccountInfo(value = Some(UserInfo(
+          id = "testUserId",
+          userName = "test-org",
+          email = "",
+          accType = "",
+          authorisedClients = List.empty[String],
+          createdAt = now
+        )))
         mockCreateAccessToken()
         mockCreateIdToken()
         getMockExpiry(expiry = 900000)
@@ -123,7 +132,14 @@ class TokenOrchestratorSpec
 
       "the grant type is authorization_code (organisation)" in {
         mockValidateGrant(grant = Some(testGrant.copy(accType = "organisation")))
-        mockGetOrganisationAccountInfo(value = Map("id" -> "testUserId"))
+        mockGetOrganisationAccountInfo(value = Some(UserInfo(
+          id = "testUserId",
+          userName = "test-org",
+          email = "",
+          accType = "",
+          authorisedClients = List.empty[String],
+          createdAt = now
+        )))
         mockCreateAccessToken()
         mockCreateIdToken()
         getMockExpiry(expiry = 900000)
@@ -143,7 +159,7 @@ class TokenOrchestratorSpec
     "return an invalid user" when {
       "the user data could not be found" in {
         mockValidateGrant(grant = Some(testGrant))
-        mockGetIndividualAccountInfo(value = Map())
+        mockGetIndividualAccountInfo(value = None)
         mockCreateAccessToken()
         mockCreateIdToken()
         getMockExpiry(expiry = 900000)

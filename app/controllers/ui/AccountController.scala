@@ -46,14 +46,15 @@ trait AccountController extends BaseController with I18NSupportLowPriorityImplic
   private val logger = LoggerFactory.getLogger(this.getClass)
 
   def show(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
-    userOrchestrator.getUserDetails(userId) flatMap { userDetails =>
-      if(userId.startsWith("org-user-")) {
+    userOrchestrator.getUserDetails(userId) flatMap {
+      case Some(userInfo) => if(userId.startsWith("org-user-")) {
         clientOrchestrator.getRegisteredApps(userId, 1) map { clients =>
-          Ok(Account(userDetails, clients.flatten))
+          Ok(Account(userInfo, clients.flatten))
         }
       } else {
-        Future.successful(Ok(Account(userDetails, Seq())))
+        Future.successful(Ok(Account(userInfo, Seq())))
       }
+      case None => Future.successful(Redirect(routes.LoginController.logout()))
     }
   }
 }

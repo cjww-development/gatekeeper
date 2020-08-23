@@ -55,7 +55,7 @@ class ClientServiceSpec
     createdAt    = DateTime.now()
   )
 
-  "getRegisteredApp" should {
+  "getRegisteredApp (orgUserId and appId)" should {
     "return a registered app" when {
       "a valid app was found" in {
         mockValidateAppOn(app = Some(testApp))
@@ -71,6 +71,28 @@ class ClientServiceSpec
         mockValidateAppOn(app = None)
 
         awaitAndAssert(testService.getRegisteredApp("testOrgId", "testAppId")) {
+          _ mustBe None
+        }
+      }
+    }
+  }
+
+  "getRegisteredApp (appId)" should {
+    "return a registered app" when {
+      "a valid app was found" in {
+        mockValidateAppOn(app = Some(testApp))
+
+        awaitAndAssert(testService.getRegisteredApp("testAppId")) {
+          _ mustBe Some(testApp)
+        }
+      }
+    }
+
+    "return None" when {
+      "no app was found" in {
+        mockValidateAppOn(app = None)
+
+        awaitAndAssert(testService.getRegisteredApp("testAppId")) {
           _ mustBe None
         }
       }

@@ -38,6 +38,7 @@ class LoginOrchestratorSpec extends PlaySpec with Assertions with MockLoginServi
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",
+    authorisedClients = None,
     createdAt = DateTime.now()
   )
 

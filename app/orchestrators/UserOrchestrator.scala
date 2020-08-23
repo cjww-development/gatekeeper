@@ -17,6 +17,7 @@
 package orchestrators
 
 import javax.inject.Inject
+import models.UserInfo
 import org.slf4j.LoggerFactory
 import services.AccountService
 
@@ -30,10 +31,10 @@ trait UserOrchestrator {
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  def getUserDetails(id: String)(implicit ec: ExC): Future[Map[String, String]] = {
-    def invalidUser(): Future[Map[String, String]] = {
+  def getUserDetails(id: String)(implicit ec: ExC): Future[Option[UserInfo]] = {
+    def invalidUser(): Future[Option[UserInfo]] = {
       logger.warn(s"[getUserDetails] - Invalid userId $id")
-      Future.successful(Map())
+      Future.successful(None)
     }
 
     accountService

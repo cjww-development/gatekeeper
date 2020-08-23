@@ -53,6 +53,7 @@ class RegistrationServiceSpec
     email     = "test@email.com",
     accType   = "individual",
     password  = "testPassword",
+    authorisedClients = None,
     salt      = "testSalt",
     createdAt = DateTime.now()
   )
@@ -63,6 +64,7 @@ class RegistrationServiceSpec
     email     = "test@email.com",
     accType   = "organisation",
     password  = "testPassword",
+    authorisedClients = None,
     salt      = "testSalt",
     createdAt = DateTime.now()
   )

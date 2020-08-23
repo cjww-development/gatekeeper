@@ -23,6 +23,7 @@ import com.cjwwdev.security.deobfuscation.DeObfuscators
 import com.cjwwdev.security.obfuscation.Obfuscators
 import org.joda.time.DateTime
 import utils.StringUtils
+import org.mongodb.scala.bson.codecs.Macros
 
 import scala.reflect.ClassTag
 
@@ -32,10 +33,13 @@ case class User(id: String,
                 accType: String,
                 salt: String,
                 password: String,
+                authorisedClients: Option[List[String]],
                 createdAt: DateTime)
 
 object User extends Obfuscators with DeObfuscators {
   override val locale: String = "models.User"
+
+  val userCodecProvider = Macros.createCodecProvider[User]()
 
   implicit val classTag: ClassTag[User] = ClassTag[User](classOf[User])
 
@@ -54,6 +58,7 @@ object User extends Obfuscators with DeObfuscators {
       accType.trim,
       salt = saltStr,
       password = StringUtils.hasher(saltStr, password),
+      authorisedClients = None,
       createdAt = DateTime.now()
     )
   }

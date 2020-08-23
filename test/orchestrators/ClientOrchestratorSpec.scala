@@ -16,15 +16,17 @@
 
 package orchestrators
 
+import java.util.UUID
+
 import com.cjwwdev.mongo.responses.{MongoFailedDelete, MongoSuccessDelete}
 import com.cjwwdev.security.Implicits._
 import com.cjwwdev.security.obfuscation.Obfuscators
 import helpers.Assertions
-import helpers.services.MockClientService
-import models.RegisteredApplication
+import helpers.services.{MockAccountService, MockClientService}
+import models.{RegisteredApplication, User, UserInfo}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import services.{ClientService, RegeneratedId, RegeneratedIdAndSecret, RegenerationFailed}
+import services.{AccountService, ClientService, RegeneratedId, RegeneratedIdAndSecret, RegenerationFailed}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -32,13 +34,15 @@ class ClientOrchestratorSpec
   extends PlaySpec
     with Assertions
     with Obfuscators
-    with MockClientService {
+    with MockClientService
+    with MockAccountService {
 
   override val locale: String = ""
 
   val testOrchestrator: ClientOrchestrator = new ClientOrchestrator {
     override val locale: String = ""
     override protected val clientService: ClientService = mockClientService
+    override protected val accountService: AccountService = mockAccountService
   }
 
   val testApp: RegisteredApplication = RegisteredApplication(
@@ -52,6 +56,17 @@ class ClientOrchestratorSpec
     clientId     = "testId".encrypt,
     clientSecret = Some("testSecret".encrypt),
     createdAt    = DateTime.now()
+  )
+
+  val testUser: User = User(
+    id        = s"org-user-${UUID.randomUUID().toString}",
+    userName  = "testUsername",
+    email     = "test@email.com",
+    accType   = "organisation",
+    password  = "testPassword",
+    salt      = "testSalt",
+    authorisedClients = Some(List(testApp.appId)),
+    createdAt = DateTime.now()
   )
 
   "getRegisteredApp" should {
@@ -158,6 +173,118 @@ class ClientOrchestratorSpec
 
         awaitAndAssert(testOrchestrator.deleteClient("testOrgId", "testAppId")) {
           _ mustBe MongoFailedDelete
+        }
+      }
+    }
+  }
+
+  "getAuthorisedApps" should {
+    "return a list of apps" when {
+      "the user has authorised apps against their account" in {
+        mockGetOrganisationAccountInfo(value = Some(UserInfo(
+          id = testUser.id,
+          userName = testUser.userName,
+          email = testUser.email,
+          accType = testUser.accType,
+          authorisedClients = List(testApp.appId),
+          createdAt = DateTime.now()
+        )))
+
+        mockGetRegisteredAppByAppId(app = Some(testApp))
+
+
+        awaitAndAssert(testOrchestrator.getAuthorisedApps(testUser.id)) {
+          _ mustBe List(testApp)
+        }
+      }
+    }
+
+    "return an empty list of apps" when {
+      "the user has no authorised apps against their account" in {
+        mockGetOrganisationAccountInfo(value = Some(UserInfo(
+          id = testUser.id,
+          userName = testUser.userName,
+          email = testUser.email,
+          accType = testUser.accType,
+          authorisedClients = List(),
+          createdAt = DateTime.now()
+        )))
+
+        awaitAndAssert(testOrchestrator.getAuthorisedApps(testUser.id)) {
+          _ mustBe List()
+        }
+      }
+
+      "the user does not exist" in {
+        mockGetOrganisationAccountInfo(value = None)
+
+        awaitAndAssert(testOrchestrator.getAuthorisedApps(testUser.id)) {
+          _ mustBe List()
+        }
+      }
+    }
+  }
+
+  "getAuthorisedApp" should {
+    "return a RegisteredApplication" when {
+      "the user is valid, the app has been found and the org data is found" in {
+        mockGetOrganisationAccountInfo(value = Some(UserInfo(
+          id = testUser.id,
+          userName = testUser.userName,
+          email = testUser.email,
+          accType = testUser.accType,
+          authorisedClients = List(testApp.appId),
+          createdAt = DateTime.now()
+        )))
+
+        mockGetRegisteredAppByAppId(app = Some(testApp))
+
+        awaitAndAssert(testOrchestrator.getAuthorisedApp(testUser.id, testApp.appId)) {
+          _ mustBe Some(testApp.copy(owner = testUser.userName))
+        }
+      }
+    }
+
+    "return None" when {
+      "the user cannot be found" in {
+        mockGetOrganisationAccountInfo(value = None)
+
+        awaitAndAssert(testOrchestrator.getAuthorisedApp(testUser.id, testApp.appId)) {
+          _ mustBe None
+        }
+      }
+
+      "the user has not previously authorised the app" in {
+        mockGetOrganisationAccountInfo(value = Some(UserInfo(
+          id = testUser.id,
+          userName = testUser.userName,
+          email = testUser.email,
+          accType = testUser.accType,
+          authorisedClients = List(testApp.appId),
+          createdAt = DateTime.now()
+        )))
+
+        mockGetRegisteredAppByAppId(app = None)
+
+        awaitAndAssert(testOrchestrator.getAuthorisedApp(testUser.id, testApp.appId)) {
+          _ mustBe None
+        }
+      }
+
+      "the app cannot be found" in {
+        mockGetOrganisationAccountInfo(value = Some(UserInfo(
+          id = testUser.id,
+          userName = testUser.userName,
+          email = testUser.email,
+          accType = testUser.accType,
+          authorisedClients = List(testApp.appId),
+          createdAt = DateTime.now()
+        )))
+
+        mockGetRegisteredAppByAppId(app = None)
+
+        awaitAndAssert(testOrchestrator.getAuthorisedApp(testUser.id, testApp.appId)) {
+          _ mustBe None
         }
       }
     }

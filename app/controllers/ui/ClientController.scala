@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory
 import play.api.i18n.{I18NSupportLowPriorityImplicits, I18nSupport, Lang}
 import play.api.mvc._
 import views.html.registration.AppRegistration
-import views.html.client.{ClientView, ClientsView, RegenerateClientIdView, DeleteClientView}
+import views.html.client.{ClientView, ClientsView, RegenerateClientIdView, DeleteClientView, AuthorisedClientsView, AuthorisedClientView}
 import views.html.misc.{NotFound => NotFoundView}
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
@@ -100,6 +100,19 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
     clientOrchestrator.deleteClient(orgUserId, appId) map {
       case MongoSuccessDelete => Redirect(routes.ClientController.getAllClients())
       case MongoFailedDelete  => NotFound(NotFoundView())
+    }
+  }
+
+  def getAuthorisedAppsForUser(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+    clientOrchestrator.getAuthorisedApps(userId) map {
+      apps => Ok(AuthorisedClientsView(apps))
+    }
+  }
+
+  def getAuthorisedApp(appId: String): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+    clientOrchestrator.getAuthorisedApp(userId, appId) map {
+      case Some(app) => Ok(AuthorisedClientView(app))
+      case None      => NotFound(NotFoundView())
     }
   }
 }

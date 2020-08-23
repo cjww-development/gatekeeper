@@ -16,10 +16,13 @@
 
 package controllers.actions
 
+import java.util.UUID
+
 import helpers.Assertions
 import helpers.orchestrators.MockUserOrchestrator
-import models.ServerCookies
+import models.{ServerCookies, User, UserInfo}
 import orchestrators.UserOrchestrator
+import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import play.api.mvc.Results.Ok
 import play.api.mvc.{BaseController, ControllerComponents, Result}
@@ -38,13 +41,44 @@ class AuthenticatedFilterSpec extends PlaySpec with MockUserOrchestrator with As
 
   private val okFunction: String => Future[Result] = userId => Future.successful(Ok(s"I am user $userId"))
 
+  val now: DateTime = DateTime.now()
+
+  val testIndUser: User = User(
+    id        = s"user-${UUID.randomUUID()}",
+    userName  = "testUsername",
+    email     = "test@email.com",
+    accType   = "individual",
+    password  = "testPassword",
+    salt      = "testSalt",
+    authorisedClients = None,
+    createdAt = now
+  )
+
+  val testOrgUser: User = User(
+    id        = s"org-user-${UUID.randomUUID()}",
+    userName  = "testUsername",
+    email     = "test@email.com",
+    accType   = "organisation",
+    password  = "testPassword",
+    salt      = "testSalt",
+    authorisedClients = None,
+    createdAt = now
+  )
+
   "authenticatedUser" should {
     "return an ok" when {
       "there is a valid cookie and user information was found" in {
         val req = FakeRequest()
           .withCookies(ServerCookies.createAuthCookie("testUserId", enc = true))
 
-        mockGetUserDetails(details = Map("userId" -> "testUserId"))
+        mockGetUserDetails(details = Some(UserInfo(
+          id = testIndUser.id,
+          userName = testIndUser.userName,
+          email = testIndUser.email,
+          accType = testIndUser.accType,
+          authorisedClients = List.empty[String],
+          createdAt = now
+        )))
 
         val result = testFilter.authenticatedUser {
           _ => user => okFunction(user)
@@ -75,7 +109,7 @@ class AuthenticatedFilterSpec extends PlaySpec with MockUserOrchestrator with As
         val req = FakeRequest("GET", "/test-redirect")
           .withCookies(ServerCookies.createAuthCookie("testUserId", enc = true))
 
-        mockGetUserDetails(details = Map())
+        mockGetUserDetails(details = None)
 
         val result = testFilter.authenticatedUser {
           _ => user => okFunction(user)
@@ -96,7 +130,14 @@ class AuthenticatedFilterSpec extends PlaySpec with MockUserOrchestrator with As
         val req = FakeRequest()
           .withCookies(ServerCookies.createAuthCookie("testUserId", enc = true))
 
-        mockGetUserDetails(details = Map("userId" -> "testUserId", "accountType" -> "organisation"))
+        mockGetUserDetails(details = Some(UserInfo(
+          id = testOrgUser.id,
+          userName = testOrgUser.userName,
+          email = testOrgUser.email,
+          accType = testOrgUser.accType,
+          authorisedClients = List.empty[String],
+          createdAt = now
+        )))
 
         val result = testFilter.authenticatedOrgUser {
           _ => user => okFunction(user)
@@ -114,7 +155,14 @@ class AuthenticatedFilterSpec extends PlaySpec with MockUserOrchestrator with As
         val req = FakeRequest()
           .withCookies(ServerCookies.createAuthCookie("testUserId", enc = true))
 
-        mockGetUserDetails(details = Map("userId" -> "testUserId", "accountType" -> "individual"))
+        mockGetUserDetails(details = Some(UserInfo(
+          id = testIndUser.id,
+          userName = testIndUser.userName,
+          email = testIndUser.email,
+          accType = testIndUser.accType,
+          authorisedClients = List.empty[String],
+          createdAt = now
+        )))
 
         val result = testFilter.authenticatedOrgUser {
           _ => user => okFunction(user)
@@ -144,7 +192,7 @@ class AuthenticatedFilterSpec extends PlaySpec with MockUserOrchestrator with As
         val req = FakeRequest("GET", "/test-redirect")
           .withCookies(ServerCookies.createAuthCookie("testUserId", enc = true))
 
-        mockGetUserDetails(details = Map())
+        mockGetUserDetails(details = None)
 
         val result = testFilter.authenticatedUser {
           _ => user => okFunction(user)

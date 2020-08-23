@@ -60,7 +60,7 @@ trait AuthenticatedFilter {
         userOrchestrator.getUserDetails(userId) flatMap {
           user => if(user.nonEmpty) {
             logger.info(s"[authenticatedUser] - Authenticated user found, authenticated as user $userId")
-            if(user.get("accountType").contains("organisation")) {
+            if(user.get.accType == "organisation") {
               f(req)(userId)
             } else {
               logger.warn(s"[authenticatedUser] - Authenticated user found, but user is not an org user")

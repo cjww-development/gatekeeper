@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package database
+package models
 
-import database.registries.JodaCodec
-import models.{Grant, RegisteredApplication, User}
-import org.bson.codecs.configuration.CodecRegistries.{fromCodecs, fromProviders, fromRegistries}
-import org.bson.codecs.configuration.CodecRegistry
-import org.mongodb.scala.bson.codecs.DEFAULT_CODEC_REGISTRY
-import org.mongodb.scala.bson.codecs.Macros._
+import org.joda.time.DateTime
+import play.api.libs.json.{Json, OFormat}
 
-trait CodecReg {
-  implicit val codec: CodecRegistry = fromRegistries(
-    fromCodecs(new JodaCodec),
-    fromProviders(User.userCodecProvider, classOf[RegisteredApplication], classOf[Grant]),
-    DEFAULT_CODEC_REGISTRY
-  )
+case class UserInfo(id: String,
+                    userName: String,
+                    email: String,
+                    accType: String,
+                    authorisedClients: List[String],
+                    createdAt: DateTime)
+
+object UserInfo extends TimeFormat {
+  implicit val format: OFormat[UserInfo] = Json.format[UserInfo]
 }
+
+

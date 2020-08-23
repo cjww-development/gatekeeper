@@ -68,7 +68,7 @@ trait TokenOrchestrator extends DeObfuscators {
               scope = grant.scope.mkString(","),
               expiresIn = tokenService.expiry,
               accessToken = tokenService.createAccessToken(grant.clientId, grant.userId, grant.scope.mkString(",")),
-              idToken = Some(tokenService.createIdToken(grant.clientId, grant.userId, userData, grant.accType))
+              idToken = Some(tokenService.createIdToken(grant.clientId, grant.userId, userData.get, grant.accType))
             )
           } else {
             logger.warn(s"[authorizationCodeGrant] - could not validate user on userId ${grant.userId}")

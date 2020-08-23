@@ -58,6 +58,19 @@ trait ClientService extends Obfuscators {
     }
   }
 
+  def getRegisteredApp(appId: String)(implicit ec: ExC): Future[Option[RegisteredApplication]] = {
+    val query = and(equal("appId", appId))
+
+    appStore.validateAppOn(query) map { app =>
+      if(app.isDefined) {
+        logger.info(s"[getRegisteredApp] - Found app $appId")
+      } else {
+        logger.warn(s"[getRegisteredApp] - No app found app $appId")
+      }
+      app
+    }
+  }
+
   def getRegisteredAppByIdAndSecret(clientId: String, clientSecret: String)(implicit ec: ExC): Future[Option[RegisteredApplication]] = {
     val query = and(
       equal("clientId", clientId.encrypt),
@@ -76,7 +89,7 @@ trait ClientService extends Obfuscators {
 
   def getRegisteredAppById(clientId: String)(implicit ec: ExC): Future[Option[RegisteredApplication]] = {
     val query = and(
-      equal("clientId", clientId)
+      equal("clientId", clientId.encrypt)
     )
 
     appStore.validateAppOn(query) map { app =>

@@ -16,11 +16,12 @@
 
 package database
 
-import com.cjwwdev.mongo.responses.MongoSuccessCreate
+import com.cjwwdev.mongo.responses.{MongoSuccessCreate, MongoSuccessUpdate}
 import helpers.{Assertions, IntegrationApp}
 import models.User
 import org.joda.time.DateTime
 import org.mongodb.scala.model.Filters.{and => mongoAnd, equal => mongoEqual}
+import org.mongodb.scala.model.Updates.set
 import org.scalatest.BeforeAndAfterAll
 import org.scalatestplus.play.PlaySpec
 
@@ -39,6 +40,7 @@ class IndividualUserStoreISpec extends PlaySpec with IntegrationApp with Asserti
     accType   = "individual",
     password  = "testPassword",
     salt      = "testSalt",
+    authorisedClients = None,
     createdAt = now
   )
 
@@ -140,6 +142,24 @@ class IndividualUserStoreISpec extends PlaySpec with IntegrationApp with Asserti
       "the field doesn't exist" in {
         awaitAndAssert(testUserStore.projectValue("userName", testUser.userName, "invalidField")) { map =>
           map.get("id").map(_.asString().getValue) mustBe Some(testUser.id)
+        }
+      }
+    }
+  }
+
+  "updateUser" should {
+    "return a MongoSuccessUpdate" when {
+      "the user has been updated" in {
+        awaitAndAssert(testUserStore.validateUserOn(mongoEqual("userName", testUser.userName))) {
+          _.get.authorisedClients mustBe None
+        }
+
+        awaitAndAssert(testUserStore.updateUser(mongoEqual("userName", testUser.userName), set("authorisedClients", Seq("testAppId")))) {
+          _ mustBe MongoSuccessUpdate
+        }
+
+        awaitAndAssert(testUserStore.validateUserOn(mongoEqual("userName", testUser.userName))) {
+          _.get.authorisedClients mustBe Some(Seq("testAppId"))
         }
       }
     }

@@ -1,0 +1,45 @@
+@import controllers.routes
+@import controllers.ui.{routes => uiRoutes}
+@import org.joda.time.DateTime
+@import views.html.Main
+@import views.html.helper.CSRF
+@import views.AuthForView
+
+@(app: RegisteredApplication)(implicit rh: RequestHeader)
+
+@Main("View an authorised app", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
+    <script src="https://cdn.jsdelivr.net/npm/jdenticon@@3.0.1" async></script>
+
+    <div class="form-signin">
+        <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
+        <h1 class="h3 mb-3 font-weight-normal">Authorised app</h1>
+        <hr>
+
+        <div class="card card-blue">
+            <div class="card-body">
+                <svg data-jdenticon-value="@{app.name}" width="100" height="100"/>
+                <h4 class="card-title">@{app.name}</h4>
+                <p>@{app.desc}</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title default-text">App details</h4>
+                <p class="default-text"><strong>Managed by</strong></p>
+                <p class="default-text">@{app.owner}</p>
+            </div>
+        </div>
+
+        <hr>
+
+        <a class="btn btn-lg btn-danger btn-block" href="">Revoke access</a>
+
+        <hr>
+
+        <a class="btn btn-lg btn-primary btn-block" href="@uiRoutes.ClientController.getAuthorisedAppsForUser()">Show all authorised apps</a>
+
+        <hr>
+        <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
+    </div>
+}

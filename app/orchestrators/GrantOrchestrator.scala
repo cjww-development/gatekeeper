@@ -55,7 +55,7 @@ trait GrantOrchestrator {
           if(validScopes) {
             accountService.getOrganisationAccountInfo(app.owner) map { user =>
               ValidatedGrantRequest(
-                app = app.copy(owner = user.getOrElse("userName", "")),
+                app = app.copy(owner = user.map(_.userName).getOrElse("")),
                 scopes = scope
               )
             }
@@ -87,13 +87,15 @@ trait GrantOrchestrator {
             app.redirectUrl,
             DateTime.now()
           )
-          grantService.saveGrant(grant).map {
+          grantService.saveGrant(grant).flatMap {
             case MongoSuccessCreate =>
               logger.info(s"[saveIncomingGrant] - Successfully created authorisation grant for userId $userId targeted for client $clientId")
-              Some(grant)
+              accountService.linkAuthorisedClientTo(userId, app.appId) map {
+                _ => Some(grant)
+              }
             case MongoFailedCreate  =>
               logger.error(s"[saveIncomingGrant] - There was a problem saving the grant for userId $userId")
-              None
+              Future.successful(None)
           }
         case None =>
           logger.warn(s"[saveIncomingGrant] - No matching client found for clientId $clientId")

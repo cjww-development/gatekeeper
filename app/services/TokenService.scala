@@ -19,6 +19,7 @@ package services
 import java.time.{Clock, Instant}
 
 import javax.inject.Inject
+import models.UserInfo
 import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}
 import play.api.Configuration
 
@@ -53,7 +54,7 @@ trait TokenService {
     Jwt.encode(claims, signature, JwtAlgorithm.HS512)
   }
 
-  def createIdToken(clientId: String, userId: String, user: Map[String, String], accType: String): String = {
+  def createIdToken(clientId: String, userId: String, user: UserInfo, accType: String): String = {
     val now = Instant.now
 
     val claims = JwtClaim()

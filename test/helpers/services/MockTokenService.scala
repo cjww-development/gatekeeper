@@ -16,6 +16,7 @@
 
 package helpers.services
 
+import models.UserInfo
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
 import org.mockito.stubbing.OngoingStubbing
@@ -45,7 +46,7 @@ trait MockTokenService extends MockitoSugar with BeforeAndAfterEach {
   }
 
   def mockCreateIdToken(): OngoingStubbing[String] = {
-    when(mockTokenService.createIdToken(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[Map[String, String]](), ArgumentMatchers.any[String]()))
+    when(mockTokenService.createIdToken(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[UserInfo](), ArgumentMatchers.any[String]()))
       .thenReturn("testIdToken")
   }
 

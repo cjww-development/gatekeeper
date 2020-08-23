@@ -20,7 +20,7 @@ import java.util.UUID
 
 import helpers.Assertions
 import helpers.services.MockAccountService
-import models.User
+import models.{RegisteredApplication, User, UserInfo}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import services.AccountService
@@ -47,6 +47,7 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",
+    authorisedClients = None,
     createdAt = now
   )
 
@@ -57,6 +58,7 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
     accType   = "individual",
     password  = "testPassword",
     salt      = "testSalt",
+    authorisedClients = None,
     createdAt = now
   )
 
@@ -66,27 +68,27 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
         mockDetermineAccountTypeFromId(value = None)
 
         awaitAndAssert(testOrchestrator.getUserDetails(UUID.randomUUID().toString)) {
-          _ mustBe Map()
+          _ mustBe None
         }
       }
 
       "the individual user cannot be found" in {
         mockDetermineAccountTypeFromId(value = Some("individual"))
 
-        mockGetIndividualAccountInfo(value = Map())
+        mockGetIndividualAccountInfo(value = None)
 
         awaitAndAssert(testOrchestrator.getUserDetails(testIndUser.id)) {
-          _ mustBe Map()
+          _ mustBe None
         }
       }
 
       "the organisation user cannot be found" in {
         mockDetermineAccountTypeFromId(value = Some("organisation"))
 
-        mockGetOrganisationAccountInfo(value = Map())
+        mockGetOrganisationAccountInfo(value = None)
 
         awaitAndAssert(testOrchestrator.getUserDetails(testOrgUser.id)) {
-          _ mustBe Map()
+          _ mustBe None
         }
       }
     }
@@ -95,36 +97,48 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
       "the individual user was found" in {
         mockDetermineAccountTypeFromId(value = Some("individual"))
 
-        mockGetIndividualAccountInfo(value = Map(
-          "userName"  -> testIndUser.userName,
-          "email"     -> testIndUser.email,
-          "createdAt" -> nowString
-        ))
+        mockGetIndividualAccountInfo(value = Some(UserInfo(
+          id = testIndUser.id,
+          userName = testIndUser.userName,
+          email = testIndUser.email,
+          accType = testIndUser.accType,
+          authorisedClients = List.empty[String],
+          createdAt = now
+        )))
 
         awaitAndAssert(testOrchestrator.getUserDetails(testIndUser.id)) {
-          _ mustBe Map(
-            "userName"  -> testIndUser.userName,
-            "email"     -> testIndUser.email,
-            "createdAt" -> nowString
-          )
+          _ mustBe Some(UserInfo(
+            id = testIndUser.id,
+            userName = testIndUser.userName,
+            email = testIndUser.email,
+            accType = testIndUser.accType,
+            authorisedClients = List.empty[String],
+            createdAt = now
+          ))
         }
       }
 
       "the organisation user was found" in {
         mockDetermineAccountTypeFromId(value = Some("organisation"))
 
-        mockGetOrganisationAccountInfo(value = Map(
-          "userName"  -> testOrgUser.userName,
-          "email"     -> testOrgUser.email,
-          "createdAt" -> nowString
-        ))
+        mockGetOrganisationAccountInfo(value = Some(UserInfo(
+          id = testOrgUser.id,
+          userName = testOrgUser.userName,
+          email = testOrgUser.email,
+          accType = testOrgUser.accType,
+          authorisedClients = List.empty[String],
+          createdAt = now
+        )))
 
         awaitAndAssert(testOrchestrator.getUserDetails(testOrgUser.id)) {
-          _ mustBe Map(
-            "userName"  -> testOrgUser.userName,
-            "email"     -> testOrgUser.email,
-            "createdAt" -> nowString
-          )
+          _ mustBe Some(UserInfo(
+            id = testOrgUser.id,
+            userName = testOrgUser.userName,
+            email = testOrgUser.email,
+            accType = testOrgUser.accType,
+            authorisedClients = List.empty[String],
+            createdAt = now
+          ))
         }
       }
     }

@@ -22,7 +22,7 @@ import com.cjwwdev.security.obfuscation.Obfuscators
 import controllers.ui.{routes => uiRoutes}
 import helpers.Assertions
 import helpers.orchestrators.{MockClientOrchestrator, MockUserOrchestrator}
-import models.{ServerCookies, User}
+import models.{ServerCookies, User, UserInfo}
 import orchestrators.{ClientOrchestrator, UserOrchestrator}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
@@ -49,6 +49,8 @@ class AccountControllerSpec
     override protected def controllerComponents: ControllerComponents = stubControllerComponents()
   }
 
+  val now: DateTime = DateTime.now()
+
   val testIndividualUser: User = User(
     id = s"user-${UUID.randomUUID()}",
     userName = "testUserName",
@@ -56,7 +58,8 @@ class AccountControllerSpec
     accType = "individual",
     password = "testPassword",
     salt = "testSalt",
-    createdAt = DateTime.now()
+    authorisedClients = None,
+    createdAt = now
   )
 
   "show" should {
@@ -64,11 +67,14 @@ class AccountControllerSpec
       "the user is authenticated and details have been found" in {
         val req = FakeRequest().withCookies(ServerCookies.createAuthCookie(testIndividualUser.id, enc = true))
 
-        mockGetUserDetails(details = Map(
-          "userName" -> testIndividualUser.userName,
-          "email" -> testIndividualUser.email,
-          "createdAt" -> "2020-01-01"
-        ))
+        mockGetUserDetails(details = Some(UserInfo(
+          id = testIndividualUser.id,
+          userName = testIndividualUser.userName,
+          email = testIndividualUser.email,
+          accType = testIndividualUser.accType,
+          authorisedClients = List.empty[String],
+          createdAt = now
+        )))
 
         mockGetRegisteredApps(apps = Seq())
 
