@@ -77,7 +77,7 @@ class TokenOrchestratorSpec
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",
-    authorisedClients = None,
+    authorisedClients = List(),
     createdAt = now
   )
 
@@ -88,7 +88,7 @@ class TokenOrchestratorSpec
     accType   = "individual",
     password  = "testPassword",
     salt      = "testSalt",
-    authorisedClients = None,
+    authorisedClients = List(),
     createdAt = now
   )
 

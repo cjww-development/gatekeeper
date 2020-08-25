@@ -38,7 +38,7 @@ class RegistrationOrchestratorSpec extends PlaySpec with Assertions with MockReg
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",
-    authorisedClients = None,
+    authorisedClients = List(),
     createdAt = DateTime.now()
   )
 

@@ -55,7 +55,7 @@ class LoginControllerSpec
     accType   = "individual",
     password  = "testPassword",
     salt      = "testSalt",
-    authorisedClients = None,
+    authorisedClients = List(),
     createdAt = DateTime.now()
   )
 

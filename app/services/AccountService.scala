@@ -116,7 +116,7 @@ trait AccountService extends DeObfuscators with SecurityConfiguration {
           logger.info(s"[linkAuthorisedClientTo] - Link between app $appId and user $userId already exists")
           Future.successful(LinkExists)
         } else {
-          userStore.updateUser(query, update(user.authorisedClients.getOrElse(List()) ++ List(appId))) map {
+          userStore.updateUser(query, update(user.authorisedClients ++ List(appId))) map {
             case MongoSuccessUpdate =>
               logger.info(s"[linkAuthorisedClientTo] - Successfully linked $appId to user $userId")
               LinkSuccess
@@ -137,7 +137,7 @@ trait AccountService extends DeObfuscators with SecurityConfiguration {
           logger.info(s"[linkAuthorisedClientTo] - Link between app $appId and user $userId already exists")
           Future.successful(LinkExists)
         } else {
-          orgUserStore.updateUser(query, update(user.authorisedClients.getOrElse(List()) ++ List(appId))) map {
+          orgUserStore.updateUser(query, update(user.authorisedClients ++ List(appId))) map {
             case MongoSuccessUpdate =>
               logger.info(s"[linkAuthorisedClientTo] - Successfully linked $appId to user $userId")
               LinkSuccess
@@ -167,7 +167,7 @@ trait AccountService extends DeObfuscators with SecurityConfiguration {
 
     def unlinkAppFromIndUser: Future[LinkResponse] = {
       userStore.validateUserOn(query) flatMap {
-        case Some(user) => userStore.updateUser(query, update(user.authorisedClients.getOrElse(List()).filterNot(_ == appId))) map {
+        case Some(user) => userStore.updateUser(query, update(user.authorisedClients.filterNot(_ == appId))) map {
           case MongoSuccessUpdate =>
             logger.info(s"[unlinkAppFromUser] - Successfully unlinked $appId from user $userId")
             LinkSuccess
@@ -183,7 +183,7 @@ trait AccountService extends DeObfuscators with SecurityConfiguration {
 
     def unlinkAppFromOrgUser: Future[LinkResponse] = {
       orgUserStore.validateUserOn(query) flatMap {
-        case Some(user) => orgUserStore.updateUser(query, update(user.authorisedClients.getOrElse(List()).filterNot(_ == appId))) map {
+        case Some(user) => orgUserStore.updateUser(query, update(user.authorisedClients.filterNot(_ == appId))) map {
           case MongoSuccessUpdate =>
             logger.info(s"[unlinkAppFromUser] - Successfully unlinked $appId from user $userId")
             LinkSuccess

@@ -33,13 +33,13 @@ case class User(id: String,
                 accType: String,
                 salt: String,
                 password: String,
-                authorisedClients: Option[List[String]],
+                authorisedClients: List[String],
                 createdAt: DateTime)
 
 object User extends Obfuscators with DeObfuscators {
   override val locale: String = "models.User"
 
-  val userCodecProvider = Macros.createCodecProvider[User]()
+  val codec = Macros.createCodecProviderIgnoreNone[User]()
 
   implicit val classTag: ClassTag[User] = ClassTag[User](classOf[User])
 
@@ -58,7 +58,7 @@ object User extends Obfuscators with DeObfuscators {
       accType.trim,
       salt = saltStr,
       password = StringUtils.hasher(saltStr, password),
-      authorisedClients = None,
+      authorisedClients = List(),
       createdAt = DateTime.now()
     )
   }

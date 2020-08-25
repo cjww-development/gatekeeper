@@ -47,7 +47,7 @@ class LoginServiceSpec
     accType   = "individual",
     password  = "testPassword",
     salt      = "testSalt",
-    authorisedClients = None,
+    authorisedClients = List(),
     createdAt = DateTime.now()
   )
 
@@ -58,7 +58,7 @@ class LoginServiceSpec
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",
-    authorisedClients = None,
+    authorisedClients = List(),
     createdAt = DateTime.now()
   )
 

@@ -47,7 +47,7 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",
-    authorisedClients = None,
+    authorisedClients = List(),
     createdAt = now
   )
 
@@ -58,7 +58,7 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
     accType   = "individual",
     password  = "testPassword",
     salt      = "testSalt",
-    authorisedClients = None,
+    authorisedClients = List(),
     createdAt = now
   )
 

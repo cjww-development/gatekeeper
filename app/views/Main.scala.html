@@ -42,6 +42,10 @@
                                 <a class="nav-link" href="@uiRoutes.ClientController.getAllClients()">View clients</a>
                             </li>
                         }
+
+                        <li class="nav-item active">
+                            <a class="nav-link" href="@uiRoutes.ClientController.getAuthorisedAppsForUser()">Authorised apps</a>
+                        </li>
                     } else {
                         <li class="nav-item active">
                             <a class="nav-link" href="@uiRoutes.LoginController.show()">Login</a>

@@ -40,7 +40,7 @@ class IndividualUserStoreISpec extends PlaySpec with IntegrationApp with Asserti
     accType   = "individual",
     password  = "testPassword",
     salt      = "testSalt",
-    authorisedClients = None,
+    authorisedClients = List(),
     createdAt = now
   )
 
@@ -151,7 +151,7 @@ class IndividualUserStoreISpec extends PlaySpec with IntegrationApp with Asserti
     "return a MongoSuccessUpdate" when {
       "the user has been updated" in {
         awaitAndAssert(testUserStore.validateUserOn(mongoEqual("userName", testUser.userName))) {
-          _.get.authorisedClients mustBe None
+          _.get.authorisedClients mustBe List()
         }
 
         awaitAndAssert(testUserStore.updateUser(mongoEqual("userName", testUser.userName), set("authorisedClients", Seq("testAppId")))) {
@@ -159,7 +159,7 @@ class IndividualUserStoreISpec extends PlaySpec with IntegrationApp with Asserti
         }
 
         awaitAndAssert(testUserStore.validateUserOn(mongoEqual("userName", testUser.userName))) {
-          _.get.authorisedClients mustBe Some(Seq("testAppId"))
+          _.get.authorisedClients mustBe List("testAppId")
         }
       }
     }

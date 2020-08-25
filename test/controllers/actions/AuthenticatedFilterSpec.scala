@@ -50,7 +50,7 @@ class AuthenticatedFilterSpec extends PlaySpec with MockUserOrchestrator with As
     accType   = "individual",
     password  = "testPassword",
     salt      = "testSalt",
-    authorisedClients = None,
+    authorisedClients = List(),
     createdAt = now
   )
 
@@ -61,7 +61,7 @@ class AuthenticatedFilterSpec extends PlaySpec with MockUserOrchestrator with As
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",
-    authorisedClients = None,
+    authorisedClients = List(),
     createdAt = now
   )
 

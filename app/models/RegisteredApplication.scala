@@ -21,6 +21,7 @@ import java.util.UUID
 import com.cjwwdev.security.obfuscation.Obfuscators
 import com.cjwwdev.security.Implicits._
 import org.joda.time.DateTime
+import org.mongodb.scala.bson.codecs.Macros
 import play.api.libs.json._
 
 import scala.collection.Seq
@@ -38,6 +39,8 @@ case class RegisteredApplication(appId: String,
 
 object RegisteredApplication extends Obfuscators with TimeFormat {
   override val locale: String = this.getClass.getCanonicalName
+
+  val codec = Macros.createCodecProviderIgnoreNone[RegisteredApplication]()
 
   def generateIds(iterations: Int): String = {
     (0 to iterations)

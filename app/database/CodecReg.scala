@@ -26,7 +26,7 @@ import org.mongodb.scala.bson.codecs.Macros._
 trait CodecReg {
   implicit val codec: CodecRegistry = fromRegistries(
     fromCodecs(new JodaCodec),
-    fromProviders(User.userCodecProvider, classOf[RegisteredApplication], classOf[Grant]),
+    fromProviders(User.codec, RegisteredApplication.codec, Grant.codec),
     DEFAULT_CODEC_REGISTRY
   )
 }

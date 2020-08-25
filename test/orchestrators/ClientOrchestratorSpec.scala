@@ -65,7 +65,7 @@ class ClientOrchestratorSpec
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",
-    authorisedClients = Some(List(testApp.appId)),
+    authorisedClients = List(testApp.appId),
     createdAt = DateTime.now()
   )
 

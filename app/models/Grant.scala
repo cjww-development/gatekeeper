@@ -18,6 +18,7 @@ package models
 
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
+import org.mongodb.scala.bson.codecs.Macros
 import play.api.libs.json._
 
 case class Grant(responseType: String,
@@ -31,6 +32,8 @@ case class Grant(responseType: String,
 
 object Grant extends TimeFormat {
   implicit val format: OFormat[Grant] = Json.format[Grant]
+
+  val codec = Macros.createCodecProviderIgnoreNone[Grant]()
 
   val outboundWriter: Writes[Grant] = (o: Grant) => Json.obj(
     "authCode" -> o.authCode

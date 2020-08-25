@@ -61,7 +61,7 @@ class AccountServiceSpec
     email     = "test@email.com".encrypt,
     accType   = "individual",
     password  = "testPassword",
-    authorisedClients = None,
+    authorisedClients = List(),
     salt      = "testSalt",
     createdAt = now
   )
@@ -72,7 +72,7 @@ class AccountServiceSpec
     email     = "test@email.com".encrypt,
     accType   = "organisation",
     password  = "testPassword",
-    authorisedClients = None,
+    authorisedClients = List(),
     salt      = "testSalt",
     createdAt = now
   )
