@@ -48,6 +48,8 @@ class LoginServiceSpec
     password  = "testPassword",
     salt      = "testSalt",
     authorisedClients = List(),
+    mfaSecret = None,
+    mfaEnabled = false,
     createdAt = DateTime.now()
   )
 
@@ -59,6 +61,8 @@ class LoginServiceSpec
     password  = "testPassword",
     salt      = "testSalt",
     authorisedClients = List(),
+    mfaSecret = None,
+    mfaEnabled = false,
     createdAt = DateTime.now()
   )
 

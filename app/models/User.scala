@@ -34,6 +34,8 @@ case class User(id: String,
                 salt: String,
                 password: String,
                 authorisedClients: List[String],
+                mfaEnabled: Boolean,
+                mfaSecret: Option[String],
                 createdAt: DateTime)
 
 object User extends Obfuscators with DeObfuscators {
@@ -59,6 +61,8 @@ object User extends Obfuscators with DeObfuscators {
       salt = saltStr,
       password = StringUtils.hasher(saltStr, password),
       authorisedClients = List(),
+      mfaEnabled = false,
+      mfaSecret = None,
       createdAt = DateTime.now()
     )
   }

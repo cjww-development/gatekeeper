@@ -30,6 +30,15 @@
             </div>
         </div>
 
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Account security</h5>
+                <p class="default-text">You need to verify your email address</p>
+                <p class="default-text">Enable two factor authentication</p>
+                <a href="@uiRoutes.AccountController.accountSecurity()" class="btn btn-primary btn-block">Review account security</a>
+            </div>
+        </div>
+
         @if(AuthForView.isOrgUser(rh)) {
             <div class="card">
                 <div class="card-body">

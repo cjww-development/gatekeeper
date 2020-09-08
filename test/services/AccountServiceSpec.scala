@@ -63,6 +63,8 @@ class AccountServiceSpec
     password  = "testPassword",
     authorisedClients = List(),
     salt      = "testSalt",
+    mfaSecret = None,
+    mfaEnabled = false,
     createdAt = now
   )
 
@@ -74,6 +76,8 @@ class AccountServiceSpec
     password  = "testPassword",
     authorisedClients = List(),
     salt      = "testSalt",
+    mfaSecret = None,
+    mfaEnabled = false,
     createdAt = now
   )
 

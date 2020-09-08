@@ -48,6 +48,8 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
     password  = "testPassword",
     salt      = "testSalt",
     authorisedClients = List(),
+    mfaSecret = None,
+    mfaEnabled = false,
     createdAt = now
   )
 
@@ -59,6 +61,8 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
     password  = "testPassword",
     salt      = "testSalt",
     authorisedClients = List(),
+    mfaSecret = None,
+    mfaEnabled = false,
     createdAt = now
   )
 

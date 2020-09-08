@@ -58,7 +58,8 @@ class ServiceBindings extends Module {
     bind[ScopeService].to[DefaultScopeService].eagerly(),
     bind[GrantService].to[DefaultGrantService].eagerly(),
     bind[TokenService].to[DefaultTokenService].eagerly(),
-    bind[ClientService].to[DefaultClientService].eagerly()
+    bind[ClientService].to[DefaultClientService].eagerly(),
+    bind[TOTPService].to[DefaultTOTPService].eagerly()
   )
 
   private def orchestrators(): Seq[Binding[_]] = Seq(
@@ -68,7 +69,8 @@ class ServiceBindings extends Module {
     bind[GrantOrchestrator].to[DefaultGrantOrchestrator].eagerly(),
     bind[TokenOrchestrator].to[DefaultTokenOrchestrator].eagerly(),
     bind[WellKnownConfigOrchestrator].to[DefaultWellKnownConfigOrchestrator].eagerly(),
-    bind[ClientOrchestrator].to[DefaultClientOrchestrator].eagerly()
+    bind[ClientOrchestrator].to[DefaultClientOrchestrator].eagerly(),
+    bind[MFAOrchestrator].to[DefaultMFAOrchestrator].eagerly()
   )
 
   private def controllers(): Seq[Binding[_]] = Seq(

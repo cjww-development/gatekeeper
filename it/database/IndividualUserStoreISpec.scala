@@ -41,6 +41,8 @@ class IndividualUserStoreISpec extends PlaySpec with IntegrationApp with Asserti
     password  = "testPassword",
     salt      = "testSalt",
     authorisedClients = List(),
+    mfaSecret = None,
+    mfaEnabled = false,
     createdAt = now
   )
 

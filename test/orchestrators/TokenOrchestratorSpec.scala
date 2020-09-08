@@ -78,6 +78,8 @@ class TokenOrchestratorSpec
     password  = "testPassword",
     salt      = "testSalt",
     authorisedClients = List(),
+    mfaSecret = None,
+    mfaEnabled = false,
     createdAt = now
   )
 
@@ -89,6 +91,8 @@ class TokenOrchestratorSpec
     password  = "testPassword",
     salt      = "testSalt",
     authorisedClients = List(),
+    mfaSecret = None,
+    mfaEnabled = false,
     createdAt = now
   )
 

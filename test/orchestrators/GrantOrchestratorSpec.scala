@@ -68,6 +68,8 @@ class GrantOrchestratorSpec
     password  = "testPassword",
     salt      = "testSalt",
     authorisedClients = List(testApp.appId),
+    mfaSecret = None,
+    mfaEnabled = false,
     createdAt = DateTime.now()
   )
 

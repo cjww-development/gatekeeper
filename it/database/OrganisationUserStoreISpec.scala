@@ -41,6 +41,8 @@ class OrganisationUserStoreISpec extends PlaySpec with IntegrationApp with Asser
     password  = "testPassword",
     salt      = "testSalt",
     authorisedClients = List(),
+    mfaSecret = None,
+    mfaEnabled = false,
     createdAt = now
   )
 

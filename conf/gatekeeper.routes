@@ -7,6 +7,9 @@ POST        /login                                  controllers.ui.LoginControll
 GET         /logout                                 controllers.ui.LoginController.logout()
 
 GET         /account                                controllers.ui.AccountController.show()
+GET         /account/security                       controllers.ui.AccountController.accountSecurity()
+GET         /account/security/mfa-setup             controllers.ui.AccountController.totpSetup()
+POST        /account/security/mfa-setup             controllers.ui.AccountController.postTotpSetupVerification()
 
 GET         /oauth2/authorize                       controllers.ui.OAuthController.authoriseGet(response_type, client_id, scope)
 POST        /oauth2/authorize                       controllers.ui.OAuthController.authorisePost(response_type, client_id, scope)

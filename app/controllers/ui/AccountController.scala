@@ -17,19 +17,19 @@
 package controllers.ui
 
 import controllers.actions.AuthenticatedFilter
+import forms.TOTPSetupCodeVerificationForm
 import javax.inject.Inject
-import models.ServerCookies._
-import orchestrators.{ClientOrchestrator, UserOrchestrator}
+import orchestrators.{ClientOrchestrator, MFAOrchestrator, MFATOTPQR, UserOrchestrator}
 import org.slf4j.LoggerFactory
 import play.api.i18n.{I18NSupportLowPriorityImplicits, I18nSupport, Lang}
 import play.api.mvc._
-import views.html.account.Account
-import controllers.ui.routes
+import views.html.account.{Account, Security, TOTP}
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultAccountController @Inject()(val controllerComponents: ControllerComponents,
                                          val clientOrchestrator: ClientOrchestrator,
+                                         val mfaOrchestrator: MFAOrchestrator,
                                          val userOrchestrator: UserOrchestrator) extends AccountController {
   override implicit val ec: ExC = controllerComponents.executionContext
 }
@@ -38,6 +38,7 @@ trait AccountController extends BaseController with I18NSupportLowPriorityImplic
 
   val userOrchestrator: UserOrchestrator
   val clientOrchestrator: ClientOrchestrator
+  val mfaOrchestrator: MFAOrchestrator
 
   implicit val ec: ExC
 
@@ -55,6 +56,42 @@ trait AccountController extends BaseController with I18NSupportLowPriorityImplic
         Future.successful(Ok(Account(userInfo, Seq())))
       }
       case None => Future.successful(Redirect(routes.LoginController.logout()))
+    }
+  }
+
+  def accountSecurity(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+    mfaOrchestrator.isMFAEnabled(userId) map { status =>
+      Ok(Security(status))
+    }
+  }
+
+  def totpSetup(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+    mfaOrchestrator.isMFAEnabled(userId) flatMap { status =>
+      if(!status) {
+        mfaOrchestrator.setupTOTPMFA(userId) map {
+          case MFATOTPQR(qrDataUri) => Ok(TOTP(TOTPSetupCodeVerificationForm.form, qrDataUri))
+          case _ => Redirect(routes.LoginController.logout())
+        }
+      } else {
+        Future.successful(Redirect(routes.AccountController.accountSecurity()))
+      }
+    }
+  }
+
+  def postTotpSetupVerification(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+    mfaOrchestrator.isMFAEnabled(userId) flatMap { status =>
+      if(!status) {
+        TOTPSetupCodeVerificationForm.form.bindFromRequest().fold(
+          err => mfaOrchestrator.setupTOTPMFA(userId) map {
+            case MFATOTPQR(qrCodeData) => BadRequest(TOTP(err, qrCodeData))
+          },
+          codes => mfaOrchestrator.postTOTPSetupCodeVerification(userId, codes.codeOne, codes.codeTwo) map {
+            resp => Ok(resp.toString)
+          }
+        )
+      } else {
+        Future.successful(Redirect(routes.AccountController.accountSecurity()))
+      }
     }
   }
 }

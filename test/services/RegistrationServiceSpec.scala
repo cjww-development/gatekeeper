@@ -55,6 +55,8 @@ class RegistrationServiceSpec
     password  = "testPassword",
     authorisedClients = List(),
     salt      = "testSalt",
+    mfaSecret = None,
+    mfaEnabled = false,
     createdAt = DateTime.now()
   )
 
@@ -66,6 +68,8 @@ class RegistrationServiceSpec
     password  = "testPassword",
     authorisedClients = List(),
     salt      = "testSalt",
+    mfaSecret = None,
+    mfaEnabled = false,
     createdAt = DateTime.now()
   )
 
