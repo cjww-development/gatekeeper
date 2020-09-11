@@ -54,6 +54,32 @@ class ServerCookiesSpec extends PlaySpec with Assertions with Obfuscators with D
     }
   }
 
+  "createMFAChallengeCookie" should {
+    "return an encrypted play Cookie" in {
+      val expected = Cookie(
+        name  = "att",
+        value = "value".encrypt
+      )
+
+      assertOutput(ServerCookies.createMFAChallengeCookie("value", enc = true)) { cookie =>
+        cookie.name mustBe expected.name
+        cookie.value mustBe expected.value
+      }
+    }
+
+    "return an unencrypted play Cookie" in {
+      val expected = Cookie(
+        name  = "att",
+        value = "value"
+      )
+
+      assertOutput(ServerCookies.createMFAChallengeCookie("value", enc = false)) { cookie =>
+        cookie.name mustBe expected.name
+        cookie.value mustBe expected.value
+      }
+    }
+  }
+
   "implicitly getValue" should {
     "decrypt the cookie value if the value is encrypted" in {
       val testInput = Cookie(

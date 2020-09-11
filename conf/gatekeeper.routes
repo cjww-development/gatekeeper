@@ -2,8 +2,10 @@ GET         /register                               controllers.ui.RegistrationC
 POST        /register                               controllers.ui.RegistrationController.submitUserReg()
 
 
-GET         /login                                  controllers.ui.LoginController.show()
-POST        /login                                  controllers.ui.LoginController.submit()
+GET         /login                                  controllers.ui.LoginController.loginShow()
+POST        /login                                  controllers.ui.LoginController.loginSubmit()
+GET         /login/mfa-challenge                    controllers.ui.LoginController.mfaShow()
+POST        /login/mfa-challenge                    controllers.ui.LoginController.mfaSubmit()
 GET         /logout                                 controllers.ui.LoginController.logout()
 
 GET         /account                                controllers.ui.AccountController.show()

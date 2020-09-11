@@ -48,7 +48,8 @@ class ServiceBindings extends Module {
     bind[IndividualUserStore].to[DefaultIndividualUserStore].eagerly(),
     bind[OrganisationUserStore].to[DefaultOrganisationUserStore].eagerly(),
     bind[AppStore].to[DefaultAppStore].eagerly(),
-    bind[GrantStore].to[DefaultGrantStore].eagerly()
+    bind[GrantStore].to[DefaultGrantStore].eagerly(),
+    bind[LoginAttemptStore].to[DefaultLoginAttemptStore].eagerly()
   )
 
   private def serviceLayer(): Seq[Binding[_]] = Seq(

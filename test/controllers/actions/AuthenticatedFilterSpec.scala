@@ -105,7 +105,7 @@ class AuthenticatedFilterSpec extends PlaySpec with MockUserOrchestrator with As
 
         assertOutput(result) { res =>
           status(res)           mustBe SEE_OTHER
-          redirectLocation(res) mustBe Some(s"${controllers.ui.routes.LoginController.show().url}?redirect=%2Ftest-redirect")
+          redirectLocation(res) mustBe Some(s"${controllers.ui.routes.LoginController.loginShow().url}?redirect=%2Ftest-redirect")
         }
       }
 
@@ -121,7 +121,7 @@ class AuthenticatedFilterSpec extends PlaySpec with MockUserOrchestrator with As
 
         assertOutput(result) { res =>
           status(res)           mustBe SEE_OTHER
-          redirectLocation(res) mustBe Some(s"${controllers.ui.routes.LoginController.show().url}?redirect=%2Ftest-redirect")
+          redirectLocation(res) mustBe Some(s"${controllers.ui.routes.LoginController.loginShow().url}?redirect=%2Ftest-redirect")
         }
       }
     }
@@ -188,7 +188,7 @@ class AuthenticatedFilterSpec extends PlaySpec with MockUserOrchestrator with As
 
         assertOutput(result) { res =>
           status(res)           mustBe SEE_OTHER
-          redirectLocation(res) mustBe Some(s"${controllers.ui.routes.LoginController.show().url}?redirect=%2Ftest-redirect")
+          redirectLocation(res) mustBe Some(s"${controllers.ui.routes.LoginController.loginShow().url}?redirect=%2Ftest-redirect")
         }
       }
 
@@ -204,7 +204,7 @@ class AuthenticatedFilterSpec extends PlaySpec with MockUserOrchestrator with As
 
         assertOutput(result) { res =>
           status(res)           mustBe SEE_OTHER
-          redirectLocation(res) mustBe Some(s"${controllers.ui.routes.LoginController.show().url}?redirect=%2Ftest-redirect")
+          redirectLocation(res) mustBe Some(s"${controllers.ui.routes.LoginController.loginShow().url}?redirect=%2Ftest-redirect")
         }
       }
     }

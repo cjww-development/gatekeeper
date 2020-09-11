@@ -31,6 +31,7 @@ trait IntegrationApp extends GuiceOneAppPerSuite {
     "database.DefaultOrganisationUserStore.database" -> "gatekeeper-it",
     "database.DefaultAppStore.database"              -> "gatekeeper-it",
     "database.DefaultGrantStore.database"            -> "gatekeeper-it",
+    "database.DefaultLoginAttemptStore.database"     -> "gatekeeper-it",
   )
 
   override lazy val app: Application = new GuiceApplicationBuilder()

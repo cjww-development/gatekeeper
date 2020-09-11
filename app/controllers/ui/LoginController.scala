@@ -19,12 +19,15 @@ package controllers.ui
 import forms.LoginForm.{form => loginForm, _}
 import javax.inject.Inject
 import models.{ServerCookies, User}
-import orchestrators.LoginOrchestrator
+import orchestrators.{InvalidLogonAttempt, LoginOrchestrator, MFAError, MFAInvalid, MFAOrchestrator, MFAValidated, NoMFAChallengeNeeded, TOTPMFAChallenge}
 import org.slf4j.LoggerFactory
 import play.api.i18n.{I18NSupportLowPriorityImplicits, I18nSupport, Lang}
 import play.api.mvc._
 import controllers.ui.routes
-import views.html.login.Login
+import forms.MFAForm._
+import models.ServerCookies.CookieOps
+import play.api.libs.json.Json
+import views.html.login.{Login, MFACode}
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
@@ -43,36 +46,81 @@ trait LoginController extends BaseController with I18NSupportLowPriorityImplicit
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  def show(): Action[AnyContent] = Action { implicit req =>
+  def loginShow(): Action[AnyContent] = Action { implicit req =>
     checkCookies(
       block    = Redirect(routes.AccountController.show()),
       continue = Ok(Login(loginForm))
     )
   }
 
-  def submit(): Action[AnyContent] = Action.async { implicit req =>
+  def loginSubmit(): Action[AnyContent] = Action.async { implicit req =>
     val redirect = req.body.asFormUrlEncoded.flatMap(_.get("redirect").map(_.head))
     loginForm.bindFromRequest().fold(
       err   => Future.successful(BadRequest(Login(loginForm.renderErrors))),
       login => loginOrchestrator.authenticateUser(login) map {
-        case Some(user) => loginRedirect(user, redirect)
-        case None       => BadRequest(Login(loginForm.renderErrors))
+        case Some(attId) => mfaRedirect(attId, redirect)
+        case None        => BadRequest(Login(loginForm.renderErrors))
       }
     )
   }
 
-  private def loginRedirect(user: User, redirect: Option[String]): Result = {
+  def mfaShow(): Action[AnyContent] = Action.async { implicit req =>
+    val redirect = req.body.asFormUrlEncoded.flatMap(_.get("redirect").map(_.head))
+    checkMFACookie(
+      block = Future.successful(Redirect(routes.LoginController.logout())),
+      attId => loginOrchestrator.mfaChallengePresenter(attId) map {
+        case TOTPMFAChallenge => Ok(MFACode(mfaForm))
+        case NoMFAChallengeNeeded(userId) => loginRedirect(userId, redirect)
+        case InvalidLogonAttempt => Redirect(routes.LoginController.logout())
+      }
+    )
+  }
+
+  def mfaSubmit(): Action[AnyContent] = Action.async { implicit req =>
+    val redirect = req.body.asFormUrlEncoded.flatMap(_.get("redirect").map(_.head))
+    checkMFACookie(
+      block = Future.successful(Redirect(routes.LoginController.logout())),
+      attId => mfaForm.bindFromRequest().fold(
+        _    => Future.successful(BadRequest(MFACode(mfaForm.renderErrors))),
+        code => loginOrchestrator.verifyMFAChallenge(attId, code.code) map {
+          case MFAValidated(id) => loginRedirect(id, redirect)
+          case MFAInvalid => BadRequest(MFACode(mfaForm.renderInvalidErrors))
+          case MFAError => throw new Exception
+        }
+      )
+    )
+  }
+
+  private def mfaRedirect(attId: String, redirect: Option[String]): Result = {
+    val redirectTo = redirect.fold(routes.LoginController.mfaShow().url) {
+      url => if(url.trim == "") routes.LoginController.mfaShow().url else s"${routes.LoginController.mfaShow().url}?redirect=$url"
+    }
+
+    Redirect(Call("GET", redirectTo))
+      .withCookies(ServerCookies.createMFAChallengeCookie(attId, enc = true))
+  }
+
+  private def loginRedirect(userId: String, redirect: Option[String]): Result = {
     val redirectTo = redirect.fold(routes.AccountController.show().url) {
       url => if(url.trim == "") routes.AccountController.show().url else url
     }
 
     Redirect(Call("GET", redirectTo))
-      .withCookies(ServerCookies.createAuthCookie(user.id, enc = true))
+      .withCookies(ServerCookies.createAuthCookie(userId, enc = true))
+      .discardingCookies(DiscardingCookie("att"))
   }
 
   def logout(): Action[AnyContent] = Action { implicit req =>
-    Redirect(routes.LoginController.show())
+    Redirect(routes.LoginController.loginShow())
       .discardingCookies(DiscardingCookie("aas"))
+      .discardingCookies(DiscardingCookie("att"))
+  }
+
+  private def checkMFACookie(block: => Future[Result], continue: String => Future[Result])(implicit req: Request[_]): Future[Result] = {
+    req
+      .cookies
+      .get("att")
+      .fold(block)(cookie => continue(cookie.getValue()))
   }
 
   private def checkCookies(block: => Result, continue: => Result)(implicit req: Request[_]): Result = {

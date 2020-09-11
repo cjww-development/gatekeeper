@@ -28,6 +28,10 @@ object ServerCookies extends Obfuscators with DeObfuscators {
     Cookie(name = "aas", value = if(enc) contents.encrypt else contents)
   }
 
+  def createMFAChallengeCookie(contents: String, enc: Boolean): Cookie = {
+    Cookie(name = "att", value = if(enc) contents.encrypt else contents)
+  }
+
   implicit class CookieOps(cookie: Cookie) {
     def getValue(): String = {
       stringDeObfuscate.decrypt(cookie.value).fold(

@@ -64,7 +64,7 @@ class LoginControllerSpec
   "show" should {
     "return an Ok" when {
       "the page is rendered" in {
-        assertFutureResult(testController.show()(addCSRFToken(FakeRequest()))) {
+        assertFutureResult(testController.loginShow()(addCSRFToken(FakeRequest()))) {
           status(_) mustBe OK
         }
       }
@@ -74,7 +74,7 @@ class LoginControllerSpec
       "the user is already authenticated" in {
         val req = addCSRFToken(FakeRequest().withCookies(ServerCookies.createAuthCookie("test", enc = false)))
 
-        assertFutureResult(testController.show()(req)) { res =>
+        assertFutureResult(testController.loginShow()(req)) { res =>
           status(res)           mustBe SEE_OTHER
           redirectLocation(res) mustBe Some(uiRoutes.AccountController.show().url)
         }
@@ -85,18 +85,16 @@ class LoginControllerSpec
   "submit" should {
     "return an Ok" when {
       "the user has been logged in" in {
-        mockAuthenticateUser(user = Some(testIndividualUser))
+        mockAuthenticateUser(userId = Some(testIndividualUser.id))
 
         val req = addCSRFToken(FakeRequest().withFormUrlEncodedBody(
           "userName" -> "test",
           "password" -> "testPass"
         ))
 
-        assertFutureResult(testController.submit()(req)) { res =>
+        assertFutureResult(testController.loginSubmit()(req)) { res =>
           status(res) mustBe SEE_OTHER
-          assert(cookies(res).get("aas").isDefined)
-          cookies(res).get("aas").get.value mustBe testIndividualUser.id.encrypt
-          redirectLocation(res) mustBe Some(uiRoutes.AccountController.show().url)
+          redirectLocation(res) mustBe Some(uiRoutes.LoginController.mfaShow().url)
         }
       }
     }
@@ -107,20 +105,20 @@ class LoginControllerSpec
           "userName" -> "test"
         ))
 
-        assertFutureResult(testController.submit()(req)) {
+        assertFutureResult(testController.loginSubmit()(req)) {
           status(_) mustBe BAD_REQUEST
         }
       }
 
       "the user could not be authenticated" in {
-        mockAuthenticateUser(user = None)
+        mockAuthenticateUser(userId = None)
 
         val req = addCSRFToken(FakeRequest().withFormUrlEncodedBody(
           "userName" -> "test",
           "password" -> "testPass"
         ))
 
-        assertFutureResult(testController.submit()(req)) {
+        assertFutureResult(testController.loginSubmit()(req)) {
           status(_) mustBe BAD_REQUEST
         }
       }

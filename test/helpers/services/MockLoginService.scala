@@ -16,7 +16,9 @@
 
 package helpers.services
 
-import models.User
+import java.util.UUID
+
+import models.{LoginAttempt, User}
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
 import org.mockito.stubbing.OngoingStubbing
@@ -45,5 +47,15 @@ trait MockLoginService extends MockitoSugar with BeforeAndAfterEach {
   def mockValidateUser(user: Option[User]): OngoingStubbing[Future[Option[User]]] = {
     when(mockLoginService.validateUser(ArgumentMatchers.any[String](), ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
       .thenReturn(Future.successful(user))
+  }
+
+  def mockSaveLoginAttempt(success: Boolean): OngoingStubbing[Future[Option[String]]] = {
+    when(mockLoginService.saveLoginAttempt(ArgumentMatchers.any[String](), ArgumentMatchers.any[Boolean]())(ArgumentMatchers.any()))
+      .thenReturn(if(success) Future.successful(Some(s"att-${UUID.randomUUID().toString}")) else Future.successful(None))
+  }
+
+  def mockLookupLoginAttempt(userId: Option[String]): OngoingStubbing[Future[Option[String]]] = {
+    when(mockLoginService.lookupLoginAttempt(ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(userId))
   }
 }

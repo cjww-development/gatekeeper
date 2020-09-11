@@ -9,7 +9,7 @@
 @(form: Form[LoginModel])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
 
 @Main("Login", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
-    <form class="form-signin" action="@uiRoutes.LoginController.submit()" method="post">
+    <form class="form-signin" action="@uiRoutes.LoginController.loginSubmit()" method="post">
         <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
         <h1 class="h3 mb-3 font-weight-normal">Sign in</h1>
 

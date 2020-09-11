@@ -37,8 +37,8 @@ trait MockLoginOrchestrator extends MockitoSugar with BeforeAndAfterEach {
     reset(mockLoginOrchestrator)
   }
 
-  def mockAuthenticateUser(user: Option[User]): OngoingStubbing[Future[Option[User]]] = {
+  def mockAuthenticateUser(userId: Option[String]): OngoingStubbing[Future[Option[String]]] = {
     when(mockLoginOrchestrator.authenticateUser(ArgumentMatchers.any[Login]())(ArgumentMatchers.any()))
-      .thenReturn(Future.successful(user))
+      .thenReturn(Future.successful(userId))
   }
 }

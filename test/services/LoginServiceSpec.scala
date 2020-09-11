@@ -18,10 +18,10 @@ package services
 
 import java.util.UUID
 
-import database.{IndividualUserStore, OrganisationUserStore}
+import database.{IndividualUserStore, LoginAttemptStore, OrganisationUserStore}
 import helpers.Assertions
-import helpers.database.{MockAppStore, MockIndividualStore, MockOrganisationStore}
-import models.User
+import helpers.database.{MockAppStore, MockIndividualStore, MockLoginAttemptStore, MockOrganisationStore}
+import models.{LoginAttempt, User}
 import org.joda.time.DateTime
 import org.mongodb.scala.bson.BsonString
 import org.scalatestplus.play.PlaySpec
@@ -33,11 +33,13 @@ class LoginServiceSpec
     with Assertions
     with MockIndividualStore
     with MockOrganisationStore
+    with MockLoginAttemptStore
     with MockAppStore {
 
   private val testService: LoginService = new LoginService {
     override val userStore: IndividualUserStore = mockIndividualStore
     override val orgUserStore: OrganisationUserStore = mockOrganisationStore
+    override val loginAttemptStore: LoginAttemptStore = mockLoginAttemptStore
   }
 
   val testIndividualUser: User = User(
@@ -206,6 +208,65 @@ class LoginServiceSpec
         mockOrganisationValidateUserOn(user = Some(testOrganisationUser))
 
         awaitAndIntercept[Exception](testService.getUserSalt("testUserName"))
+      }
+    }
+  }
+
+  "saveLoginAttempt" should {
+    "return an attempt id" when {
+      "the users login attempt was a success" in {
+        mockCreateLoginAttempt(success = true)
+
+        awaitAndAssert(testService.saveLoginAttempt("testUserId", successfulAttempt = true)) { res =>
+          assert(res.isDefined)
+          assert(res.get.matches("^att-\\b[0-9a-f]{8}\\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\\b[0-9a-f]{12}\\b$"))
+        }
+      }
+
+      "the users login attempt failed" in {
+        mockCreateLoginAttempt(success = true)
+
+        awaitAndAssert(testService.saveLoginAttempt("testUserId", successfulAttempt = false)) { res =>
+          assert(res.isDefined)
+          assert(res.get.matches("^att-\\b[0-9a-f]{8}\\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\\b[0-9a-f]{12}\\b$"))
+        }
+      }
+    }
+
+    "return none" when {
+      "there was a problem creating the login attempt" in {
+        mockCreateLoginAttempt(success = false)
+
+        awaitAndAssert(testService.saveLoginAttempt("testUserId", successfulAttempt = true)) {
+          _ mustBe None
+        }
+      }
+    }
+  }
+
+  "lookupLoginAttempt" should {
+    "return a user id" when {
+      "a matching login attempt was found" in {
+        val testLoginAttempt = LoginAttempt(
+          userId = "testUserId",
+          success = true
+        )
+
+        mockValidateLoginAttempt(attempt = Some(testLoginAttempt))
+
+        awaitAndAssert(testService.lookupLoginAttempt(testLoginAttempt.id)) {
+          _ mustBe Some("testUserId")
+        }
+      }
+    }
+
+    "return none" when {
+      "there was no matching login attempt" in {
+        mockValidateLoginAttempt(attempt = None)
+
+        awaitAndAssert(testService.lookupLoginAttempt("invalid-attempt-id")) {
+          _ mustBe None
+        }
       }
     }
   }

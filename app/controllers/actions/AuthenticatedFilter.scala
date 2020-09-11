@@ -78,7 +78,7 @@ trait AuthenticatedFilter {
   }
 
   private def loginRedirect(implicit req: Request[_]): Future[Result] = {
-    Future.successful(Redirect(routes.LoginController.show().url, Map(
+    Future.successful(Redirect(routes.LoginController.loginShow().url, Map(
       "redirect" -> Seq(req.uri)
     )))
   }

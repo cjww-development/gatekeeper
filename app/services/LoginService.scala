@@ -16,9 +16,10 @@
 
 package services
 
-import database.{IndividualUserStore, OrganisationUserStore}
+import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
+import database.{IndividualUserStore, LoginAttemptStore, OrganisationUserStore}
 import javax.inject.Inject
-import models.User
+import models.{LoginAttempt, User}
 import org.mongodb.scala.bson.BsonValue
 import org.mongodb.scala.model.Filters._
 import org.slf4j.LoggerFactory
@@ -26,12 +27,14 @@ import org.slf4j.LoggerFactory
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultLoginService @Inject()(val userStore: IndividualUserStore,
-                                    val orgUserStore: OrganisationUserStore) extends LoginService
+                                    val orgUserStore: OrganisationUserStore,
+                                    val loginAttemptStore: LoginAttemptStore) extends LoginService
 
 trait LoginService {
 
   val userStore: IndividualUserStore
   val orgUserStore: OrganisationUserStore
+  val loginAttemptStore: LoginAttemptStore
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
@@ -101,6 +104,30 @@ trait LoginService {
         val salt = userTwo("salt").asString().getValue
         logger.info(s"[getUserSalt] - Found $accType user salt for user $id")
         Some(salt)
+    }
+  }
+
+  def saveLoginAttempt(userId: String, successfulAttempt: Boolean)(implicit ec: ExC): Future[Option[String]] = {
+    val loginAttempt = LoginAttempt(userId, successfulAttempt)
+    loginAttemptStore.createLoginAttempt(loginAttempt) map {
+      case MongoSuccessCreate =>
+        logger.info(s"[saveLoginAttempt] - Saved ${if(successfulAttempt) "a successful" else "an unsuccessful"} login attempt for user ${userId} under ${loginAttempt.id}")
+        Some(loginAttempt.id)
+      case MongoFailedCreate =>
+        logger.warn(s"[saveLoginAttempt] - Failed to save login attempt for user ${userId}")
+        None
+    }
+  }
+
+  def lookupLoginAttempt(attemptId: String)(implicit ec: ExC): Future[Option[String]] = {
+    val query = equal("id", attemptId)
+    loginAttemptStore.validateLoginAttempt(query) map { res =>
+      if(res.isDefined) {
+        logger.info(s"[lookupLoginAttempt] - Found login attempt matching $attemptId")
+      } else {
+        logger.warn(s"[lookupLoginAttempt] - Could not find login attempt matching $attemptId")
+      }
+      res.map(_.userId)
     }
   }
 }

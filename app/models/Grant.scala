@@ -17,7 +17,6 @@
 package models
 
 import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormat
 import org.mongodb.scala.bson.codecs.Macros
 import play.api.libs.json._
 
