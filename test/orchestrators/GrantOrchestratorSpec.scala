@@ -86,6 +86,7 @@ class GrantOrchestratorSpec
           email = "",
           accType = "",
           authorisedClients = List.empty[String],
+          mfaEnabled = false,
           createdAt = now
         )))
 

@@ -81,6 +81,7 @@ class AuthenticatedFilterSpec extends PlaySpec with MockUserOrchestrator with As
           email = testIndUser.email,
           accType = testIndUser.accType,
           authorisedClients = List.empty[String],
+          mfaEnabled = false,
           createdAt = now
         )))
 
@@ -140,6 +141,7 @@ class AuthenticatedFilterSpec extends PlaySpec with MockUserOrchestrator with As
           email = testOrgUser.email,
           accType = testOrgUser.accType,
           authorisedClients = List.empty[String],
+          mfaEnabled = false,
           createdAt = now
         )))
 
@@ -165,6 +167,7 @@ class AuthenticatedFilterSpec extends PlaySpec with MockUserOrchestrator with As
           email = testIndUser.email,
           accType = testIndUser.accType,
           authorisedClients = List.empty[String],
+          mfaEnabled = false,
           createdAt = now
         )))
 

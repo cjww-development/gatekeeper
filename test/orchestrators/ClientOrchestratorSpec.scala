@@ -189,6 +189,7 @@ class ClientOrchestratorSpec
           email = testUser.email,
           accType = testUser.accType,
           authorisedClients = List(testApp.appId),
+          mfaEnabled = false,
           createdAt = DateTime.now()
         )))
 
@@ -209,6 +210,7 @@ class ClientOrchestratorSpec
           email = testUser.email,
           accType = testUser.accType,
           authorisedClients = List(),
+          mfaEnabled = false,
           createdAt = DateTime.now()
         )))
 
@@ -236,6 +238,7 @@ class ClientOrchestratorSpec
           email = testUser.email,
           accType = testUser.accType,
           authorisedClients = List(testApp.appId),
+          mfaEnabled = false,
           createdAt = DateTime.now()
         )))
 
@@ -263,6 +266,7 @@ class ClientOrchestratorSpec
           email = testUser.email,
           accType = testUser.accType,
           authorisedClients = List(testApp.appId),
+          mfaEnabled = false,
           createdAt = DateTime.now()
         )))
 
@@ -280,6 +284,7 @@ class ClientOrchestratorSpec
           email = testUser.email,
           accType = testUser.accType,
           authorisedClients = List(testApp.appId),
+          mfaEnabled = false,
           createdAt = DateTime.now()
         )))
 

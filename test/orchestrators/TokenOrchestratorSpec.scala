@@ -117,6 +117,7 @@ class TokenOrchestratorSpec
           email = "",
           accType = "",
           authorisedClients = List.empty[String],
+          mfaEnabled = false,
           createdAt = now
         )))
         mockCreateAccessToken()
@@ -142,6 +143,7 @@ class TokenOrchestratorSpec
           email = "",
           accType = "",
           authorisedClients = List.empty[String],
+          mfaEnabled = false,
           createdAt = now
         )))
         mockCreateAccessToken()

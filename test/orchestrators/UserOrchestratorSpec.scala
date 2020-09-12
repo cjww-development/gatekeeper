@@ -107,6 +107,7 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
           email = testIndUser.email,
           accType = testIndUser.accType,
           authorisedClients = List.empty[String],
+          mfaEnabled = false,
           createdAt = now
         )))
 
@@ -117,6 +118,7 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
             email = testIndUser.email,
             accType = testIndUser.accType,
             authorisedClients = List.empty[String],
+            mfaEnabled = false,
             createdAt = now
           ))
         }
@@ -131,6 +133,7 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
           email = testOrgUser.email,
           accType = testOrgUser.accType,
           authorisedClients = List.empty[String],
+          mfaEnabled = false,
           createdAt = now
         )))
 
@@ -141,6 +144,7 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
             email = testOrgUser.email,
             accType = testOrgUser.accType,
             authorisedClients = List.empty[String],
+            mfaEnabled = false,
             createdAt = now
           ))
         }

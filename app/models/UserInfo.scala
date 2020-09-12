@@ -24,6 +24,7 @@ case class UserInfo(id: String,
                     email: String,
                     accType: String,
                     authorisedClients: List[String],
+                    mfaEnabled: Boolean,
                     createdAt: DateTime)
 
 object UserInfo extends TimeFormat {

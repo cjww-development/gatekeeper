@@ -51,7 +51,7 @@ trait AccountService extends DeObfuscators with SecurityConfiguration {
   override val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   def getIndividualAccountInfo(userId: String)(implicit ec: ExC): Future[Option[UserInfo]] = {
-    userStore.projectValue("id", userId, "userName", "email", "createdAt", "authorisedClients") map { data =>
+    userStore.projectValue("id", userId, "userName", "email", "createdAt", "authorisedClients", "mfaEnabled") map { data =>
       if(data.nonEmpty) {
         logger.info(s"[getIndividualAccountInfo] - Found user data for user $userId")
         Some(UserInfo(
@@ -63,6 +63,7 @@ trait AccountService extends DeObfuscators with SecurityConfiguration {
             .get("authorisedClients")
             .map(_.asArray().getValues.asScala.map(tag => tag.asString().getValue).toList)
             .getOrElse(List()),
+          mfaEnabled = data("mfaEnabled").asBoolean().getValue,
           createdAt = new DateTime(
             data("createdAt").asDateTime().getValue, DateTimeZone.UTC
           )
@@ -75,7 +76,7 @@ trait AccountService extends DeObfuscators with SecurityConfiguration {
   }
 
   def getOrganisationAccountInfo(userId: String)(implicit ec: ExC): Future[Option[UserInfo]] = {
-    orgUserStore.projectValue("id", userId, "userName", "email", "createdAt", "authorisedClients") map { data =>
+    orgUserStore.projectValue("id", userId, "userName", "email", "createdAt", "authorisedClients", "mfaEnabled") map { data =>
       if(data.nonEmpty) {
         logger.info(s"[getOrganisationAccountInfo] - Found user data for user $userId")
         Some(UserInfo(
@@ -87,6 +88,7 @@ trait AccountService extends DeObfuscators with SecurityConfiguration {
             .get("authorisedClients")
             .map(_.asArray().getValues.asScala.map(tag => tag.asString().getValue).toList)
             .getOrElse(List()),
+          mfaEnabled = data("mfaEnabled").asBoolean().getValue,
           createdAt = new DateTime(
             data("createdAt").asDateTime().getValue, DateTimeZone.UTC
           )
