@@ -76,4 +76,9 @@ trait MFAOrchestrator {
       status
     }
   }
+
+  def disableMFA(userId: String)(implicit ec: ExC): Future[Boolean] = {
+    logger.info(s"[disableMFA] - Attempting to disable MFA for user $userId")
+    totpService.removeTOTPMFA(userId)
+  }
 }

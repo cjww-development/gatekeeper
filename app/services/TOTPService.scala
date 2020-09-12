@@ -10,8 +10,8 @@ import dev.samstevens.totp.time.SystemTimeProvider
 import dev.samstevens.totp.util.Utils.getDataUriForImage
 import javax.inject.Inject
 import models.User
-import org.mongodb.scala.model.Filters.equal
-import org.mongodb.scala.model.Updates.set
+import org.mongodb.scala.model.Filters.{and, equal}
+import org.mongodb.scala.model.Updates.{set, unset}
 import play.api.Configuration
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
@@ -135,6 +135,23 @@ trait TOTPService extends DeObfuscators {
 
   def getMFAStatus(userId: String)(implicit ec: ExC): Future[Boolean] = {
     getUser(userId).map(_.exists(_.mfaEnabled))
+  }
+
+  def removeTOTPMFA(userId: String)(implicit ec: ExC): Future[Boolean] = {
+    val query = and(set("mfaEnabled", false), unset("mfaSecret"))
+    val update = userId match {
+      case x if x.startsWith("user-") => individualUserStore.updateUser(equal("id", userId), query)
+      case x if x.startsWith("org-user-") => organisationUserStore.updateUser(equal("id", userId), query)
+    }
+
+    update.map {
+      case MongoSuccessUpdate =>
+        logger.info(s"[removeTOTPMFA] - Removed TOTP MFA for user $userId")
+        true
+      case MongoFailedUpdate =>
+        logger.error(s"[removeTOTPMFA] - There was a problem removing TOTP MFA for user $userId")
+        false
+    }
   }
 }
 

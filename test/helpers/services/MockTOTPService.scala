@@ -65,4 +65,9 @@ trait MockTOTPService extends MockitoSugar with BeforeAndAfterEach {
     when(mockTOTPService.getMFAStatus(ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
       .thenReturn(Future.successful(resp))
   }
+
+  def mockRemoveTOTPMFA(removed: Boolean): OngoingStubbing[Future[Boolean]] = {
+    when(mockTOTPService.removeTOTPMFA(ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(removed))
+  }
 }

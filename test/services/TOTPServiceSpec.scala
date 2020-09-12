@@ -209,4 +209,26 @@ class TOTPServiceSpec
       }
     }
   }
+
+  "removeTOTPMFA" should {
+    "return true" when {
+      "the users MFA has been disabled" in {
+        mockUpdateIndUser(resp = MongoSuccessUpdate)
+
+        awaitAndAssert(testService.removeTOTPMFA(testUser.id)) {
+          _ mustBe true
+        }
+      }
+    }
+
+    "return false" when {
+      "there was a problem disabling the users MFA" in {
+        mockUpdateIndUser(resp = MongoFailedUpdate)
+
+        awaitAndAssert(testService.removeTOTPMFA(testUser.id)) {
+          _ mustBe false
+        }
+      }
+    }
+  }
 }

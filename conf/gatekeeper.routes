@@ -12,6 +12,8 @@ GET         /account                                controllers.ui.AccountContro
 GET         /account/security                       controllers.ui.AccountController.accountSecurity()
 GET         /account/security/mfa-setup             controllers.ui.AccountController.totpSetup()
 POST        /account/security/mfa-setup             controllers.ui.AccountController.postTotpSetupVerification()
+GET         /account/security/mfa/confirm-disable   controllers.ui.AccountController.disableMFAConfirm()
+GET         /account/security/mfa/disable           controllers.ui.AccountController.disableMFA()
 
 GET         /oauth2/authorize                       controllers.ui.OAuthController.authoriseGet(response_type, client_id, scope)
 POST        /oauth2/authorize                       controllers.ui.OAuthController.authorisePost(response_type, client_id, scope)

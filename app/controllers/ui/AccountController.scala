@@ -23,7 +23,8 @@ import orchestrators.{ClientOrchestrator, MFAOrchestrator, MFATOTPQR, UserOrches
 import org.slf4j.LoggerFactory
 import play.api.i18n.{I18NSupportLowPriorityImplicits, I18nSupport, Lang}
 import play.api.mvc._
-import views.html.account.{Account, Security, TOTP}
+import views.html.account.Account
+import views.html.account.security.{Security, TOTP, MFADisableConfirm}
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
@@ -86,9 +87,31 @@ trait AccountController extends BaseController with I18NSupportLowPriorityImplic
             case MFATOTPQR(qrCodeData) => BadRequest(TOTP(err, qrCodeData))
           },
           codes => mfaOrchestrator.postTOTPSetupCodeVerification(userId, codes.codeOne, codes.codeTwo) map {
-            resp => Ok(resp.toString)
+            resp => Redirect(routes.AccountController.accountSecurity())
           }
         )
+      } else {
+        Future.successful(Redirect(routes.AccountController.accountSecurity()))
+      }
+    }
+  }
+
+  def disableMFAConfirm(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+    mfaOrchestrator.isMFAEnabled(userId) map { enabled =>
+      if(enabled) {
+        Ok(MFADisableConfirm())
+      } else {
+        Redirect(routes.AccountController.accountSecurity())
+      }
+    }
+  }
+
+  def disableMFA(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+    mfaOrchestrator.isMFAEnabled(userId) flatMap { enabled =>
+      if(enabled) {
+        mfaOrchestrator.disableMFA(userId) map { _ =>
+          Redirect(routes.AccountController.accountSecurity())
+        }
       } else {
         Future.successful(Redirect(routes.AccountController.accountSecurity()))
       }

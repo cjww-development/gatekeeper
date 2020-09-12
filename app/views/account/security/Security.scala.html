@@ -17,7 +17,7 @@
                 <h5 class="card-title">Two factor authentication</h5>
                 @if(mfaStatus) {
                     <p class="default-text">Your account is secured with two factor authentication</p>
-                    <a href="@uiRoutes.AccountController.totpSetup()" class="btn btn-danger btn-block">Disable two factor</a>
+                    <a href="@uiRoutes.AccountController.disableMFAConfirm()" class="btn btn-danger btn-block">Disable two factor</a>
                 } else {
                     <p class="default-text">Secure your account with two factor authentication</p>
                     <a href="@uiRoutes.AccountController.totpSetup()" class="btn btn-success btn-block">Enable two factor</a>
