@@ -17,16 +17,14 @@
 package controllers.ui
 
 import forms.LoginForm.{form => loginForm, _}
+import forms.MFAForm._
 import javax.inject.Inject
-import models.{ServerCookies, User}
-import orchestrators.{InvalidLogonAttempt, LoginOrchestrator, MFAError, MFAInvalid, MFAOrchestrator, MFAValidated, NoMFAChallengeNeeded, TOTPMFAChallenge}
+import models.ServerCookies
+import models.ServerCookies.CookieOps
+import orchestrators._
 import org.slf4j.LoggerFactory
 import play.api.i18n.{I18NSupportLowPriorityImplicits, I18nSupport, Lang}
 import play.api.mvc._
-import controllers.ui.routes
-import forms.MFAForm._
-import models.ServerCookies.CookieOps
-import play.api.libs.json.Json
 import views.html.login.{Login, MFACode}
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
@@ -65,7 +63,7 @@ trait LoginController extends BaseController with I18NSupportLowPriorityImplicit
   }
 
   def mfaShow(): Action[AnyContent] = Action.async { implicit req =>
-    val redirect = req.body.asFormUrlEncoded.flatMap(_.get("redirect").map(_.head))
+    val redirect = if(req.rawQueryString.trim == "") None else Some(req.rawQueryString.replace("redirect=", ""))
     checkMFACookie(
       block = Future.successful(Redirect(routes.LoginController.logout())),
       attId => loginOrchestrator.mfaChallengePresenter(attId) map {
