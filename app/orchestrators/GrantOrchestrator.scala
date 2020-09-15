@@ -20,7 +20,7 @@ import java.util.UUID
 
 import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
 import javax.inject.Inject
-import models.{Grant, RegisteredApplication}
+import models.{Grant, RegisteredApplication, Scope}
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 import services.{AccountService, ClientService, GrantService, ScopeService}
@@ -31,7 +31,7 @@ sealed trait GrantInitiateResponse
 case object InvalidApplication extends GrantInitiateResponse
 case object InvalidScopesRequested extends GrantInitiateResponse
 case object InvalidResponseType extends GrantInitiateResponse
-case class ValidatedGrantRequest(app: RegisteredApplication, scopes: String) extends GrantInitiateResponse
+case class ValidatedGrantRequest(app: RegisteredApplication, scopes: Seq[Scope]) extends GrantInitiateResponse
 case object PreviouslyAuthorised extends GrantInitiateResponse
 
 class DefaultGrantOrchestrator @Inject()(val grantService: GrantService,
@@ -65,7 +65,10 @@ trait GrantOrchestrator {
             } else {
               ValidatedGrantRequest(
                 app = app.copy(owner = orgUser.userName),
-                scopes = scope
+                scopes = {
+                  val splitScopes = scope.split(",").map(_.trim)
+                  scopeService.getValidScopes.filter(scp => splitScopes.contains(scp.name))
+                }
               )
             }
           } else {

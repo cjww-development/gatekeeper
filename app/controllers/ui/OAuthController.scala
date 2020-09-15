@@ -81,7 +81,7 @@ trait OAuthController extends BaseController with AuthenticatedFilter {
 
   def authoriseGet(response_type: String, client_id: String, scope: String): Action[AnyContent] = authenticatedUser { implicit req => userId =>
     grantOrchestrator.validateIncomingGrant(response_type, client_id, scope, userId) flatMap {
-      case ValidatedGrantRequest(app, scopes) => Future.successful(Ok(Grant(response_type, client_id, scopes.split(",").toSeq, scope, app)))
+      case ValidatedGrantRequest(app, scopes) => Future.successful(Ok(Grant(response_type, client_id, scopes, scope, app)))
       case PreviouslyAuthorised => authorisePost(response_type, client_id, scope)(req)
       case err => Future.successful(BadRequest(err.toString))
     }

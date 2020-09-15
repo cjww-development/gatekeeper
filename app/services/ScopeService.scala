@@ -16,27 +16,35 @@
 
 package services
 
+import com.typesafe.config.Config
 import javax.inject.Inject
+import models.Scope
 import org.slf4j.LoggerFactory
 import play.api.Configuration
 
 class DefaultScopeService @Inject()(val config: Configuration) extends ScopeService {
-  override protected val validScopes: Seq[String] = config.get[Seq[String]]("well-known-config.scopes")
+  override protected val approvedScopes: Seq[Scope] = config.get[Seq[Config]]("valid-scopes").map { conf =>
+    Scope(
+      name = conf.getString("name"),
+      readableName = conf.getString("readable-name"),
+      desc = conf.getString("desc")
+    )
+  }
 }
 
 trait ScopeService {
 
-  protected val validScopes: Seq[String]
+  protected val approvedScopes: Seq[Scope]
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  def getValidScopes: Seq[String] = {
-    validScopes
+  def getValidScopes: Seq[Scope] = {
+    approvedScopes
   }
 
   def validateScopes(scopes: String): Boolean = {
     val inboundScopes = scopes.split(",").map(_.trim)
-    val validatedScopes = inboundScopes.map(validScopes.contains)
+    val validatedScopes = inboundScopes.map(str => approvedScopes.exists(_.name == str))
     val valid = !validatedScopes.contains(false)
     logger.info(s"[validateRequestedScopes] - Are the requested scopes valid? $valid")
     valid

@@ -16,6 +16,7 @@
 
 package helpers.services
 
+import models.Scope
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
 import org.mockito.stubbing.OngoingStubbing
@@ -34,7 +35,7 @@ trait MockScopeService extends MockitoSugar with BeforeAndAfterEach {
     reset(mockScopeService)
   }
 
-  def mockGetValidScopes(scopes: Seq[String]): OngoingStubbing[Seq[String]] = {
+  def mockGetValidScopes(scopes: Seq[Scope]): OngoingStubbing[Seq[Scope]] = {
     when(mockScopeService.getValidScopes)
       .thenReturn(scopes)
   }

@@ -5,7 +5,7 @@
 @import views.html.helper.CSRF
 @import views.AuthForView
 
-@(responseType: String, clientId: String, scopes: Seq[String], scope: String, app: RegisteredApplication)(implicit rh: RequestHeader)
+@(responseType: String, clientId: String, scopes: Seq[Scope], scope: String, app: RegisteredApplication)(implicit rh: RequestHeader)
 
 @Main("A service would like to access your account", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <script src="https://cdn.jsdelivr.net/npm/jdenticon@@3.0.1" async></script>
@@ -29,7 +29,10 @@
                 <div class="default-text">The app would like to access these parts of your account</div>
                 <br>
                 @for(scope <- scopes){
-                <div class="default-text">@{scope}</div>
+                <div class="alert alert-info" role="alert">
+                    <h5>@{scope.readableName}</h5>
+                    <div class="default-text">@{scope.desc}</div>
+                </div>
                 }
             </div>
         </div>

@@ -17,6 +17,7 @@
 package services
 
 import helpers.Assertions
+import models.Scope
 import org.scalatestplus.play.PlaySpec
 
 class ScopeServiceSpec
@@ -24,13 +25,19 @@ class ScopeServiceSpec
     with Assertions {
 
   private val testService: ScopeService = new ScopeService {
-    override protected val validScopes: Seq[String] = Seq("read:testRead", "write:testWrite")
+    override protected val approvedScopes: Seq[Scope] = Seq(
+      Scope(name = "read:testRead", readableName = "read:testRead", desc = ""),
+      Scope(name = "write:testWrite", readableName = "write:testWrite", desc = "")
+    )
   }
 
   "getValidScopes" should {
     "return a Scopes object" in {
       assertOutput(testService.getValidScopes) {
-        _ mustBe Seq("read:testRead", "write:testWrite")
+        _ mustBe Seq(
+          Scope(name = "read:testRead", readableName = "read:testRead", desc = ""),
+          Scope(name = "write:testWrite", readableName = "write:testWrite", desc = "")
+        )
       }
     }
   }

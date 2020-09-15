@@ -22,7 +22,7 @@ import com.cjwwdev.security.Implicits._
 import com.cjwwdev.security.obfuscation.Obfuscators
 import helpers.Assertions
 import helpers.services.{MockAccountService, MockClientService, MockGrantService, MockScopeService}
-import models.{RegisteredApplication, User, UserInfo}
+import models.{RegisteredApplication, Scope, User, UserInfo}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import services.{AccountService, ClientService, GrantService, ScopeService}
@@ -80,6 +80,11 @@ class GrantOrchestratorSpec
       "the app is found and redirects and scopes are valid and the app owner is found" in {
         mockGetRegisteredAppById(app = Some(testApp))
         mockValidateScopes(valid = true)
+        mockGetValidScopes(scopes = Seq(Scope(
+          name = "username",
+          readableName = "username",
+          desc = "testDesc"
+        )))
         mockGetOrganisationAccountInfo(value = Some(UserInfo(
           id = "",
           userName = "test-org",
@@ -91,7 +96,11 @@ class GrantOrchestratorSpec
         )))
 
         awaitAndAssert(testOrchestrator.validateIncomingGrant("code", testApp.clientId, "username", testUser.id)) {
-          _ mustBe ValidatedGrantRequest(testApp.copy(owner = "test-org"), "username")
+          _ mustBe ValidatedGrantRequest(testApp.copy(owner = "test-org"), Seq(Scope(
+            name = "username",
+            readableName = "username",
+            desc = "testDesc"
+          )))
         }
       }
     }
