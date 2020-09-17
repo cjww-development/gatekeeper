@@ -46,7 +46,7 @@ trait MockTokenService extends MockitoSugar with BeforeAndAfterEach {
   }
 
   def mockCreateIdToken(): OngoingStubbing[String] = {
-    when(mockTokenService.createIdToken(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[UserInfo](), ArgumentMatchers.any[String]()))
+    when(mockTokenService.createIdToken(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[Map[String, String]]()))
       .thenReturn("testIdToken")
   }
 

@@ -25,7 +25,15 @@ case class UserInfo(id: String,
                     accType: String,
                     authorisedClients: List[String],
                     mfaEnabled: Boolean,
-                    createdAt: DateTime)
+                    createdAt: DateTime) {
+
+  val toMap: Map[String, String] = Map(
+   "id" -> id,
+   "username" -> userName,
+   "email" -> email,
+   "act" -> accType
+  )
+}
 
 object UserInfo extends TimeFormat {
   implicit val format: OFormat[UserInfo] = Json.format[UserInfo]

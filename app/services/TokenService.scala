@@ -54,7 +54,7 @@ trait TokenService {
     Jwt.encode(claims, signature, JwtAlgorithm.HS512)
   }
 
-  def createIdToken(clientId: String, userId: String, user: UserInfo, accType: String): String = {
+  def createIdToken(clientId: String, userId: String, userData: Map[String, String]): String = {
     val now = Instant.now
 
     val claims = JwtClaim()
@@ -64,9 +64,8 @@ trait TokenService {
       .startsAt(now.getEpochSecond)
       .expiresAt(now.plusSeconds(expiry).getEpochSecond)
       .about(userId)
-      .++[String](
-        "act" -> accType
-      ).toJson
+      .++[String](userData.toSeq:_*)
+      .toJson
 
     Jwt.encode(claims, signature, JwtAlgorithm.HS512)
   }

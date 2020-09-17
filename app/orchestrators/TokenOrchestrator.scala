@@ -20,7 +20,7 @@ import com.cjwwdev.security.deobfuscation.DeObfuscators
 import javax.inject.Inject
 import org.slf4j.LoggerFactory
 import play.api.mvc.Request
-import services.{AccountService, ClientService, GrantService, TokenService}
+import services.{AccountService, ClientService, GrantService, ScopeService, TokenService}
 import utils.BasicAuth
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
@@ -35,6 +35,7 @@ case object InvalidClient extends TokenResponse
 class DefaultTokenOrchestrator @Inject()(val grantService: GrantService,
                                          val accountService: AccountService,
                                          val clientService: ClientService,
+                                         val scopeService: ScopeService,
                                          val tokenService: TokenService) extends TokenOrchestrator {
   override protected val basicAuth: BasicAuth = BasicAuth
 }
@@ -47,6 +48,7 @@ trait TokenOrchestrator extends DeObfuscators {
   protected val tokenService: TokenService
   protected val accountService: AccountService
   protected val clientService: ClientService
+  protected val scopeService: ScopeService
   protected val basicAuth: BasicAuth
 
   override val logger = LoggerFactory.getLogger(this.getClass)
@@ -60,20 +62,26 @@ trait TokenOrchestrator extends DeObfuscators {
           case "organisation" => accountService.getOrganisationAccountInfo(grant.userId)
         }
 
-        user.map { userData =>
-          if(userData.nonEmpty) {
+        val scopes = scopeService.getScopeDetails(grant.scope)
+
+        user.map {
+          case Some(userData) =>
             logger.info(s"[authorizationCodeGrant] - Issuing new Id and access token for ${grant.userId} for use by clientId ${grant.clientId}")
+            val scopedData = userData.toMap.filter{ case (k, _) =>  scopes.exists(_.name == k)}
             Issued(
               tokenType = "Bearer",
               scope = grant.scope.mkString(","),
               expiresIn = tokenService.expiry,
               accessToken = tokenService.createAccessToken(grant.clientId, grant.userId, grant.scope.mkString(",")),
-              idToken = Some(tokenService.createIdToken(grant.clientId, grant.userId, userData.get, grant.accType))
+              idToken = if(scopes.exists(_.name == "openid")) {
+                Some(tokenService.createIdToken(grant.clientId, grant.userId, scopedData))
+              } else {
+                None
+              }
             )
-          } else {
+          case None =>
             logger.warn(s"[authorizationCodeGrant] - could not validate user on userId ${grant.userId}")
             InvalidUser
-          }
         }
       case None =>
         logger.warn(s"[authorizationCodeGrant] - Couldn't validate grant")

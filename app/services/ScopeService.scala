@@ -42,6 +42,10 @@ trait ScopeService {
     approvedScopes
   }
 
+  def getScopeDetails(strScopes: Seq[String]): Seq[Scope] = {
+    approvedScopes.filter(scp => strScopes.contains(scp.name))
+  }
+
   def validateScopes(scopes: String): Boolean = {
     val inboundScopes = scopes.split(",").map(_.trim)
     val validatedScopes = inboundScopes.map(str => approvedScopes.exists(_.name == str))

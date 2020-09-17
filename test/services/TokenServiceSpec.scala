@@ -36,10 +36,10 @@ class TokenServiceSpec
   val now: DateTime = DateTime.now()
 
   val userInfo = UserInfo(
-    id = "",
+    id = "test-user-id",
     userName = "test-org",
-    email = "",
-    accType = "",
+    email = "test@email.com",
+    accType = "organisation",
     authorisedClients = List.empty[String],
     mfaEnabled = false,
     createdAt = now
@@ -70,7 +70,7 @@ class TokenServiceSpec
           "" -> ""
         )
 
-        assertOutput(testService.createIdToken("testClientId", "testUserId", userInfo, "testAccType")) { token =>
+        assertOutput(testService.createIdToken("testClientId", "testUserId", userInfo.toMap)) { token =>
           val split = token.split("\\.")
           split.length mustBe 3
 
@@ -79,7 +79,9 @@ class TokenServiceSpec
           payload.\("aud").as[String] mustBe "testClientId"
           payload.\("iss").as[String] mustBe "testIssuer"
           payload.\("sub").as[String] mustBe "testUserId"
-          payload.\("act").as[String] mustBe "testAccType"
+          payload.\("username").as[String] mustBe "test-org"
+          payload.\("email").as[String] mustBe "test@email.com"
+          payload.\("act").as[String] mustBe "organisation"
         }
       }
     }

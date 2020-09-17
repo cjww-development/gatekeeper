@@ -21,12 +21,12 @@ import java.util.UUID
 import com.cjwwdev.security.obfuscation.Obfuscators
 import com.cjwwdev.security.Implicits._
 import helpers.Assertions
-import helpers.services.{MockAccountService, MockClientService, MockGrantService, MockTokenService}
-import models.{Grant, RegisteredApplication, User, UserInfo}
+import helpers.services.{MockAccountService, MockClientService, MockGrantService, MockScopeService, MockTokenService}
+import models.{Grant, RegisteredApplication, Scope, User, UserInfo}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import play.api.test.FakeRequest
-import services.{AccountService, ClientService, GrantService, TokenService}
+import services.{AccountService, ClientService, GrantService, ScopeService, TokenService}
 import utils.BasicAuth
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -38,6 +38,7 @@ class TokenOrchestratorSpec
     with MockGrantService
     with MockClientService
     with MockTokenService
+    with MockScopeService
     with Obfuscators {
 
   override val locale: String = ""
@@ -47,6 +48,7 @@ class TokenOrchestratorSpec
     override protected val tokenService: TokenService = mockTokenService
     override protected val accountService: AccountService = mockAccountService
     override protected val clientService: ClientService = mockClientService
+    override protected val scopeService: ScopeService = mockScopeService
     override protected val basicAuth: BasicAuth = BasicAuth
   }
 
@@ -99,7 +101,7 @@ class TokenOrchestratorSpec
   val testGrant: Grant = Grant(
     responseType = "code",
     authCode = "testAuthCode",
-    scope = Seq("testScope"),
+    scope = Seq("openid"),
     clientId = "testClientId",
     userId = "testUserId",
     accType = "individual",
@@ -120,6 +122,11 @@ class TokenOrchestratorSpec
           mfaEnabled = false,
           createdAt = now
         )))
+        mockGetScopeDetails(scopes = Seq(Scope(
+          name = "openid",
+          readableName = "testScope",
+          desc = "test scope decs"
+        )))
         mockCreateAccessToken()
         mockCreateIdToken()
         getMockExpiry(expiry = 900000)
@@ -127,7 +134,7 @@ class TokenOrchestratorSpec
         awaitAndAssert(testOrchestrator.authorizationCodeGrant("testAuthCode", "testClientId", "testRedirect")) {
           _ mustBe Issued(
             tokenType = "Bearer",
-            scope = "testScope",
+            scope = "openid",
             expiresIn = 900000,
             "testAccessToken",
             Some("testIdToken")
@@ -146,6 +153,11 @@ class TokenOrchestratorSpec
           mfaEnabled = false,
           createdAt = now
         )))
+        mockGetScopeDetails(scopes = Seq(Scope(
+          name = "openid",
+          readableName = "testScope",
+          desc = "test scope decs"
+        )))
         mockCreateAccessToken()
         mockCreateIdToken()
         getMockExpiry(expiry = 900000)
@@ -153,7 +165,7 @@ class TokenOrchestratorSpec
         awaitAndAssert(testOrchestrator.authorizationCodeGrant("testAuthCode", "testClientId", "testRedirect")) {
           _ mustBe Issued(
             tokenType = "Bearer",
-            scope = "testScope",
+            scope = "openid",
             expiresIn = 900000,
             "testAccessToken",
             Some("testIdToken")

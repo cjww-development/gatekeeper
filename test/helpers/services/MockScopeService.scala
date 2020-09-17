@@ -35,6 +35,11 @@ trait MockScopeService extends MockitoSugar with BeforeAndAfterEach {
     reset(mockScopeService)
   }
 
+  def mockGetScopeDetails(scopes: Seq[Scope]): OngoingStubbing[Seq[Scope]] = {
+    when(mockScopeService.getScopeDetails(ArgumentMatchers.any[Seq[String]]()))
+      .thenReturn(scopes)
+  }
+
   def mockGetValidScopes(scopes: Seq[Scope]): OngoingStubbing[Seq[Scope]] = {
     when(mockScopeService.getValidScopes)
       .thenReturn(scopes)
