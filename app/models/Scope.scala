@@ -16,8 +16,14 @@
 
 package models
 
+import org.mongodb.scala.bson.codecs.Macros
+
 case class Scope(name: String,
                  readableName: String,
                  desc: String)
+
+object Scope {
+  val codec = Macros.createCodecProviderIgnoreNone[Scope]()
+}
 
 

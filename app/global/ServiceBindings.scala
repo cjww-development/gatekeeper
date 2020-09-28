@@ -45,8 +45,8 @@ class ServiceBindings extends Module {
   )
 
   private def dataStores(): Seq[Binding[_]] = Seq(
-    bind[IndividualUserStore].to[DefaultIndividualUserStore].eagerly(),
-    bind[OrganisationUserStore].to[DefaultOrganisationUserStore].eagerly(),
+    bind[UserStore].qualifiedWith("individualUserStore").to[IndividualUserStore].eagerly(),
+    bind[UserStore].qualifiedWith("organisationUserStore").to[OrganisationUserStore].eagerly(),
     bind[AppStore].to[DefaultAppStore].eagerly(),
     bind[GrantStore].to[DefaultGrantStore].eagerly(),
     bind[LoginAttemptStore].to[DefaultLoginAttemptStore].eagerly()
@@ -55,7 +55,7 @@ class ServiceBindings extends Module {
   private def serviceLayer(): Seq[Binding[_]] = Seq(
     bind[RegistrationService].to[DefaultRegistrationService].eagerly(),
     bind[LoginService].to[DefaultLoginService].eagerly(),
-    bind[AccountService].to[DefaultAccountService].eagerly(),
+    bind[UserService].to[DefaultUserService].eagerly(),
     bind[ScopeService].to[DefaultScopeService].eagerly(),
     bind[GrantService].to[DefaultGrantService].eagerly(),
     bind[TokenService].to[DefaultTokenService].eagerly(),

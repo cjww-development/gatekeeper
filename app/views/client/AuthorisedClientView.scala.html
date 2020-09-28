@@ -5,7 +5,7 @@
 @import views.html.helper.CSRF
 @import views.AuthForView
 
-@(app: RegisteredApplication)(implicit rh: RequestHeader)
+@(app: RegisteredApplication, authorisedData: AuthorisedClient, validScopes: Seq[Scope])(implicit rh: RequestHeader)
 
 @Main("View an authorised app", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <script src="https://cdn.jsdelivr.net/npm/jdenticon@@3.0.1" async></script>
@@ -28,6 +28,18 @@
                 <h4 class="card-title default-text">App details</h4>
                 <p class="default-text"><strong>Managed by</strong></p>
                 <p class="default-text">@{app.owner}</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title default-text">Is able to access</h4>
+                @for(scope <- authorisedData.authorisedScopes.flatMap(scp => validScopes.find(_.name == scp))) {
+                    <div class="alert alert-info" role="alert">
+                        <h5>@{scope.readableName}</h5>
+                        <div class="default-text">@{scope.desc}</div>
+                    </div>
+                }
             </div>
         </div>
 

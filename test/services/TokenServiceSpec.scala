@@ -17,7 +17,7 @@
 package services
 
 import helpers.Assertions
-import models.UserInfo
+import models.{AuthorisedClient, UserInfo}
 import org.apache.commons.net.util.Base64
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
@@ -40,7 +40,7 @@ class TokenServiceSpec
     userName = "test-org",
     email = "test@email.com",
     accType = "organisation",
-    authorisedClients = List.empty[String],
+    authorisedClients = List.empty[AuthorisedClient],
     mfaEnabled = false,
     createdAt = now
   )

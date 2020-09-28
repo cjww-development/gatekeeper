@@ -18,7 +18,7 @@ package database
 
 import com.cjwwdev.mongo.responses.{MongoSuccessCreate, MongoSuccessUpdate}
 import helpers.{Assertions, IntegrationApp}
-import models.User
+import models.{AuthorisedClient, User}
 import org.joda.time.DateTime
 import org.mongodb.scala.model.Filters.{and => mongoAnd, equal => mongoEqual}
 import org.mongodb.scala.model.Updates.set
@@ -31,7 +31,7 @@ class IndividualUserStoreISpec extends PlaySpec with IntegrationApp with Asserti
 
   val testUserStore: IndividualUserStore = app.injector.instanceOf[IndividualUserStore]
 
-  val now = DateTime.now()
+  val now: DateTime = DateTime.now()
 
   val testUser: User = User(
     id        = "testUserId",
@@ -66,23 +66,23 @@ class IndividualUserStoreISpec extends PlaySpec with IntegrationApp with Asserti
     }
   }
 
-  "validateUserOn" should {
+  "findUser" should {
     "return a User" when {
       "a user already exists with a matching email" in {
-        awaitAndAssert(testUserStore.validateUserOn(mongoEqual("email", testUser.email))) {
+        awaitAndAssert(testUserStore.findUser(mongoEqual("email", testUser.email))) {
           _ mustBe Some(testUser)
         }
       }
 
       "a user already exists with a matching user name" in {
-        awaitAndAssert(testUserStore.validateUserOn(mongoEqual("userName", testUser.userName))) {
+        awaitAndAssert(testUserStore.findUser(mongoEqual("userName", testUser.userName))) {
           _ mustBe Some(testUser)
         }
       }
 
       "a user matches on more than one field" in {
         val query = mongoAnd(mongoEqual("userName", testUser.userName), mongoEqual("email", testUser.email))
-        awaitAndAssert(testUserStore.validateUserOn(query)) {
+        awaitAndAssert(testUserStore.findUser(query)) {
           _ mustBe Some(testUser)
         }
       }
@@ -90,20 +90,20 @@ class IndividualUserStoreISpec extends PlaySpec with IntegrationApp with Asserti
 
     "return None" when {
       "a user doesn't exist with the given email" in {
-        awaitAndAssert(testUserStore.validateUserOn(mongoEqual("email", "test-user@email.com"))) {
+        awaitAndAssert(testUserStore.findUser(mongoEqual("email", "test-user@email.com"))) {
           _ mustBe None
         }
       }
 
       "a user doesn't exist with the given user name" in {
-        awaitAndAssert(testUserStore.validateUserOn(mongoEqual("userName", "otherTestUser"))) {
+        awaitAndAssert(testUserStore.findUser(mongoEqual("userName", "otherTestUser"))) {
           _ mustBe None
         }
       }
 
       "a user matches on one field" in {
         val query = mongoAnd(mongoEqual("userName", testUser.userName), mongoEqual("email", "invalid@email.com"))
-        awaitAndAssert(testUserStore.validateUserOn(query)) {
+        awaitAndAssert(testUserStore.findUser(query)) {
           _ mustBe None
         }
       }
@@ -152,16 +152,16 @@ class IndividualUserStoreISpec extends PlaySpec with IntegrationApp with Asserti
   "updateUser" should {
     "return a MongoSuccessUpdate" when {
       "the user has been updated" in {
-        awaitAndAssert(testUserStore.validateUserOn(mongoEqual("userName", testUser.userName))) {
+        awaitAndAssert(testUserStore.findUser(mongoEqual("userName", testUser.userName))) {
           _.get.authorisedClients mustBe List()
         }
 
-        awaitAndAssert(testUserStore.updateUser(mongoEqual("userName", testUser.userName), set("authorisedClients", Seq("testAppId")))) {
+        awaitAndAssert(testUserStore.updateUser(mongoEqual("userName", testUser.userName), set("authorisedClients", Seq(AuthorisedClient("testAppId", authorisedScopes = Seq(), authorisedOn = now))))) {
           _ mustBe MongoSuccessUpdate
         }
 
-        awaitAndAssert(testUserStore.validateUserOn(mongoEqual("userName", testUser.userName))) {
-          _.get.authorisedClients mustBe List("testAppId")
+        awaitAndAssert(testUserStore.findUser(mongoEqual("userName", testUser.userName))) {
+          _.get.authorisedClients mustBe Seq(AuthorisedClient("testAppId", authorisedScopes = Seq(), authorisedOn = now))
         }
       }
     }

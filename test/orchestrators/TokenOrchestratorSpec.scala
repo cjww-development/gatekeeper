@@ -18,15 +18,15 @@ package orchestrators
 
 import java.util.UUID
 
-import com.cjwwdev.security.obfuscation.Obfuscators
 import com.cjwwdev.security.Implicits._
+import com.cjwwdev.security.obfuscation.Obfuscators
 import helpers.Assertions
-import helpers.services.{MockAccountService, MockClientService, MockGrantService, MockScopeService, MockTokenService}
-import models.{Grant, RegisteredApplication, Scope, User, UserInfo}
+import helpers.services._
+import models.{AuthorisedClient, Grant, RegisteredApplication, Scope, User, UserInfo}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import play.api.test.FakeRequest
-import services.{AccountService, ClientService, GrantService, ScopeService, TokenService}
+import services.{ClientService, GrantService, ScopeService, TokenService, UserService}
 import utils.BasicAuth
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -46,7 +46,7 @@ class TokenOrchestratorSpec
   val testOrchestrator: TokenOrchestrator = new TokenOrchestrator {
     override protected val grantService: GrantService = mockGrantService
     override protected val tokenService: TokenService = mockTokenService
-    override protected val accountService: AccountService = mockAccountService
+    override protected val userService: UserService = mockAccountService
     override protected val clientService: ClientService = mockClientService
     override protected val scopeService: ScopeService = mockScopeService
     override protected val basicAuth: BasicAuth = BasicAuth
@@ -118,7 +118,7 @@ class TokenOrchestratorSpec
           userName = "test-org",
           email = "",
           accType = "",
-          authorisedClients = List.empty[String],
+          authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
           createdAt = now
         )))
@@ -149,7 +149,7 @@ class TokenOrchestratorSpec
           userName = "test-org",
           email = "",
           accType = "",
-          authorisedClients = List.empty[String],
+          authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
           createdAt = now
         )))

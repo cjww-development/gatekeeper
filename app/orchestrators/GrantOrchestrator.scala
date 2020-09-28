@@ -23,7 +23,7 @@ import javax.inject.Inject
 import models.{Grant, RegisteredApplication, Scope}
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
-import services.{AccountService, ClientService, GrantService, ScopeService}
+import services.{ClientService, GrantService, ScopeService, UserService}
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
@@ -32,18 +32,19 @@ case object InvalidApplication extends GrantInitiateResponse
 case object InvalidScopesRequested extends GrantInitiateResponse
 case object InvalidResponseType extends GrantInitiateResponse
 case class ValidatedGrantRequest(app: RegisteredApplication, scopes: Seq[Scope]) extends GrantInitiateResponse
+case class ScopeDrift(app: RegisteredApplication, authorisedScopes: Seq[Scope], requestedScopes: Seq[Scope]) extends GrantInitiateResponse
 case object PreviouslyAuthorised extends GrantInitiateResponse
 
 class DefaultGrantOrchestrator @Inject()(val grantService: GrantService,
                                          val clientService: ClientService,
-                                         val accountService: AccountService,
+                                         val userService: UserService,
                                          val scopeService: ScopeService) extends GrantOrchestrator
 
 trait GrantOrchestrator {
 
   protected val grantService: GrantService
   protected val clientService: ClientService
-  protected val accountService: AccountService
+  protected val userService: UserService
   protected val scopeService: ScopeService
 
   private val logger = LoggerFactory.getLogger(this.getClass)
@@ -55,13 +56,21 @@ trait GrantOrchestrator {
           val validScopes = scopeService.validateScopes(scope)
           if(validScopes) {
             for {
-              Some(orgUser) <- accountService.getOrganisationAccountInfo(app.owner)
-              Some(reqUser) <- requestingUserId match {
-                case id if id.startsWith("user-") => accountService.getIndividualAccountInfo(requestingUserId)
-                case id if id.startsWith("org-user-") => accountService.getOrganisationAccountInfo(requestingUserId)
+              Some(orgUser) <- userService.getUserInfo(app.owner)
+              Some(reqUser) <- userService.getUserInfo(requestingUserId)
+            } yield if(reqUser.authorisedClients.exists(_.appId == app.appId)) {
+              val requestedScopes = scope.split(",").map(_.trim).toSeq
+              val authorisedScopes = reqUser.authorisedClients.find(_.appId == app.appId).get.authorisedScopes
+              if(authorisedScopes != requestedScopes) {
+                ScopeDrift(
+                  app = app.copy(owner = orgUser.userName),
+                  scopeService.getScopeDetails(authorisedScopes),
+                  scopeService.getScopeDetails(requestedScopes)
+                )
+              } else {
+                println("authed")
+                PreviouslyAuthorised
               }
-            } yield if(reqUser.authorisedClients.contains(app.appId)) {
-              PreviouslyAuthorised
             } else {
               ValidatedGrantRequest(
                 app = app.copy(owner = orgUser.userName),
@@ -86,8 +95,8 @@ trait GrantOrchestrator {
   }
 
   def saveIncomingGrant(responseType: String, clientId: String, userId: String, scope: Seq[String])(implicit ec: ExC): Future[Option[Grant]] = {
-    accountService.determineAccountTypeFromId(userId) match {
-      case Some(accType) => clientService.getRegisteredAppById(clientId) flatMap {
+    userService.getUserInfo(userId) flatMap {
+      case Some(user) => clientService.getRegisteredAppById(clientId) flatMap {
         case Some(app) =>
           val grant = Grant(
             responseType,
@@ -95,18 +104,19 @@ trait GrantOrchestrator {
             scope,
             clientId,
             userId,
-            accType,
+            user.accType,
             app.redirectUrl,
             DateTime.now()
           )
           grantService.saveGrant(grant).flatMap {
             case MongoSuccessCreate =>
               logger.info(s"[saveIncomingGrant] - Successfully created authorisation grant for userId $userId targeted for client $clientId")
-              accountService.linkAuthorisedClientTo(userId, app.appId) map {
+              userService.linkClientToUser(userId, app.appId, grant.scope)
+              userService.linkClientToUser(userId, app.appId, grant.scope) map {
                 _ => Some(grant)
               }
             case MongoFailedCreate  =>
-              logger.error(s"[saveIncomingGrant] - There was a problem saving the grant for userId $userId")
+              logger.error(s"[savLIncomingGrant] - There was a problem saving the grant for userId $userId")
               Future.successful(None)
           }
         case None =>
@@ -118,6 +128,4 @@ trait GrantOrchestrator {
         Future.successful(None)
     }
   }
-
-//  def createErrorResponse()
 }

@@ -20,7 +20,7 @@ import java.util.UUID
 
 import helpers.Assertions
 import helpers.orchestrators.MockUserOrchestrator
-import models.{ServerCookies, User, UserInfo}
+import models.{AuthorisedClient, ServerCookies, User, UserInfo}
 import orchestrators.UserOrchestrator
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
@@ -80,7 +80,7 @@ class AuthenticatedFilterSpec extends PlaySpec with MockUserOrchestrator with As
           userName = testIndUser.userName,
           email = testIndUser.email,
           accType = testIndUser.accType,
-          authorisedClients = List.empty[String],
+          authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
           createdAt = now
         )))
@@ -140,7 +140,7 @@ class AuthenticatedFilterSpec extends PlaySpec with MockUserOrchestrator with As
           userName = testOrgUser.userName,
           email = testOrgUser.email,
           accType = testOrgUser.accType,
-          authorisedClients = List.empty[String],
+          authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
           createdAt = now
         )))
@@ -166,7 +166,7 @@ class AuthenticatedFilterSpec extends PlaySpec with MockUserOrchestrator with As
           userName = testIndUser.userName,
           email = testIndUser.email,
           accType = testIndUser.accType,
-          authorisedClients = List.empty[String],
+          authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
           createdAt = now
         )))

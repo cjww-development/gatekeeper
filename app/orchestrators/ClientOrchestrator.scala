@@ -17,12 +17,12 @@
 package orchestrators
 
 import com.cjwwdev.mongo.responses.{MongoDeleteResponse, MongoFailedDelete, MongoSuccessDelete}
-import javax.inject.Inject
-import models.RegisteredApplication
-import org.slf4j.{Logger, LoggerFactory}
-import services.{AccountService, ClientService, LinkResponse, RegeneratedId, RegeneratedIdAndSecret, RegenerationFailed, RegenerationResponse}
 import com.cjwwdev.security.deobfuscation.DeObfuscators
 import com.cjwwdev.security.obfuscation.Obfuscators
+import javax.inject.Inject
+import models.{AuthorisedClient, RegisteredApplication}
+import org.slf4j.{Logger, LoggerFactory}
+import services._
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
@@ -32,14 +32,14 @@ case object NoAppFound extends AppUpdateResponse
 case object UpdatedFailed extends AppUpdateResponse
 
 class DefaultClientOrchestrator @Inject()(val clientService: ClientService,
-                                          val accountService: AccountService) extends ClientOrchestrator {
+                                          val userService: UserService) extends ClientOrchestrator {
   override val locale: String = ""
 }
 
 trait ClientOrchestrator extends Obfuscators with DeObfuscators {
 
   protected val clientService: ClientService
-  protected val accountService: AccountService
+  protected val userService: UserService
 
   override val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
@@ -88,30 +88,20 @@ trait ClientOrchestrator extends Obfuscators with DeObfuscators {
   }
 
   def getAuthorisedApps(userId: String)(implicit ec: ExC): Future[List[RegisteredApplication]] = {
-    val userInfo = userId match {
-      case id if id.startsWith("user-")     => accountService.getIndividualAccountInfo(userId)
-      case id if id.startsWith("org-user-") => accountService.getOrganisationAccountInfo(userId)
-    }
-
-    userInfo.flatMap {
+    userService.getUserInfo(userId).flatMap {
       case Some(user) => Future
-        .sequence(user.authorisedClients.map(appId => clientService.getRegisteredApp(appId)))
+        .sequence(user.authorisedClients.map(app => clientService.getRegisteredApp(app.appId)))
         .map(_.flatten)
       case None => Future.successful(List.empty[RegisteredApplication])
     }
   }
 
-  def getAuthorisedApp(userId: String, appId: String)(implicit ec: ExC): Future[Option[RegisteredApplication]] = {
-    val userInfo = userId match {
-      case id if id.startsWith("user-")     => accountService.getIndividualAccountInfo(userId)
-      case id if id.startsWith("org-user-") => accountService.getOrganisationAccountInfo(userId)
-    }
-
-    userInfo.flatMap {
-      case Some(user) => if(user.authorisedClients.contains(appId)) {
+  def getAuthorisedApp(userId: String, appId: String)(implicit ec: ExC): Future[Option[(RegisteredApplication, AuthorisedClient)]] = {
+    userService.getUserInfo(userId).flatMap {
+      case Some(user) => if(user.authorisedClients.exists(_.appId == appId)) {
         clientService.getRegisteredApp(appId) flatMap {
-          case Some(app) => accountService.getOrganisationAccountInfo(app.owner) map { user =>
-            Some(app.copy(owner = user.map(_.userName).getOrElse(app.owner)))
+          case Some(app) => userService.getUserInfo(app.owner) map { _user =>
+            Some(app.copy(owner = _user.map(_.userName).getOrElse(app.owner)) -> user.authorisedClients.find(_.appId == appId).get)
           }
           case None =>
             logger.warn(s"[getAuthorisedApp] - User found but no application was found")
@@ -128,6 +118,6 @@ trait ClientOrchestrator extends Obfuscators with DeObfuscators {
   }
 
   def unlinkAppFromUser(appId: String, userId: String)(implicit ec: ExC): Future[LinkResponse] = {
-    accountService.unlinkAppFromUser(userId, appId)
+    userService.unlinkClientFromUser(userId, appId)
   }
 }

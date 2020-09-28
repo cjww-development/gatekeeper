@@ -46,12 +46,12 @@ trait MockIndividualStore extends MockitoSugar with BeforeAndAfterEach {
   }
 
   def mockIndividualValidateUserOn(user: Option[User]): OngoingStubbing[Future[Option[User]]] = {
-    when(mockIndividualStore.validateUserOn(ArgumentMatchers.any[Bson]()))
+    when(mockIndividualStore.findUser(ArgumentMatchers.any[Bson]()))
       .thenReturn(Future.successful(user))
   }
 
   def mockMultipleIndividualValidateUserOn(userOne: Option[User], userTwo: Option[User]): OngoingStubbing[Future[Option[User]]] = {
-    when(mockIndividualStore.validateUserOn(ArgumentMatchers.any[Bson]()))
+    when(mockIndividualStore.findUser(ArgumentMatchers.any[Bson]()))
       .thenReturn(Future.successful(userOne))
       .thenReturn(Future.successful(userTwo))
   }

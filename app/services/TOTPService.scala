@@ -1,15 +1,15 @@
 package services
 
-import com.cjwwdev.mongo.responses.{MongoFailedUpdate, MongoSuccessUpdate, MongoUpdatedResponse}
+import com.cjwwdev.mongo.responses.{MongoFailedUpdate, MongoSuccessUpdate}
 import com.cjwwdev.security.deobfuscation.DeObfuscators
-import database.{IndividualUserStore, OrganisationUserStore}
+import database.{IndividualUserStore, OrganisationUserStore, UserStore, UserStoreUtils}
 import dev.samstevens.totp.code.{CodeVerifier, DefaultCodeGenerator, DefaultCodeVerifier, HashingAlgorithm}
 import dev.samstevens.totp.qr.{QrData, ZxingPngQrGenerator}
 import dev.samstevens.totp.secret.{DefaultSecretGenerator, SecretGenerator}
 import dev.samstevens.totp.time.SystemTimeProvider
 import dev.samstevens.totp.util.Utils.getDataUriForImage
-import javax.inject.Inject
-import models.User
+import javax.inject.{Inject, Named}
+import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters.{and, equal}
 import org.mongodb.scala.model.Updates.{set, unset}
 import play.api.Configuration
@@ -28,8 +28,8 @@ sealed trait MFAEnabledResponse
 case object MFAEnabled extends MFAEnabledResponse
 case object MFADisabled extends MFAEnabledResponse
 
-class DefaultTOTPService @Inject()(val individualUserStore: IndividualUserStore,
-                                   val organisationUserStore: OrganisationUserStore,
+class DefaultTOTPService @Inject()(@Named("individualUserStore") val individualUserStore: UserStore,
+                                   @Named("organisationUserStore") val organisationUserStore: UserStore,
                                    val config: Configuration) extends TOTPService {
   override val secretGenerator: SecretGenerator = new DefaultSecretGenerator()
   override val qrGenerator: ZxingPngQrGenerator = new ZxingPngQrGenerator()
@@ -48,7 +48,7 @@ class DefaultTOTPService @Inject()(val individualUserStore: IndividualUserStore,
   )
 }
 
-trait TOTPService extends DeObfuscators {
+trait TOTPService extends DeObfuscators with UserStoreUtils {
   override val locale: String = ""
 
   val secretGenerator: SecretGenerator
@@ -56,30 +56,16 @@ trait TOTPService extends DeObfuscators {
   val codeVerifier: CodeVerifier
   val algorithm: HashingAlgorithm
 
-  val individualUserStore: IndividualUserStore
-  val organisationUserStore: OrganisationUserStore
-
   val mfaIssuer: String
   val mfaDigits: Int
   val mfaPeriod: Int
 
-  private val getUser: String => Future[Option[User]] = {
-    case userId@x if x.startsWith("user-") => individualUserStore.validateUserOn(equal("id", userId))
-    case userId@x if x.startsWith("org-user-") => organisationUserStore.validateUserOn(equal("id", userId))
-  }
-
-  private def updateUser[T](userId: String, key: String, data: T)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
-    userId match {
-      case x if x.startsWith("user-") => individualUserStore.updateUser(equal("id", userId), set(key, data))
-      case x if x.startsWith("org-user-") => organisationUserStore.updateUser(equal("id", userId), set(key, data))
-    }
-  }
+  private val query: String => Bson = userId => equal("id", userId)
 
   def generateSecret(userId: String)(implicit ec: ExC): Future[SecretResponse] = {
     val secret = secretGenerator.generate()
-    val updateResp = updateUser[String](userId, "mfaSecret", secret)
 
-    updateResp.map {
+    getUserStore(userId).updateUser(query(userId), set("mfaSecret", secret)).map {
       case MongoSuccessUpdate =>
         logger.info(s"[generateSecret] - Generated new MFA secret for user $userId")
         Secret(secret)
@@ -90,12 +76,13 @@ trait TOTPService extends DeObfuscators {
   }
 
   def getCurrentSecret(userId: String)(implicit ec: ExC): Future[SecretResponse] = {
-    getUser(userId)
+    getUserStore(userId)
+      .findUser(query(userId))
       .map(_.map(_.mfaSecret.fold[SecretResponse](FailedGeneration)(sec => Secret(sec))).getOrElse(FailedGeneration))
   }
 
   def generateQRCode(userId: String, secret: String)(implicit ec: ExC): Future[QRCodeResponse] = {
-    getUser(userId).map {
+    getUserStore(userId).findUser(query(userId)).map {
       case Some(user) =>
         val qrData = new QrData.Builder()
           .label(stringDeObfuscate.decrypt(user.userName).getOrElse(""))
@@ -121,9 +108,7 @@ trait TOTPService extends DeObfuscators {
   }
 
   def enableAccountMFA(userId: String)(implicit ec: ExC): Future[MFAEnabledResponse] = {
-    val userInfo = updateUser[Boolean](userId, "mfaEnabled", true)
-
-    userInfo map {
+    getUserStore(userId).updateUser(query(userId), set("mfaEnabled", true)) map {
       case MongoSuccessUpdate =>
         logger.info(s"[enableAccountMFA] - TOTP MFA enabled for user $userId")
         MFAEnabled
@@ -134,17 +119,13 @@ trait TOTPService extends DeObfuscators {
   }
 
   def getMFAStatus(userId: String)(implicit ec: ExC): Future[Boolean] = {
-    getUser(userId).map(_.exists(_.mfaEnabled))
+    getUserStore(userId).findUser(query(userId)).map(_.exists(_.mfaEnabled))
   }
 
   def removeTOTPMFA(userId: String)(implicit ec: ExC): Future[Boolean] = {
-    val query = and(set("mfaEnabled", false), unset("mfaSecret"))
-    val update = userId match {
-      case x if x.startsWith("user-") => individualUserStore.updateUser(equal("id", userId), query)
-      case x if x.startsWith("org-user-") => organisationUserStore.updateUser(equal("id", userId), query)
-    }
+    val update = and(set("mfaEnabled", false), unset("mfaSecret"))
 
-    update.map {
+    getUserStore(userId).updateUser(query(userId), update).map {
       case MongoSuccessUpdate =>
         logger.info(s"[removeTOTPMFA] - Removed TOTP MFA for user $userId")
         true

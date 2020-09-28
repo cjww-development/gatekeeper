@@ -19,29 +19,24 @@ package orchestrators
 import javax.inject.Inject
 import models.UserInfo
 import org.slf4j.LoggerFactory
-import services.AccountService
+import services.UserService
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
-class DefaultUserOrchestrator @Inject()(val accountService: AccountService) extends UserOrchestrator
+class DefaultUserOrchestrator @Inject()(val userService: UserService) extends UserOrchestrator
 
 trait UserOrchestrator {
 
-  protected val accountService: AccountService
+  protected val userService: UserService
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
   def getUserDetails(id: String)(implicit ec: ExC): Future[Option[UserInfo]] = {
-    def invalidUser(): Future[Option[UserInfo]] = {
+    def invalidUser(): Option[UserInfo] = {
       logger.warn(s"[getUserDetails] - Invalid userId $id")
-      Future.successful(None)
+      None
     }
 
-    accountService
-      .determineAccountTypeFromId(id)
-      .fold(invalidUser()) {
-        case "individual"   => accountService.getIndividualAccountInfo(id)
-        case "organisation" => accountService.getOrganisationAccountInfo(id)
-      }
+    userService.getUserInfo(id).map(user => if(user.nonEmpty) user else invalidUser())
   }
 }

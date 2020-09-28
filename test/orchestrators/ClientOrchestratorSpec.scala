@@ -23,10 +23,10 @@ import com.cjwwdev.security.Implicits._
 import com.cjwwdev.security.obfuscation.Obfuscators
 import helpers.Assertions
 import helpers.services.{MockAccountService, MockClientService}
-import models.{RegisteredApplication, User, UserInfo}
+import models.{AuthorisedClient, RegisteredApplication, User, UserInfo}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import services.{AccountService, ClientService, RegeneratedId, RegeneratedIdAndSecret, RegenerationFailed}
+import services._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -42,8 +42,10 @@ class ClientOrchestratorSpec
   val testOrchestrator: ClientOrchestrator = new ClientOrchestrator {
     override val locale: String = ""
     override protected val clientService: ClientService = mockClientService
-    override protected val accountService: AccountService = mockAccountService
+    override protected val userService: UserService = mockAccountService
   }
+
+  val now: DateTime = new DateTime()
 
   val testApp: RegisteredApplication = RegisteredApplication(
     appId        = "testAppId",
@@ -65,7 +67,7 @@ class ClientOrchestratorSpec
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",
-    authorisedClients = List(testApp.appId),
+    authorisedClients = List(AuthorisedClient(appId = testApp.appId, authorisedScopes = Seq(), authorisedOn = now)),
     mfaSecret = None,
     mfaEnabled = false,
     createdAt = DateTime.now()
@@ -188,7 +190,7 @@ class ClientOrchestratorSpec
           userName = testUser.userName,
           email = testUser.email,
           accType = testUser.accType,
-          authorisedClients = List(testApp.appId),
+          authorisedClients = List(AuthorisedClient(appId = testApp.appId, authorisedScopes = Seq(), authorisedOn = now)),
           mfaEnabled = false,
           createdAt = DateTime.now()
         )))
@@ -237,7 +239,7 @@ class ClientOrchestratorSpec
           userName = testUser.userName,
           email = testUser.email,
           accType = testUser.accType,
-          authorisedClients = List(testApp.appId),
+          authorisedClients = List(AuthorisedClient(appId = testApp.appId, authorisedScopes = Seq(), authorisedOn = now)),
           mfaEnabled = false,
           createdAt = DateTime.now()
         )))
@@ -245,7 +247,7 @@ class ClientOrchestratorSpec
         mockGetRegisteredAppByAppId(app = Some(testApp))
 
         awaitAndAssert(testOrchestrator.getAuthorisedApp(testUser.id, testApp.appId)) {
-          _ mustBe Some(testApp.copy(owner = testUser.userName))
+          _ mustBe Some((testApp.copy(owner = testUser.userName)), AuthorisedClient(appId = testApp.appId, authorisedScopes = Seq(), authorisedOn = now))
         }
       }
     }
@@ -265,7 +267,7 @@ class ClientOrchestratorSpec
           userName = testUser.userName,
           email = testUser.email,
           accType = testUser.accType,
-          authorisedClients = List(testApp.appId),
+          authorisedClients = List(AuthorisedClient(appId = testApp.appId, authorisedScopes = Seq(), authorisedOn = now)),
           mfaEnabled = false,
           createdAt = DateTime.now()
         )))
@@ -283,7 +285,7 @@ class ClientOrchestratorSpec
           userName = testUser.userName,
           email = testUser.email,
           accType = testUser.accType,
-          authorisedClients = List(testApp.appId),
+          authorisedClients = List(AuthorisedClient(appId = testApp.appId, authorisedScopes = Seq(), authorisedOn = now)),
           mfaEnabled = false,
           createdAt = DateTime.now()
         )))

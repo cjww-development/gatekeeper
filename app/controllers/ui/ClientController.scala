@@ -24,13 +24,15 @@ import orchestrators._
 import org.slf4j.LoggerFactory
 import play.api.i18n.{I18NSupportLowPriorityImplicits, I18nSupport, Lang}
 import play.api.mvc._
+import services.ScopeService
 import views.html.registration.AppRegistration
-import views.html.client.{ClientView, ClientsView, RegenerateClientIdView, DeleteClientView, AuthorisedClientsView, AuthorisedClientView}
+import views.html.client.{AuthorisedClientView, AuthorisedClientsView, ClientView, ClientsView, DeleteClientView, RegenerateClientIdView}
 import views.html.misc.{NotFound => NotFoundView}
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultClientController @Inject()(val controllerComponents: ControllerComponents,
+                                        val scopeService: ScopeService,
                                         val userOrchestrator: UserOrchestrator,
                                         val clientOrchestrator: ClientOrchestrator,
                                         val registrationOrchestrator: RegistrationOrchestrator) extends ClientController {
@@ -41,6 +43,7 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
 
   val registrationOrchestrator: RegistrationOrchestrator
   val clientOrchestrator: ClientOrchestrator
+  val scopeService: ScopeService
 
   implicit val ec: ExC
 
@@ -111,7 +114,7 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
 
   def getAuthorisedApp(appId: String): Action[AnyContent] = authenticatedUser { implicit req => userId =>
     clientOrchestrator.getAuthorisedApp(userId, appId) map {
-      case Some(app) => Ok(AuthorisedClientView(app))
+      case Some((app, client)) => Ok(AuthorisedClientView(app, client, scopeService.getValidScopes))
       case None      => NotFound(NotFoundView())
     }
   }

@@ -23,14 +23,14 @@ import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import services.{AccountService, LinkResponse}
+import services.{LinkResponse, UserService}
 
 import scala.concurrent.Future
 
 trait MockAccountService extends MockitoSugar with BeforeAndAfterEach {
   self: PlaySpec =>
 
-  val mockAccountService: AccountService = mock[AccountService]
+  val mockAccountService: UserService = mock[UserService]
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -38,22 +38,17 @@ trait MockAccountService extends MockitoSugar with BeforeAndAfterEach {
   }
 
   def mockGetIndividualAccountInfo(value: Option[UserInfo]): OngoingStubbing[Future[Option[UserInfo]]] = {
-    when(mockAccountService.getIndividualAccountInfo(ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
+    when(mockAccountService.getUserInfo(ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
       .thenReturn(Future.successful(value))
   }
 
   def mockGetOrganisationAccountInfo(value: Option[UserInfo]): OngoingStubbing[Future[Option[UserInfo]]] = {
-    when(mockAccountService.getOrganisationAccountInfo(ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
+    when(mockAccountService.getUserInfo(ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
       .thenReturn(Future.successful(value))
   }
 
-  def mockDetermineAccountTypeFromId(value: Option[String]): OngoingStubbing[Option[String]] = {
-    when(mockAccountService.determineAccountTypeFromId(ArgumentMatchers.any[String]()))
-      .thenReturn(value)
-  }
-
   def mockLinkAuthorisedClientTo(resp: LinkResponse): OngoingStubbing[Future[LinkResponse]] = {
-    when(mockAccountService.linkAuthorisedClientTo(ArgumentMatchers.any[String](), ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
+    when(mockAccountService.linkClientToUser(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[Seq[String]]())(ArgumentMatchers.any()))
       .thenReturn(Future.successful(resp))
   }
 }

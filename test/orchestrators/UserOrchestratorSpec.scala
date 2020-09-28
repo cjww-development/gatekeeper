@@ -20,17 +20,17 @@ import java.util.UUID
 
 import helpers.Assertions
 import helpers.services.MockAccountService
-import models.{RegisteredApplication, User, UserInfo}
+import models.{AuthorisedClient, User, UserInfo}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import services.AccountService
+import services.UserService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountService {
 
   val testOrchestrator: UserOrchestrator = new UserOrchestrator {
-    override protected val accountService: AccountService = mockAccountService
+    override protected val userService: UserService = mockAccountService
   }
 
   val now: DateTime = DateTime.now()
@@ -68,17 +68,7 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
 
   "getUserDetails" should {
     "return an empty map" when {
-      "the userId is invalid" in {
-        mockDetermineAccountTypeFromId(value = None)
-
-        awaitAndAssert(testOrchestrator.getUserDetails(UUID.randomUUID().toString)) {
-          _ mustBe None
-        }
-      }
-
       "the individual user cannot be found" in {
-        mockDetermineAccountTypeFromId(value = Some("individual"))
-
         mockGetIndividualAccountInfo(value = None)
 
         awaitAndAssert(testOrchestrator.getUserDetails(testIndUser.id)) {
@@ -87,8 +77,6 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
       }
 
       "the organisation user cannot be found" in {
-        mockDetermineAccountTypeFromId(value = Some("organisation"))
-
         mockGetOrganisationAccountInfo(value = None)
 
         awaitAndAssert(testOrchestrator.getUserDetails(testOrgUser.id)) {
@@ -99,14 +87,12 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
 
     "return a populated map" when {
       "the individual user was found" in {
-        mockDetermineAccountTypeFromId(value = Some("individual"))
-
         mockGetIndividualAccountInfo(value = Some(UserInfo(
           id = testIndUser.id,
           userName = testIndUser.userName,
           email = testIndUser.email,
           accType = testIndUser.accType,
-          authorisedClients = List.empty[String],
+          authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
           createdAt = now
         )))
@@ -117,7 +103,7 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
             userName = testIndUser.userName,
             email = testIndUser.email,
             accType = testIndUser.accType,
-            authorisedClients = List.empty[String],
+            authorisedClients = List.empty[AuthorisedClient],
             mfaEnabled = false,
             createdAt = now
           ))
@@ -125,14 +111,12 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
       }
 
       "the organisation user was found" in {
-        mockDetermineAccountTypeFromId(value = Some("organisation"))
-
         mockGetOrganisationAccountInfo(value = Some(UserInfo(
           id = testOrgUser.id,
           userName = testOrgUser.userName,
           email = testOrgUser.email,
           accType = testOrgUser.accType,
-          authorisedClients = List.empty[String],
+          authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
           createdAt = now
         )))
@@ -143,7 +127,7 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
             userName = testOrgUser.userName,
             email = testOrgUser.email,
             accType = testOrgUser.accType,
-            authorisedClients = List.empty[String],
+            authorisedClients = List.empty[AuthorisedClient],
             mfaEnabled = false,
             createdAt = now
           ))
