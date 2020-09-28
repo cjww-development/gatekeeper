@@ -17,8 +17,8 @@
 package services
 
 import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
-import database.{AppStore, IndividualUserStore, OrganisationUserStore}
-import javax.inject.Inject
+import database.{AppStore, IndividualUserStore, OrganisationUserStore, UserStore, UserStoreUtils}
+import javax.inject.{Inject, Named}
 import models.{RegisteredApplication, User}
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters._
@@ -27,24 +27,19 @@ import utils.StringUtils
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
-class DefaultRegistrationService @Inject()(val userStore: IndividualUserStore,
-                                           val orgUserStore: OrganisationUserStore,
+class DefaultRegistrationService @Inject()(@Named("individualUserStore") val individualUserStore: UserStore,
+                                           @Named("organisationUserStore") val organisationUserStore: UserStore,
                                            val appStore: AppStore) extends RegistrationService
 
-trait RegistrationService {
+trait RegistrationService extends UserStoreUtils {
 
-  val userStore: IndividualUserStore
-  val orgUserStore: OrganisationUserStore
   val appStore: AppStore
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
   def createNewUser(user: User)(implicit ec: ExC): Future[MongoCreateResponse] = {
     logger.info(s"[createNewUser] - Creating new user with Id ${user.id}")
-    user.accType match {
-      case "individual"   => userStore.createUser(user).map(logResponse(user))
-      case "organisation" => orgUserStore.createUser(user).map(logResponse(user))
-    }
+    getUserStore(user.id).createUser(user).map(logResponse(user))
   }
 
   def isIdentifierInUse(email: String, userName: String)(implicit ec: ExC): Future[Boolean] = {
@@ -54,10 +49,10 @@ trait RegistrationService {
     )
 
     for {
-      indEmail    <- userStore.validateUserOn(query(email))
-      indUserName <- userStore.validateUserOn(query(userName))
-      orgEmail    <- orgUserStore.validateUserOn(query(email))
-      orgUserName <- orgUserStore.validateUserOn(query(userName))
+      indEmail    <- individualUserStore.findUser(query(email))
+      indUserName <- individualUserStore.findUser(query(userName))
+      orgEmail    <- organisationUserStore.findUser(query(email))
+      orgUserName <- organisationUserStore.findUser(query(userName))
     } yield {
       (indEmail.nonEmpty || indUserName.nonEmpty) -> (orgEmail.nonEmpty || orgUserName.nonEmpty) match {
         case (false, false) => false
@@ -70,8 +65,8 @@ trait RegistrationService {
 
   def validateSalt(salt: String)(implicit ec: ExC): Future[String] = {
     val query = equal("salt", salt)
-    userStore.validateUserOn(query) flatMap { ind =>
-      orgUserStore.validateUserOn(query) flatMap { org =>
+    individualUserStore.findUser(query) flatMap { ind =>
+      organisationUserStore.findUser(query) flatMap { org =>
         if(!(ind.isEmpty && org.isEmpty)) {
           logger.info("[revalidateSalt] - Current salt is in use, regenerating salt and revalidating")
           val salt = StringUtils.salter(length = 32)

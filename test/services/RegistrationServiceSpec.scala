@@ -21,7 +21,7 @@ import java.util.UUID
 import com.cjwwdev.security.Implicits._
 import com.cjwwdev.security.obfuscation.Obfuscators
 import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
-import database.{AppStore, IndividualUserStore, OrganisationUserStore}
+import database.{AppStore, IndividualUserStore, OrganisationUserStore, UserStore}
 import helpers.Assertions
 import helpers.database.{MockAppStore, MockIndividualStore, MockOrganisationStore}
 import models.{RegisteredApplication, User}
@@ -42,8 +42,8 @@ class RegistrationServiceSpec
   override val locale: String = ""
 
   private val testService: RegistrationService = new RegistrationService {
-    override val userStore: IndividualUserStore = mockIndividualStore
-    override val orgUserStore: OrganisationUserStore = mockOrganisationStore
+    override protected val individualUserStore: UserStore = mockIndividualStore
+    override protected val organisationUserStore: UserStore = mockOrganisationStore
     override val appStore: AppStore = mockAppStore
   }
 

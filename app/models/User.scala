@@ -33,7 +33,7 @@ case class User(id: String,
                 accType: String,
                 salt: String,
                 password: String,
-                authorisedClients: List[String],
+                authorisedClients: List[AuthorisedClient],
                 mfaEnabled: Boolean,
                 mfaSecret: Option[String],
                 createdAt: DateTime)

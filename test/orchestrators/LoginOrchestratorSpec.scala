@@ -36,6 +36,8 @@ class LoginOrchestratorSpec
     override protected val totpService: TOTPService = mockTOTPService
   }
 
+  val now: DateTime = new DateTime()
+
   val testUser: User = User(
     id        = "testId",
     userName  = "testUsername",
@@ -46,7 +48,7 @@ class LoginOrchestratorSpec
     mfaSecret = None,
     mfaEnabled = false,
     authorisedClients = List(),
-    createdAt = DateTime.now()
+    createdAt = now
   )
 
   "authenticateUser" should {

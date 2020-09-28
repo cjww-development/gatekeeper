@@ -22,10 +22,10 @@ import com.cjwwdev.security.Implicits._
 import com.cjwwdev.security.obfuscation.Obfuscators
 import helpers.Assertions
 import helpers.services.{MockAccountService, MockClientService, MockGrantService, MockScopeService}
-import models.{RegisteredApplication, Scope, User, UserInfo}
+import models.{AuthorisedClient, RegisteredApplication, Scope, User, UserInfo}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import services.{AccountService, ClientService, GrantService, ScopeService}
+import services.{ClientService, GrantService, ScopeService, UserService}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -40,11 +40,13 @@ class GrantOrchestratorSpec
 
   override val locale: String = ""
 
+  val now: DateTime = new DateTime()
+
   val testOrchestrator: GrantOrchestrator = new GrantOrchestrator {
     override protected val clientService: ClientService = mockClientService
     override protected val scopeService: ScopeService = mockScopeService
     override protected val grantService: GrantService = mockGrantService
-    override protected val accountService: AccountService = mockAccountService
+    override protected val userService: UserService = mockAccountService
   }
 
   val testApp: RegisteredApplication = RegisteredApplication(
@@ -57,7 +59,7 @@ class GrantOrchestratorSpec
     clientType   = "confidential",
     clientId     = "testId".encrypt,
     clientSecret = Some("testSecret".encrypt),
-    createdAt    = DateTime.now()
+    createdAt    = now
   )
 
   val testUser: User = User(
@@ -67,13 +69,11 @@ class GrantOrchestratorSpec
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",
-    authorisedClients = List(testApp.appId),
+    authorisedClients = List(AuthorisedClient(appId = testApp.appId, authorisedScopes = Seq(), authorisedOn = now)),
     mfaSecret = None,
     mfaEnabled = false,
-    createdAt = DateTime.now()
+    createdAt = now
   )
-
-  val now: DateTime = DateTime.now()
 
   "validateIncomingGrant" should {
     "return a ValidatedGrantRequest" when {
@@ -90,7 +90,7 @@ class GrantOrchestratorSpec
           userName = "test-org",
           email = "",
           accType = "",
-          authorisedClients = List.empty[String],
+          authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
           createdAt = now
         )))

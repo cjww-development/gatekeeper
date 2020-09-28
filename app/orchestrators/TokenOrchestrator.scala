@@ -18,9 +18,9 @@ package orchestrators
 
 import com.cjwwdev.security.deobfuscation.DeObfuscators
 import javax.inject.Inject
-import org.slf4j.LoggerFactory
+import org.slf4j.{Logger, LoggerFactory}
 import play.api.mvc.Request
-import services.{AccountService, ClientService, GrantService, ScopeService, TokenService}
+import services._
 import utils.BasicAuth
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
@@ -33,7 +33,7 @@ case object InvalidUser extends TokenResponse
 case object InvalidClient extends TokenResponse
 
 class DefaultTokenOrchestrator @Inject()(val grantService: GrantService,
-                                         val accountService: AccountService,
+                                         val userService: UserService,
                                          val clientService: ClientService,
                                          val scopeService: ScopeService,
                                          val tokenService: TokenService) extends TokenOrchestrator {
@@ -46,25 +46,20 @@ trait TokenOrchestrator extends DeObfuscators {
 
   protected val grantService: GrantService
   protected val tokenService: TokenService
-  protected val accountService: AccountService
+  protected val userService: UserService
   protected val clientService: ClientService
   protected val scopeService: ScopeService
   protected val basicAuth: BasicAuth
 
-  override val logger = LoggerFactory.getLogger(this.getClass)
+  override val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   def authorizationCodeGrant(authCode: String, clientId: String, redirectUri: String)(implicit ec: ExC): Future[TokenResponse] = {
     grantService.validateGrant(authCode, clientId, redirectUri) flatMap {
       case Some(grant) =>
         logger.info("[authorizationCodeGrant] - Grant has been validated")
-        val user = grant.accType match {
-          case "individual"   => accountService.getIndividualAccountInfo(grant.userId)
-          case "organisation" => accountService.getOrganisationAccountInfo(grant.userId)
-        }
-
         val scopes = scopeService.getScopeDetails(grant.scope)
 
-        user.map {
+        userService.getUserInfo(grant.userId).map {
           case Some(userData) =>
             logger.info(s"[authorizationCodeGrant] - Issuing new Id and access token for ${grant.userId} for use by clientId ${grant.clientId}")
             val scopedData = userData.toMap.filter{ case (k, _) =>  scopes.exists(_.name == k)}

@@ -48,8 +48,6 @@ class TOTPServiceSpec
 
   override val locale: String = "models.User"
 
-
-
   private val testService: TOTPService = new TOTPService {
     override val secretGenerator: SecretGenerator = mockSecretGenerator
     override val qrGenerator: ZxingPngQrGenerator = mockQrGenerator

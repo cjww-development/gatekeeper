@@ -23,7 +23,7 @@ case class UserInfo(id: String,
                     userName: String,
                     email: String,
                     accType: String,
-                    authorisedClients: List[String],
+                    authorisedClients: List[AuthorisedClient],
                     mfaEnabled: Boolean,
                     createdAt: DateTime) {
 

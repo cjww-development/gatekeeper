@@ -18,7 +18,7 @@ package services
 
 import java.util.UUID
 
-import database.{IndividualUserStore, LoginAttemptStore, OrganisationUserStore}
+import database.{IndividualUserStore, LoginAttemptStore, OrganisationUserStore, UserStore}
 import helpers.Assertions
 import helpers.database.{MockAppStore, MockIndividualStore, MockLoginAttemptStore, MockOrganisationStore}
 import models.{LoginAttempt, User}
@@ -37,8 +37,8 @@ class LoginServiceSpec
     with MockAppStore {
 
   private val testService: LoginService = new LoginService {
-    override val userStore: IndividualUserStore = mockIndividualStore
-    override val orgUserStore: OrganisationUserStore = mockOrganisationStore
+    override protected val individualUserStore: UserStore = mockIndividualStore
+    override protected val organisationUserStore: UserStore = mockOrganisationStore
     override val loginAttemptStore: LoginAttemptStore = mockLoginAttemptStore
   }
 

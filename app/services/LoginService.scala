@@ -17,8 +17,8 @@
 package services
 
 import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
-import database.{IndividualUserStore, LoginAttemptStore, OrganisationUserStore}
-import javax.inject.Inject
+import database.{IndividualUserStore, LoginAttemptStore, OrganisationUserStore, UserStore, UserStoreUtils}
+import javax.inject.{Inject, Named}
 import models.{LoginAttempt, User}
 import org.mongodb.scala.bson.BsonValue
 import org.mongodb.scala.model.Filters._
@@ -26,24 +26,22 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
-class DefaultLoginService @Inject()(val userStore: IndividualUserStore,
-                                    val orgUserStore: OrganisationUserStore,
+class DefaultLoginService @Inject()(@Named("individualUserStore") val individualUserStore: UserStore,
+                                    @Named("organisationUserStore") val organisationUserStore: UserStore,
                                     val loginAttemptStore: LoginAttemptStore) extends LoginService
 
-trait LoginService {
+trait LoginService extends UserStoreUtils {
 
-  val userStore: IndividualUserStore
-  val orgUserStore: OrganisationUserStore
   val loginAttemptStore: LoginAttemptStore
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
   def getUserSalt(accountId: String)(implicit ec: ExC): Future[Option[String]] = {
     for {
-      indUserName <- userStore.projectValue("userName", accountId, "salt")
-      indEmail <- userStore.projectValue("email", accountId, "salt")
-      orgUserName <- orgUserStore.projectValue("userName", accountId, "salt")
-      orgEmail <- orgUserStore.projectValue("email", accountId, "salt")
+      indUserName <- individualUserStore.projectValue("userName", accountId, "salt")
+      indEmail <- individualUserStore.projectValue("email", accountId, "salt")
+      orgUserName <- organisationUserStore.projectValue("userName", accountId, "salt")
+      orgEmail <- organisationUserStore.projectValue("email", accountId, "salt")
     } yield {
       (indUserName.nonEmpty || indEmail.nonEmpty) -> (orgUserName.nonEmpty || orgEmail.nonEmpty) match {
         case (true, false)  =>
@@ -72,8 +70,8 @@ trait LoginService {
     )
 
     for {
-      ind <- userStore.validateUserOn(query)
-      org <- orgUserStore.validateUserOn(query)
+      ind <- individualUserStore.findUser(query)
+      org <- organisationUserStore.findUser(query)
     } yield {
       (ind.nonEmpty, org.nonEmpty) match {
         case (true, false)  =>

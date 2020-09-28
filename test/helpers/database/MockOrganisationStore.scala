@@ -46,18 +46,18 @@ trait MockOrganisationStore extends MockitoSugar with BeforeAndAfterEach {
   }
 
   def mockOrganisationValidateUserOn(user: Option[User]): OngoingStubbing[Future[Option[User]]] = {
-    when(mockOrganisationStore.validateUserOn(ArgumentMatchers.any[Bson]()))
+    when(mockOrganisationStore.findUser(ArgumentMatchers.any[Bson]()))
       .thenReturn(Future.successful(user))
   }
 
   def mockOrganisationMultipleValidateUserOn(user: Option[User]): OngoingStubbing[Future[Option[User]]] = {
-    when(mockOrganisationStore.validateUserOn(ArgumentMatchers.any[Bson]()))
+    when(mockOrganisationStore.findUser(ArgumentMatchers.any[Bson]()))
       .thenReturn(Future.successful(user))
       .thenReturn(Future.successful(user))
   }
 
   def mockMultipleOrganisationValidateUserOn(userOne: Option[User], userTwo: Option[User]): OngoingStubbing[Future[Option[User]]] = {
-    when(mockOrganisationStore.validateUserOn(ArgumentMatchers.any[Bson]()))
+    when(mockOrganisationStore.findUser(ArgumentMatchers.any[Bson]()))
       .thenReturn(Future.successful(userOne))
       .thenReturn(Future.successful(userTwo))
   }
