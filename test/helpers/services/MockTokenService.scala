@@ -16,7 +16,8 @@
 
 package helpers.services
 
-import models.UserInfo
+import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
+import models.{TokenRecord, UserInfo}
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
 import org.mockito.stubbing.OngoingStubbing
@@ -24,6 +25,8 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import services.TokenService
+
+import scala.concurrent.Future
 
 trait MockTokenService extends MockitoSugar with BeforeAndAfterEach {
   self: PlaySpec =>
@@ -36,22 +39,37 @@ trait MockTokenService extends MockitoSugar with BeforeAndAfterEach {
   }
 
   def mockCreateAccessToken(): OngoingStubbing[String] = {
-    when(mockTokenService.createAccessToken(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String]()))
+    when(mockTokenService.createAccessToken(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String]()))
       .thenReturn("testAccessToken")
   }
 
   def mockCreateClientAccessToken(): OngoingStubbing[String] = {
-    when(mockTokenService.createClientAccessToken(ArgumentMatchers.any[String]()))
+    when(mockTokenService.createClientAccessToken(ArgumentMatchers.any[String](), ArgumentMatchers.any[String]()))
       .thenReturn("testAccessToken")
   }
 
   def mockCreateIdToken(): OngoingStubbing[String] = {
-    when(mockTokenService.createIdToken(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[Map[String, String]]()))
+    when(mockTokenService.createIdToken(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[Map[String, String]]()))
       .thenReturn("testIdToken")
   }
 
   def getMockExpiry(expiry: Long): OngoingStubbing[Long] = {
     when(mockTokenService.expiry)
       .thenReturn(expiry)
+  }
+
+  def mockGenerateTokenRecordSetId(): OngoingStubbing[String] = {
+    when(mockTokenService.generateTokenRecordSetId)
+      .thenReturn("testSetId")
+  }
+
+  def mockCreateTokenRecordSet(success: Boolean): OngoingStubbing[Future[MongoCreateResponse]] = {
+    when(mockTokenService.createTokenRecordSet(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(if(success) MongoSuccessCreate else MongoFailedCreate))
+  }
+
+  def mockLookupTokenRecordSet(recordSet: Option[TokenRecord]): OngoingStubbing[Future[Option[TokenRecord]]] = {
+    when(mockTokenService.lookupTokenRecordSet(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(recordSet))
   }
 }

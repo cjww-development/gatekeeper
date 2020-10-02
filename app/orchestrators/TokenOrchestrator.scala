@@ -16,6 +16,7 @@
 
 package orchestrators
 
+import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
 import com.cjwwdev.security.deobfuscation.DeObfuscators
 import javax.inject.Inject
 import org.slf4j.{Logger, LoggerFactory}
@@ -27,6 +28,7 @@ import scala.concurrent.{Future, ExecutionContext => ExC}
 
 sealed trait TokenResponse
 case class Issued(tokenType: String, scope: String, expiresIn: Long, accessToken: String, idToken: Option[String]) extends TokenResponse
+case object TokenError extends TokenResponse
 case object InvalidGrant extends TokenResponse
 case object InvalidGrantType extends TokenResponse
 case object InvalidUser extends TokenResponse
@@ -59,24 +61,29 @@ trait TokenOrchestrator extends DeObfuscators {
         logger.info("[authorizationCodeGrant] - Grant has been validated")
         val scopes = scopeService.getScopeDetails(grant.scope)
 
-        userService.getUserInfo(grant.userId).map {
+        userService.getUserInfo(grant.userId).flatMap {
           case Some(userData) =>
             logger.info(s"[authorizationCodeGrant] - Issuing new Id and access token for ${grant.userId} for use by clientId ${grant.clientId}")
             val scopedData = userData.toMap.filter{ case (k, _) =>  scopes.exists(_.name == k)}
-            Issued(
-              tokenType = "Bearer",
-              scope = grant.scope.mkString(","),
-              expiresIn = tokenService.expiry,
-              accessToken = tokenService.createAccessToken(grant.clientId, grant.userId, grant.scope.mkString(",")),
-              idToken = if(scopes.exists(_.name == "openid")) {
-                Some(tokenService.createIdToken(grant.clientId, grant.userId, scopedData))
-              } else {
-                None
-              }
-            )
+            val tokenSetId = tokenService.generateTokenRecordSetId
+
+            val accessToken = tokenService.createAccessToken(grant.clientId, grant.userId, tokenSetId, grant.scope.mkString(","))
+            val idToken = tokenService.createIdToken(grant.clientId, grant.userId, tokenSetId, scopedData)
+
+            tokenService.createTokenRecordSet(tokenSetId, grant.userId, grant.clientId) map {
+              case MongoSuccessCreate =>
+                Issued(
+                  tokenType = "Bearer",
+                  scope = grant.scope.mkString(","),
+                  expiresIn = tokenService.expiry,
+                  accessToken,
+                  idToken = if(scopes.exists(_.name == "openid")) Some(idToken) else None
+                )
+              case MongoFailedCreate => TokenError
+            }
           case None =>
             logger.warn(s"[authorizationCodeGrant] - could not validate user on userId ${grant.userId}")
-            InvalidUser
+            Future.successful(InvalidUser)
         }
       case None =>
         logger.warn(s"[authorizationCodeGrant] - Couldn't validate grant")
@@ -86,21 +93,28 @@ trait TokenOrchestrator extends DeObfuscators {
 
   def clientCredentialsGrant(scope: String)(implicit ec: ExC, req: Request[_]): Future[TokenResponse] = {
     basicAuth.decode.fold({
-      case (clientId, clientSecret) => clientService.getRegisteredAppByIdAndSecret(clientId, clientSecret) map {
+      case (clientId, clientSecret) => clientService.getRegisteredAppByIdAndSecret(clientId, clientSecret) flatMap {
         case Some(app) =>
           logger.info(s"[clientCredentialsGrant] - Issuing new access token for client ${app.appId} for use by client ${app.appId}")
-          Issued(
-            tokenType = "Bearer",
-            scope,
-            expiresIn = tokenService.expiry,
-            accessToken = tokenService
-              .createClientAccessToken(stringDeObfuscate.decrypt(app.clientId)
-              .getOrElse(throw new Exception(s"Could not decrypt clientId for client ${app.appId}"))),
-            idToken = None
-          )
+
+          val clientId = stringDeObfuscate.decrypt(app.clientId).getOrElse(throw new Exception(s"Could not decrypt clientId for client ${app.appId}"))
+          val tokenSetId = tokenService.generateTokenRecordSetId
+          val accessToken = tokenService.createClientAccessToken(clientId, tokenSetId)
+
+          tokenService.createTokenRecordSet(tokenSetId, clientId, clientId) map {
+            case MongoSuccessCreate =>
+              Issued(
+                tokenType = "Bearer",
+                scope,
+                expiresIn = tokenService.expiry,
+                accessToken,
+                idToken = None
+              )
+            case MongoFailedCreate => TokenError
+          }
         case None      =>
           logger.warn(s"[clientCredentialsGrant] - No matching client was found, unable to issue client token")
-          InvalidClient
+          Future.successful(InvalidClient)
       }
     },{
       _ =>

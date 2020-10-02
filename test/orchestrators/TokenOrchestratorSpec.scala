@@ -127,8 +127,10 @@ class TokenOrchestratorSpec
           readableName = "testScope",
           desc = "test scope decs"
         )))
+        mockGenerateTokenRecordSetId()
         mockCreateAccessToken()
         mockCreateIdToken()
+        mockCreateTokenRecordSet(success = true)
         getMockExpiry(expiry = 900000)
 
         awaitAndAssert(testOrchestrator.authorizationCodeGrant("testAuthCode", "testClientId", "testRedirect")) {
@@ -158,8 +160,10 @@ class TokenOrchestratorSpec
           readableName = "testScope",
           desc = "test scope decs"
         )))
+        mockGenerateTokenRecordSetId()
         mockCreateAccessToken()
         mockCreateIdToken()
+        mockCreateTokenRecordSet(success = true)
         getMockExpiry(expiry = 900000)
 
         awaitAndAssert(testOrchestrator.authorizationCodeGrant("testAuthCode", "testClientId", "testRedirect")) {
@@ -207,7 +211,9 @@ class TokenOrchestratorSpec
 
         mockGetRegisteredAppByIdAndSecret(app = Some(testApp))
         getMockExpiry(expiry = 900000)
+        mockGenerateTokenRecordSetId()
         mockCreateClientAccessToken()
+        mockCreateTokenRecordSet(success = true)
 
         awaitAndAssert(testOrchestrator.clientCredentialsGrant("testScope")) {
           _ mustBe Issued(

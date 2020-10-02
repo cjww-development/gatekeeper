@@ -62,7 +62,7 @@ class TokenServiceSpec
   "createAccessToken" should {
     "return a signed access token" when {
       "given a clientId, userId and scope" in {
-        assertOutput(testService.createAccessToken("testClientId", "testUserId", "openid")) { token =>
+        assertOutput(testService.createAccessToken("testClientId", "testUserId", "testSetId", "openid")) { token =>
           val split = token.split("\\.")
           split.length mustBe 3
 
@@ -72,6 +72,7 @@ class TokenServiceSpec
           payload.\("iss").as[String] mustBe "testIssuer"
           payload.\("sub").as[String] mustBe "testUserId"
           payload.\("scp").as[String] mustBe "openid"
+          payload.\("tsid").as[String] mustBe "testSetId"
         }
       }
     }
@@ -84,7 +85,7 @@ class TokenServiceSpec
           "" -> ""
         )
 
-        assertOutput(testService.createIdToken("testClientId", "testUserId", userInfo.toMap)) { token =>
+        assertOutput(testService.createIdToken("testClientId", "testUserId", "testSetId", userInfo.toMap)) { token =>
           val split = token.split("\\.")
           split.length mustBe 3
 
@@ -96,6 +97,7 @@ class TokenServiceSpec
           payload.\("username").as[String] mustBe "test-org"
           payload.\("email").as[String] mustBe "test@email.com"
           payload.\("act").as[String] mustBe "organisation"
+          payload.\("tsid").as[String] mustBe "testSetId"
         }
       }
     }
@@ -104,7 +106,7 @@ class TokenServiceSpec
   "createClientAccessToken" should {
     "return a signed access token" when {
       "given a clientId" in {
-        assertOutput(testService.createClientAccessToken("testClientId")) { token =>
+        assertOutput(testService.createClientAccessToken("testClientId", "testSetId")) { token =>
           val split = token.split("\\.")
           split.length mustBe 3
 
@@ -113,6 +115,7 @@ class TokenServiceSpec
           payload.\("aud").as[String] mustBe "testClientId"
           payload.\("iss").as[String] mustBe "testIssuer"
           payload.\("sub").as[String] mustBe "testClientId"
+          payload.\("tsid").as[String] mustBe "testSetId"
         }
       }
     }

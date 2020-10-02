@@ -22,9 +22,9 @@ import java.util.UUID
 import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
 import database.TokenRecordStore
 import javax.inject.Inject
-import models.{TokenRecord, UserInfo}
-import org.mongodb.scala.model.Filters.{and, equal}
+import models.TokenRecord
 import org.joda.time.DateTime
+import org.mongodb.scala.model.Filters.{and, equal}
 import org.slf4j.LoggerFactory
 import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}
 import play.api.Configuration
@@ -50,7 +50,7 @@ trait TokenService {
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  def createAccessToken(clientId: String, userId: String, scope: String): String = {
+  def createAccessToken(clientId: String, userId: String, setId: String, scope: String): String = {
     val now = Instant.now
 
     val claims = JwtClaim()
@@ -61,13 +61,14 @@ trait TokenService {
       .expiresAt(now.plusSeconds(expiry).getEpochSecond)
       .about(userId)
       .++[String](
-        "scp" -> scope
+        "scp" -> scope,
+        "tsid" -> setId
       ).toJson
 
     Jwt.encode(claims, signature, JwtAlgorithm.HS512)
   }
 
-  def createIdToken(clientId: String, userId: String, userData: Map[String, String]): String = {
+  def createIdToken(clientId: String, userId: String, setId: String, userData: Map[String, String]): String = {
     val now = Instant.now
 
     val claims = JwtClaim()
@@ -77,13 +78,13 @@ trait TokenService {
       .startsAt(now.getEpochSecond)
       .expiresAt(now.plusSeconds(expiry).getEpochSecond)
       .about(userId)
-      .++[String](userData.toSeq:_*)
+      .++[String](Seq("tsid" -> setId) ++ userData.toSeq:_*)
       .toJson
 
     Jwt.encode(claims, signature, JwtAlgorithm.HS512)
   }
 
-  def createClientAccessToken(clientId: String): String = {
+  def createClientAccessToken(clientId: String, setId: String): String = {
     val now = Instant.now
 
     val claims = JwtClaim()
@@ -93,6 +94,7 @@ trait TokenService {
       .startsAt(now.getEpochSecond)
       .expiresAt(now.plusSeconds(expiry).getEpochSecond)
       .about(clientId)
+      .++[String]("tsid" -> setId)
       .toJson
 
     Jwt.encode(claims, signature, JwtAlgorithm.HS512)
