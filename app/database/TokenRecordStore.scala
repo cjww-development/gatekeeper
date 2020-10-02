@@ -45,6 +45,9 @@ trait TokenRecordStore extends DatabaseRepository with CodecReg {
   val expiry: Long
 
   override def indexes: Seq[IndexModel] = Seq(
+    IndexModel(Indexes.ascending("tokenSetId"), IndexOptions().background(false)),
+    IndexModel(Indexes.ascending("userId"), IndexOptions().background(false)),
+    IndexModel(Indexes.ascending("appId"), IndexOptions().background(false)),
     IndexModel(Indexes.ascending("issuedAt"), IndexOptions().background(false).expireAfter(expiry, TimeUnit.SECONDS))
   )
 

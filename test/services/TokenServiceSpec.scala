@@ -16,21 +16,28 @@
 
 package services
 
+import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
+import database.TokenRecordStore
 import helpers.Assertions
-import models.{AuthorisedClient, UserInfo}
+import helpers.database.MockTokenRecordStore
+import models.{AuthorisedClient, TokenRecord, UserInfo}
 import org.apache.commons.net.util.Base64
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 class TokenServiceSpec
   extends PlaySpec
-    with Assertions {
+    with Assertions
+    with MockTokenRecordStore {
 
   private val testService: TokenService = new TokenService {
     override val issuer: String    = "testIssuer"
     override val expiry: Long      = 30000
     override val signature: String = "testSignature"
+    override val tokenRecordStore: TokenRecordStore = mockTokenRecordStore
   }
 
   val now: DateTime = DateTime.now()
@@ -43,6 +50,13 @@ class TokenServiceSpec
     authorisedClients = List.empty[AuthorisedClient],
     mfaEnabled = false,
     createdAt = now
+  )
+
+  val tokenRecordSet = TokenRecord(
+    tokenSetId = "testTokenSetId",
+    userId = "testUserId",
+    appId = "testAppId",
+    issuedAt = now
   )
 
   "createAccessToken" should {
@@ -99,6 +113,50 @@ class TokenServiceSpec
           payload.\("aud").as[String] mustBe "testClientId"
           payload.\("iss").as[String] mustBe "testIssuer"
           payload.\("sub").as[String] mustBe "testClientId"
+        }
+      }
+    }
+  }
+
+  "createTokenRecordSet" should {
+    "return a MongoSuccessCreate" when {
+      "the set has been created" in {
+        mockCreateTokenRecord(success = true)
+
+        awaitAndAssert(testService.createTokenRecordSet(tokenRecordSet.tokenSetId, tokenRecordSet.userId, tokenRecordSet.appId)) {
+          _ mustBe MongoSuccessCreate
+        }
+      }
+    }
+
+    "return a MongoFailedCreate" when {
+      "there was a problem creating the set" in {
+        mockCreateTokenRecord(success = false)
+
+        awaitAndAssert(testService.createTokenRecordSet(tokenRecordSet.tokenSetId, tokenRecordSet.userId, tokenRecordSet.appId)) {
+          _ mustBe MongoFailedCreate
+        }
+      }
+    }
+  }
+
+  "lookupTokenRecordSet" should {
+    "return a TokenRecordSet" when {
+      "the set has been found" in {
+        mockValidateTokenRecord(record = Some(tokenRecordSet))
+
+        awaitAndAssert(testService.lookupTokenRecordSet(tokenRecordSet.tokenSetId, tokenRecordSet.userId, tokenRecordSet.appId)) {
+          _ mustBe Some(tokenRecordSet)
+        }
+      }
+    }
+
+    "return a MongoFailedCreate" when {
+      "there was a problem creating the set" in {
+        mockValidateTokenRecord(record = None)
+
+        awaitAndAssert(testService.lookupTokenRecordSet(tokenRecordSet.tokenSetId, tokenRecordSet.userId, tokenRecordSet.appId)) {
+          _ mustBe None
         }
       }
     }

@@ -35,7 +35,9 @@ class TokenRecordStoreISpec extends PlaySpec with IntegrationApp with Assertions
   val now: DateTime = DateTime.now()
 
   val testTokenRecord: TokenRecord = TokenRecord(
-    tokenSetId = UUID.randomUUID().toString,
+    tokenSetId = "testTokenSetId",
+    userId = "testUserId",
+    appId = "testAppId",
     issuedAt = now
   )
 

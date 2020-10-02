@@ -19,7 +19,7 @@ package global
 import com.cjwwdev.mongo.indexing.RepositoryIndexer
 import database._
 import javax.inject.Inject
-import models.{Grant, LoginAttempt, RegisteredApplication, User}
+import models.{Grant, LoginAttempt, RegisteredApplication, TokenRecord, User}
 
 import scala.concurrent.{ExecutionContext => ExC}
 
@@ -28,6 +28,7 @@ class GatekeeperIndexer @Inject()(val userStore: IndividualUserStore,
                                   val appStore: AppStore,
                                   val grantStore: GrantStore,
                                   val loginAttemptStore: LoginAttemptStore,
+                                  val tokenRecordStore: TokenRecordStore,
                                   implicit val ec: ExC) extends RepositoryIndexer with CodecReg {
   for {
     _ <- ensureMultipleIndexes[User](userStore)
@@ -35,5 +36,6 @@ class GatekeeperIndexer @Inject()(val userStore: IndividualUserStore,
     _ <- ensureMultipleIndexes[RegisteredApplication](appStore)
     _ <- ensureMultipleIndexes[Grant](grantStore)
     _ <- ensureMultipleIndexes[LoginAttempt](loginAttemptStore)
+    _ <- ensureMultipleIndexes[TokenRecord](tokenRecordStore)
   } yield true
 }

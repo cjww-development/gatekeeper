@@ -20,6 +20,8 @@ import org.joda.time.DateTime
 import org.mongodb.scala.bson.codecs.Macros
 
 case class TokenRecord(tokenSetId: String,
+                       userId: String,
+                       appId: String,
                        issuedAt: DateTime)
 
 object TokenRecord {
