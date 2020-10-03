@@ -131,6 +131,7 @@ class TokenOrchestratorSpec
         mockCreateAccessToken()
         mockCreateIdToken()
         mockCreateTokenRecordSet(success = true)
+        mockGetRegisteredAppById(app = Some(testApp))
         getMockExpiry(expiry = 900000)
 
         awaitAndAssert(testOrchestrator.authorizationCodeGrant("testAuthCode", "testClientId", "testRedirect")) {
@@ -164,6 +165,7 @@ class TokenOrchestratorSpec
         mockCreateAccessToken()
         mockCreateIdToken()
         mockCreateTokenRecordSet(success = true)
+        mockGetRegisteredAppById(app = Some(testApp))
         getMockExpiry(expiry = 900000)
 
         awaitAndAssert(testOrchestrator.authorizationCodeGrant("testAuthCode", "testClientId", "testRedirect")) {

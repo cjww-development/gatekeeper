@@ -35,6 +35,7 @@ class DefaultClientController @Inject()(val controllerComponents: ControllerComp
                                         val scopeService: ScopeService,
                                         val userOrchestrator: UserOrchestrator,
                                         val clientOrchestrator: ClientOrchestrator,
+                                        val tokenOrchestrator: TokenOrchestrator,
                                         val registrationOrchestrator: RegistrationOrchestrator) extends ClientController {
   override implicit val ec: ExC = controllerComponents.executionContext
 }
@@ -44,6 +45,7 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
   val registrationOrchestrator: RegistrationOrchestrator
   val clientOrchestrator: ClientOrchestrator
   val scopeService: ScopeService
+  val tokenOrchestrator: TokenOrchestrator
 
   implicit val ec: ExC
 
@@ -114,7 +116,7 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
 
   def getAuthorisedApp(appId: String): Action[AnyContent] = authenticatedUser { implicit req => userId =>
     clientOrchestrator.getAuthorisedApp(userId, appId) map {
-      case Some((app, client)) => Ok(AuthorisedClientView(app, client, scopeService.getValidScopes))
+      case Some((app, client, sessions)) => Ok(AuthorisedClientView(app, client, scopeService.getValidScopes, sessions))
       case None      => NotFound(NotFoundView())
     }
   }
@@ -122,6 +124,12 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
   def revokeAppAccess(appId: String): Action[AnyContent] = authenticatedUser { implicit req => userId =>
     clientOrchestrator.unlinkAppFromUser(appId, userId) map {
       _ => Redirect(routes.ClientController.getAuthorisedAppsForUser())
+    }
+  }
+
+  def revokeSession(tokenSetId: String, appId: String): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+    tokenOrchestrator.revokeTokens(tokenSetId, userId, appId) map {
+      _ => Redirect(routes.ClientController.getAuthorisedApp(appId))
     }
   }
 }

@@ -72,4 +72,9 @@ trait MockTokenService extends MockitoSugar with BeforeAndAfterEach {
     when(mockTokenService.lookupTokenRecordSet(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
       .thenReturn(Future.successful(recordSet))
   }
+
+  def mockGetActiveSessionsFor(sessions: Seq[TokenRecord]): OngoingStubbing[Future[Seq[TokenRecord]]] = {
+    when(mockTokenService.getActiveSessionsFor(ArgumentMatchers.any[String](), ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(sessions))
+  }
 }

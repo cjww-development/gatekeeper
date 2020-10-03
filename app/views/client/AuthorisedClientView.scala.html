@@ -5,7 +5,7 @@
 @import views.html.helper.CSRF
 @import views.AuthForView
 
-@(app: RegisteredApplication, authorisedData: AuthorisedClient, validScopes: Seq[Scope])(implicit rh: RequestHeader)
+@(app: RegisteredApplication, authorisedData: AuthorisedClient, validScopes: Seq[Scope], sessions: Seq[TokenRecord])(implicit rh: RequestHeader)
 
 @Main("View an authorised app", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <script src="https://cdn.jsdelivr.net/npm/jdenticon@@3.0.1" async></script>
@@ -38,6 +38,24 @@
                     <div class="alert alert-info" role="alert">
                         <h5>@{scope.readableName}</h5>
                         <div class="default-text">@{scope.desc}</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Active sessions</h5>
+
+                <p class="default-text display-3">@{sessions.length}</p>
+
+                @for(session <- sessions) {
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Session created at</h5>
+                            <p class="default-text">@{session.issuedAt.toLocalDate} at @{session.issuedAt.toLocalTime.toString.dropRight(7)}</p>
+                            <a href="@uiRoutes.ClientController.revokeSession(session.tokenSetId, session.appId)" class="btn btn-danger">Revoke session</a>
+                        </div>
                     </div>
                 }
             </div>

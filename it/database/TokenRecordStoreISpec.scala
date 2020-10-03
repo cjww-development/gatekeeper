@@ -82,4 +82,14 @@ class TokenRecordStoreISpec extends PlaySpec with IntegrationApp with Assertions
       }
     }
   }
+
+  "getActiveRecords" should {
+    "return a Seq of records" when {
+      "there are active records matching the query" in {
+        awaitAndAssert(testTokenRecordStore.getActiveRecords(mongoEqual("userId", testTokenRecord.userId))) {
+          _ mustBe Seq(testTokenRecord)
+        }
+      }
+    }
+  }
 }

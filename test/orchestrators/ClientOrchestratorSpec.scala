@@ -22,7 +22,7 @@ import com.cjwwdev.mongo.responses.{MongoFailedDelete, MongoSuccessDelete}
 import com.cjwwdev.security.Implicits._
 import com.cjwwdev.security.obfuscation.Obfuscators
 import helpers.Assertions
-import helpers.services.{MockAccountService, MockClientService}
+import helpers.services.{MockAccountService, MockClientService, MockTokenService}
 import models.{AuthorisedClient, RegisteredApplication, User, UserInfo}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
@@ -35,7 +35,8 @@ class ClientOrchestratorSpec
     with Assertions
     with Obfuscators
     with MockClientService
-    with MockAccountService {
+    with MockAccountService
+    with MockTokenService {
 
   override val locale: String = ""
 
@@ -43,6 +44,7 @@ class ClientOrchestratorSpec
     override val locale: String = ""
     override protected val clientService: ClientService = mockClientService
     override protected val userService: UserService = mockAccountService
+    override protected val tokenService: TokenService = mockTokenService
   }
 
   val now: DateTime = new DateTime()
@@ -245,9 +247,10 @@ class ClientOrchestratorSpec
         )))
 
         mockGetRegisteredAppByAppId(app = Some(testApp))
+        mockGetActiveSessionsFor(sessions = Seq())
 
         awaitAndAssert(testOrchestrator.getAuthorisedApp(testUser.id, testApp.appId)) {
-          _ mustBe Some((testApp.copy(owner = testUser.userName)), AuthorisedClient(appId = testApp.appId, authorisedScopes = Seq(), authorisedOn = now))
+          _ mustBe Some((testApp.copy(owner = testUser.userName)), AuthorisedClient(appId = testApp.appId, authorisedScopes = Seq(), authorisedOn = now), Seq())
         }
       }
     }

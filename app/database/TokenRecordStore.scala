@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit
 
 import com.cjwwdev.mongo.DatabaseRepository
 import com.cjwwdev.mongo.connection.ConnectionSettings
-import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
+import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoDeleteResponse, MongoFailedCreate, MongoFailedDelete, MongoSuccessCreate, MongoSuccessDelete}
 import com.typesafe.config.Config
 import javax.inject.Inject
 import models.{Grant, TokenRecord, User}
@@ -71,5 +71,26 @@ trait TokenRecordStore extends DatabaseRepository with CodecReg {
       .find(query)
       .first()
       .toFutureOption()
+  }
+
+  def getActiveRecords(query: Bson)(implicit ec: ExC): Future[Seq[TokenRecord]] = {
+    tokenRecordBasedCollection
+      .find(query)
+      .toFuture()
+  }
+
+  def deleteTokenRecord(query: Bson)(implicit ec: ExC): Future[MongoDeleteResponse] = {
+    tokenRecordBasedCollection
+      .deleteOne(query)
+      .toFuture()
+      .map { x =>
+        println(x.getDeletedCount)
+        println(x.wasAcknowledged())
+        logger.info(s"[deleteTokenRecord] - Deleted token record")
+        MongoSuccessDelete
+      }.recover { e =>
+        logger.error(s"[deleteTokenRecord] - There was a problem deleting the token record", e)
+        MongoFailedDelete
+      }
   }
 }

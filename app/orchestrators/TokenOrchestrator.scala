@@ -16,7 +16,7 @@
 
 package orchestrators
 
-import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
+import com.cjwwdev.mongo.responses.{MongoDeleteResponse, MongoFailedCreate, MongoSuccessCreate}
 import com.cjwwdev.security.deobfuscation.DeObfuscators
 import javax.inject.Inject
 import org.slf4j.{Logger, LoggerFactory}
@@ -63,23 +63,27 @@ trait TokenOrchestrator extends DeObfuscators {
 
         userService.getUserInfo(grant.userId).flatMap {
           case Some(userData) =>
-            logger.info(s"[authorizationCodeGrant] - Issuing new Id and access token for ${grant.userId} for use by clientId ${grant.clientId}")
-            val scopedData = userData.toMap.filter{ case (k, _) =>  scopes.exists(_.name == k)}
-            val tokenSetId = tokenService.generateTokenRecordSetId
+            val clientId = stringDeObfuscate.decrypt(grant.clientId).getOrElse(grant.clientId)
+            clientService.getRegisteredAppById(clientId) flatMap {
+              case Some(app) =>
+                logger.info(s"[authorizationCodeGrant] - Issuing new Id and access token for ${grant.userId} for use by clientId ${grant.clientId}")
+                val scopedData = userData.toMap.filter{ case (k, _) => scopes.exists(_.name == k)}
+                val tokenSetId = tokenService.generateTokenRecordSetId
 
-            val accessToken = tokenService.createAccessToken(grant.clientId, grant.userId, tokenSetId, grant.scope.mkString(","))
-            val idToken = tokenService.createIdToken(grant.clientId, grant.userId, tokenSetId, scopedData)
+                val accessToken = tokenService.createAccessToken(clientId, grant.userId, tokenSetId, grant.scope.mkString(","))
+                val idToken = tokenService.createIdToken(clientId, grant.userId, tokenSetId, scopedData)
 
-            tokenService.createTokenRecordSet(tokenSetId, grant.userId, grant.clientId) map {
-              case MongoSuccessCreate =>
-                Issued(
-                  tokenType = "Bearer",
-                  scope = grant.scope.mkString(","),
-                  expiresIn = tokenService.expiry,
-                  accessToken,
-                  idToken = if(scopes.exists(_.name == "openid")) Some(idToken) else None
-                )
-              case MongoFailedCreate => TokenError
+                tokenService.createTokenRecordSet(tokenSetId, grant.userId, app.appId) map {
+                  case MongoSuccessCreate =>
+                    Issued(
+                      tokenType = "Bearer",
+                      scope = grant.scope.mkString(","),
+                      expiresIn = tokenService.expiry,
+                      accessToken,
+                      idToken = if(scopes.exists(_.name == "openid")) Some(idToken) else None
+                    )
+                  case MongoFailedCreate => TokenError
+                }
             }
           case None =>
             logger.warn(s"[authorizationCodeGrant] - could not validate user on userId ${grant.userId}")
@@ -101,7 +105,7 @@ trait TokenOrchestrator extends DeObfuscators {
           val tokenSetId = tokenService.generateTokenRecordSetId
           val accessToken = tokenService.createClientAccessToken(clientId, tokenSetId)
 
-          tokenService.createTokenRecordSet(tokenSetId, clientId, clientId) map {
+          tokenService.createTokenRecordSet(tokenSetId, app.appId, app.appId) map {
             case MongoSuccessCreate =>
               Issued(
                 tokenType = "Bearer",
@@ -112,7 +116,7 @@ trait TokenOrchestrator extends DeObfuscators {
               )
             case MongoFailedCreate => TokenError
           }
-        case None      =>
+        case None =>
           logger.warn(s"[clientCredentialsGrant] - No matching client was found, unable to issue client token")
           Future.successful(InvalidClient)
       }
@@ -121,5 +125,9 @@ trait TokenOrchestrator extends DeObfuscators {
         logger.warn(s"[clientCredentialsGrant] - Could not validate the requested client")
         Future.successful(InvalidClient)
     })
+  }
+
+  def revokeTokens(tokenRecordSet: String, userId: String, appId: String)(implicit ec: ExC): Future[MongoDeleteResponse] = {
+    tokenService.revokeTokens(tokenRecordSet, appId, userId)
   }
 }

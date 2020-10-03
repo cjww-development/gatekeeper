@@ -19,7 +19,7 @@ package services
 import java.time.{Clock, Instant}
 import java.util.UUID
 
-import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
+import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoDeleteResponse, MongoFailedCreate, MongoSuccessCreate}
 import database.TokenRecordStore
 import javax.inject.Inject
 import models.TokenRecord
@@ -126,5 +126,15 @@ trait TokenService {
       }
       recordSet
     }
+  }
+
+  def getActiveSessionsFor(userId: String, appId: String)(implicit ec: ExC): Future[Seq[TokenRecord]] = {
+    val query = and(equal("userId", userId), equal("appId", appId))
+    tokenRecordStore.getActiveRecords(query)
+  }
+
+  def revokeTokens(tokenSetId: String, appId: String, userId: String)(implicit ec: ExC): Future[MongoDeleteResponse] = {
+    val query = and(equal("tokenSetId", tokenSetId), equal("appId", appId), equal("userId", userId))
+    tokenRecordStore.deleteTokenRecord(query)
   }
 }
