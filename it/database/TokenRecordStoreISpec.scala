@@ -38,6 +38,9 @@ class TokenRecordStoreISpec extends PlaySpec with IntegrationApp with Assertions
     tokenSetId = "testTokenSetId",
     userId = "testUserId",
     appId = "testAppId",
+    accessTokenId = "testTokenId",
+    idTokenId = Some("testTokenId"),
+    refreshTokenId = Some("testTokenId"),
     issuedAt = now
   )
 

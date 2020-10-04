@@ -17,7 +17,7 @@
 package helpers.services
 
 import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
-import models.{TokenRecord, UserInfo}
+import models.TokenRecord
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
 import org.mockito.stubbing.OngoingStubbing
@@ -39,17 +39,17 @@ trait MockTokenService extends MockitoSugar with BeforeAndAfterEach {
   }
 
   def mockCreateAccessToken(): OngoingStubbing[String] = {
-    when(mockTokenService.createAccessToken(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String]()))
+    when(mockTokenService.createAccessToken(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String]()))
       .thenReturn("testAccessToken")
   }
 
   def mockCreateClientAccessToken(): OngoingStubbing[String] = {
-    when(mockTokenService.createClientAccessToken(ArgumentMatchers.any[String](), ArgumentMatchers.any[String]()))
+    when(mockTokenService.createClientAccessToken(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String]()))
       .thenReturn("testAccessToken")
   }
 
   def mockCreateIdToken(): OngoingStubbing[String] = {
-    when(mockTokenService.createIdToken(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[Map[String, String]]()))
+    when(mockTokenService.createIdToken(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[Map[String, String]]()))
       .thenReturn("testIdToken")
   }
 
@@ -64,7 +64,7 @@ trait MockTokenService extends MockitoSugar with BeforeAndAfterEach {
   }
 
   def mockCreateTokenRecordSet(success: Boolean): OngoingStubbing[Future[MongoCreateResponse]] = {
-    when(mockTokenService.createTokenRecordSet(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
+    when(mockTokenService.createTokenRecordSet(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[Option[String]](), ArgumentMatchers.any[Option[String]]())(ArgumentMatchers.any()))
       .thenReturn(Future.successful(if(success) MongoSuccessCreate else MongoFailedCreate))
   }
 

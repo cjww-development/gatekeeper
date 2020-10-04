@@ -16,7 +16,7 @@
 
 package controllers.api
 
-import controllers.actions.OAuthFilter
+import controllers.actions.OAuthAction
 import javax.inject.Inject
 import orchestrators.UserOrchestrator
 import models.UserInfo._
@@ -35,7 +35,7 @@ class DefaultAccountController @Inject()(val controllerComponents: ControllerCom
   override val signature: String = config.get[String]("jwt.signature")
 }
 
-trait AccountController extends BaseController with OAuthFilter {
+trait AccountController extends BaseController with OAuthAction {
 
   val signature: String
 

@@ -16,7 +16,7 @@
 
 package controllers.ui
 
-import controllers.actions.AuthenticatedFilter
+import controllers.actions.AuthenticatedAction
 import javax.inject.Inject
 import orchestrators._
 import org.slf4j.LoggerFactory
@@ -33,7 +33,7 @@ class DefaultOAuthController @Inject()(val controllerComponents: ControllerCompo
   override implicit val ec: ExC = controllerComponents.executionContext
 }
 
-trait OAuthController extends BaseController with AuthenticatedFilter {
+trait OAuthController extends BaseController with AuthenticatedAction {
 
   protected val grantOrchestrator: GrantOrchestrator
   protected val tokenOrchestrator: TokenOrchestrator

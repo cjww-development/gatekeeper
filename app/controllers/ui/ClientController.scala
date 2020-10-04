@@ -17,7 +17,7 @@
 package controllers.ui
 
 import com.cjwwdev.mongo.responses.{MongoFailedDelete, MongoSuccessDelete}
-import controllers.actions.AuthenticatedFilter
+import controllers.actions.AuthenticatedAction
 import forms.AppRegistrationForm.{form => appRegForm}
 import javax.inject.Inject
 import orchestrators._
@@ -40,7 +40,7 @@ class DefaultClientController @Inject()(val controllerComponents: ControllerComp
   override implicit val ec: ExC = controllerComponents.executionContext
 }
 
-trait ClientController extends BaseController with I18NSupportLowPriorityImplicits with I18nSupport with AuthenticatedFilter {
+trait ClientController extends BaseController with I18NSupportLowPriorityImplicits with I18nSupport with AuthenticatedAction {
 
   val registrationOrchestrator: RegistrationOrchestrator
   val clientOrchestrator: ClientOrchestrator

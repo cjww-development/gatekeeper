@@ -23,7 +23,7 @@ import play.api.mvc.{BaseController, Request, Result}
 
 import scala.concurrent.Future
 
-trait OAuthFilter {
+trait OAuthAction {
   self: BaseController =>
 
   val signature: String

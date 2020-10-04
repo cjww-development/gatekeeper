@@ -16,7 +16,7 @@
 
 package controllers.ui
 
-import controllers.actions.AuthenticatedFilter
+import controllers.actions.AuthenticatedAction
 import forms.TOTPSetupCodeVerificationForm
 import javax.inject.Inject
 import orchestrators.{ClientOrchestrator, MFAOrchestrator, MFATOTPQR, UserOrchestrator}
@@ -35,7 +35,7 @@ class DefaultAccountController @Inject()(val controllerComponents: ControllerCom
   override implicit val ec: ExC = controllerComponents.executionContext
 }
 
-trait AccountController extends BaseController with I18NSupportLowPriorityImplicits with I18nSupport with AuthenticatedFilter {
+trait AccountController extends BaseController with I18NSupportLowPriorityImplicits with I18nSupport with AuthenticatedAction {
 
   val userOrchestrator: UserOrchestrator
   val clientOrchestrator: ClientOrchestrator

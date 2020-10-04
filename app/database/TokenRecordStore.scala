@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit
 
 import com.cjwwdev.mongo.DatabaseRepository
 import com.cjwwdev.mongo.connection.ConnectionSettings
-import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoDeleteResponse, MongoFailedCreate, MongoFailedDelete, MongoSuccessCreate, MongoSuccessDelete}
+import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoDeleteResponse, MongoFailedCreate, MongoFailedDelete, MongoFailedUpdate, MongoSuccessCreate, MongoSuccessDelete, MongoSuccessUpdate, MongoUpdatedResponse}
 import com.typesafe.config.Config
 import javax.inject.Inject
 import models.{Grant, TokenRecord, User}
@@ -48,6 +48,9 @@ trait TokenRecordStore extends DatabaseRepository with CodecReg {
     IndexModel(Indexes.ascending("tokenSetId"), IndexOptions().background(false)),
     IndexModel(Indexes.ascending("userId"), IndexOptions().background(false)),
     IndexModel(Indexes.ascending("appId"), IndexOptions().background(false)),
+    IndexModel(Indexes.ascending("accessTokenId"), IndexOptions().background(false)),
+    IndexModel(Indexes.ascending("idTokenId"), IndexOptions().background(false)),
+    IndexModel(Indexes.ascending("refreshTokenId"), IndexOptions().background(false)),
     IndexModel(Indexes.ascending("issuedAt"), IndexOptions().background(false).expireAfter(expiry, TimeUnit.SECONDS))
   )
 
@@ -77,6 +80,20 @@ trait TokenRecordStore extends DatabaseRepository with CodecReg {
     tokenRecordBasedCollection
       .find(query)
       .toFuture()
+  }
+
+  def updateTokenRecord(query: Bson, update: Bson)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
+    tokenRecordBasedCollection
+      .updateOne(query, update)
+      .toFuture()
+      .map { _ =>
+        logger.info(s"[updateTokenRecord] - Updated token record")
+        MongoSuccessUpdate
+      } recover {
+        case e =>
+          logger.error(s"[updateTokenRecord] - There was a problem updating the token record", e)
+          MongoFailedUpdate
+      }
   }
 
   def deleteTokenRecord(query: Bson)(implicit ec: ExC): Future[MongoDeleteResponse] = {

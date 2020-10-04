@@ -56,13 +56,16 @@ class TokenServiceSpec
     tokenSetId = "testTokenSetId",
     userId = "testUserId",
     appId = "testAppId",
+    accessTokenId = "testTokenId",
+    idTokenId = Some("testTokenId"),
+    refreshTokenId = Some("testTokenId"),
     issuedAt = now
   )
 
   "createAccessToken" should {
     "return a signed access token" when {
       "given a clientId, userId and scope" in {
-        assertOutput(testService.createAccessToken("testClientId", "testUserId", "testSetId", "openid")) { token =>
+        assertOutput(testService.createAccessToken("testClientId", "testUserId", "testSetId", "testTokenId", "openid")) { token =>
           val split = token.split("\\.")
           split.length mustBe 3
 
@@ -73,6 +76,7 @@ class TokenServiceSpec
           payload.\("sub").as[String] mustBe "testUserId"
           payload.\("scp").as[String] mustBe "openid"
           payload.\("tsid").as[String] mustBe "testSetId"
+          payload.\("tid").as[String] mustBe "testTokenId"
         }
       }
     }
@@ -85,7 +89,7 @@ class TokenServiceSpec
           "" -> ""
         )
 
-        assertOutput(testService.createIdToken("testClientId", "testUserId", "testSetId", userInfo.toMap)) { token =>
+        assertOutput(testService.createIdToken("testClientId", "testUserId", "testSetId", "testTokenId", userInfo.toMap)) { token =>
           val split = token.split("\\.")
           split.length mustBe 3
 
@@ -98,6 +102,7 @@ class TokenServiceSpec
           payload.\("email").as[String] mustBe "test@email.com"
           payload.\("act").as[String] mustBe "organisation"
           payload.\("tsid").as[String] mustBe "testSetId"
+          payload.\("tid").as[String] mustBe "testTokenId"
         }
       }
     }
@@ -106,7 +111,7 @@ class TokenServiceSpec
   "createClientAccessToken" should {
     "return a signed access token" when {
       "given a clientId" in {
-        assertOutput(testService.createClientAccessToken("testClientId", "testSetId")) { token =>
+        assertOutput(testService.createClientAccessToken("testClientId", "testSetId", "testTokenId")) { token =>
           val split = token.split("\\.")
           split.length mustBe 3
 
@@ -116,6 +121,7 @@ class TokenServiceSpec
           payload.\("iss").as[String] mustBe "testIssuer"
           payload.\("sub").as[String] mustBe "testClientId"
           payload.\("tsid").as[String] mustBe "testSetId"
+          payload.\("tid").as[String] mustBe "testTokenId"
         }
       }
     }
@@ -126,7 +132,14 @@ class TokenServiceSpec
       "the set has been created" in {
         mockCreateTokenRecord(success = true)
 
-        awaitAndAssert(testService.createTokenRecordSet(tokenRecordSet.tokenSetId, tokenRecordSet.userId, tokenRecordSet.appId)) {
+        awaitAndAssert(testService.createTokenRecordSet(
+          tokenRecordSet.tokenSetId,
+          tokenRecordSet.userId,
+          tokenRecordSet.appId,
+          tokenRecordSet.accessTokenId,
+          tokenRecordSet.idTokenId,
+          tokenRecordSet.refreshTokenId
+        )) {
           _ mustBe MongoSuccessCreate
         }
       }
@@ -136,7 +149,14 @@ class TokenServiceSpec
       "there was a problem creating the set" in {
         mockCreateTokenRecord(success = false)
 
-        awaitAndAssert(testService.createTokenRecordSet(tokenRecordSet.tokenSetId, tokenRecordSet.userId, tokenRecordSet.appId)) {
+        awaitAndAssert(testService.createTokenRecordSet(
+          tokenRecordSet.tokenSetId,
+          tokenRecordSet.userId,
+          tokenRecordSet.appId,
+          tokenRecordSet.accessTokenId,
+          tokenRecordSet.idTokenId,
+          tokenRecordSet.refreshTokenId
+        )) {
           _ mustBe MongoFailedCreate
         }
       }

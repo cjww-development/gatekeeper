@@ -32,9 +32,9 @@ import play.api.test.Helpers._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class AuthenticatedFilterSpec extends PlaySpec with MockUserOrchestrator with Assertions {
+class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with Assertions {
 
-  private val testFilter = new AuthenticatedFilter with BaseController {
+  private val testFilter = new AuthenticatedAction with BaseController {
     override protected def controllerComponents: ControllerComponents = stubControllerComponents()
     override val userOrchestrator: UserOrchestrator = mockUserOrchestrator
   }

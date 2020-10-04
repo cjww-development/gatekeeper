@@ -16,7 +16,7 @@
 
 package controllers.ui
 
-import controllers.actions.AuthenticatedFilter
+import controllers.actions.AuthenticatedAction
 import forms.RegistrationForm.{form => regForm, _}
 import javax.inject.Inject
 import orchestrators._
@@ -33,7 +33,7 @@ class DefaultRegistrationController @Inject()(val controllerComponents: Controll
   override implicit val ec: ExC = controllerComponents.executionContext
 }
 
-trait RegistrationController extends BaseController with I18NSupportLowPriorityImplicits with I18nSupport with AuthenticatedFilter {
+trait RegistrationController extends BaseController with I18NSupportLowPriorityImplicits with I18nSupport with AuthenticatedAction {
 
   val registrationOrchestrator: RegistrationOrchestrator
 

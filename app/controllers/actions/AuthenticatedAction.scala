@@ -25,7 +25,7 @@ import views.html.misc.{NotFound => NotFoundView}
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
-trait AuthenticatedFilter {
+trait AuthenticatedAction {
   self: BaseController =>
 
   val userOrchestrator: UserOrchestrator

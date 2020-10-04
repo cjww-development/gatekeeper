@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-package models
+package errors
 
-import org.joda.time.DateTime
-import org.mongodb.scala.bson.codecs.Macros
+import play.api.libs.json.{JsObject, Json}
 
-case class TokenRecord(tokenSetId: String,
-                       userId: String,
-                       appId: String,
-                       accessTokenId: String,
-                       idTokenId: Option[String],
-                       refreshTokenId: Option[String],
-                       issuedAt: DateTime)
 
-object TokenRecord {
-  val codec = Macros.createCodecProviderIgnoreNone[TokenRecord]()
+object StandardErrors {
+  val INVALID_REQUEST: JsObject = Json.obj("error" -> "invalid_request")
+  val INVALID_CLIENT: JsObject = Json.obj("error" -> "invalid_client")
+  val INVALID_GRANT: JsObject = Json.obj("error" -> "invalid_grant")
+  val UNAUTHORIZED_CLIENT: JsObject = Json.obj("error" -> "unauthorized_client")
+  val UNSUPPORTED_TOKEN_TYPE: JsObject = Json.obj("error" -> "unsupported_token_type")
 }

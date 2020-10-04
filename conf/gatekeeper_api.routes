@@ -1,3 +1,6 @@
 GET         /user-details                         controllers.api.AccountController.getUserDetails
 
 GET         /.well-known/openid-configuration     controllers.api.ConfigController.wellKnownConfig()
+
++ NOCSRF
+POST        /oauth2/revoke                        controllers.api.RevokationController.revokeToken()
