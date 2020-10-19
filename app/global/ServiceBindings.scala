@@ -22,6 +22,7 @@ import com.cjwwdev.shuttering.controllers.ShutteringController
 import controllers.api.{ConfigController, DefaultConfigController, DefaultRevokationController, RevokationController, AccountController => ApiAccountController, DefaultAccountController => DefaultApiAccountController}
 import controllers.features.DefaultFeatureController
 import controllers.shuttering.DefaultShutteringController
+import controllers.test.{DefaultEmailViewTestController, EmailViewTestController}
 import controllers.ui._
 import database._
 import filters.DefaultShutteringFilter
@@ -32,7 +33,7 @@ import services._
 
 class ServiceBindings extends Module {
   override def bindings(environment: Environment, configuration: Configuration): collection.Seq[Binding[_]] = {
-    globals() ++ filters() ++ dataStores() ++ serviceLayer() ++ orchestrators() ++ controllers() ++ apiControllers()
+    globals() ++ filters() ++ dataStores() ++ serviceLayer() ++ orchestrators() ++ controllers() ++ apiControllers() ++ testController()
   }
 
   private def globals(): Seq[Binding[_]] = Seq(
@@ -61,7 +62,8 @@ class ServiceBindings extends Module {
     bind[GrantService].to[DefaultGrantService].eagerly(),
     bind[TokenService].to[DefaultTokenService].eagerly(),
     bind[ClientService].to[DefaultClientService].eagerly(),
-    bind[TOTPService].to[DefaultTOTPService].eagerly()
+    bind[TOTPService].to[DefaultTOTPService].eagerly(),
+    bind[EmailService].to[DefaultEmailService].eagerly()
   )
 
   private def orchestrators(): Seq[Binding[_]] = Seq(
@@ -89,5 +91,9 @@ class ServiceBindings extends Module {
     bind[ApiAccountController].to[DefaultApiAccountController].eagerly(),
     bind[ConfigController].to[DefaultConfigController].eagerly(),
     bind[RevokationController].to[DefaultRevokationController].eagerly()
+  )
+
+  private def testController(): Seq[Binding[_]] = Seq(
+    bind[EmailViewTestController].to[DefaultEmailViewTestController].eagerly()
   )
 }

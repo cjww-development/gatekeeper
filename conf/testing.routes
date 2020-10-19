@@ -1,0 +1,5 @@
+->          /gatekeeper         gatekeeper.Routes
+->          /gatekeeper/api     gatekeeper_api.Routes
+->          /private            shuttering.Routes
+->          /private            features.Routes
+->          /gatekeeper/test    test.Routes

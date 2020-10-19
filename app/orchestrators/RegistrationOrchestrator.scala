@@ -17,10 +17,11 @@
 package orchestrators
 
 import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
+import com.cjwwdev.security.deobfuscation.DeObfuscators
 import javax.inject.Inject
 import models.{RegisteredApplication, User}
 import org.slf4j.LoggerFactory
-import services.RegistrationService
+import services.{EmailService, RegistrationService}
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
@@ -33,13 +34,17 @@ sealed trait AppRegistrationResponse
 case object AppRegistered extends AppRegistrationResponse
 case object AppRegistrationError extends AppRegistrationResponse
 
-class DefaultRegistrationOrchestrator @Inject()(val registrationService: RegistrationService) extends RegistrationOrchestrator
+class DefaultRegistrationOrchestrator @Inject()(val registrationService: RegistrationService,
+                                                val emailService: EmailService) extends RegistrationOrchestrator {
+  override val locale: String = ""
+}
 
-trait RegistrationOrchestrator {
+trait RegistrationOrchestrator extends DeObfuscators {
 
   protected val registrationService: RegistrationService
+  protected val emailService: EmailService
 
-  private val logger = LoggerFactory.getLogger(this.getClass)
+  override val logger = LoggerFactory.getLogger(this.getClass)
 
   def registerUser(user: User)(implicit ec: ExC): Future[UserRegistrationResponse] = {
     registrationService.isIdentifierInUse(user.email, user.userName) flatMap {
@@ -47,8 +52,10 @@ trait RegistrationOrchestrator {
         logger.warn(s"[registerUser] - Aborting registration; either email or username are already in use")
         Future.successful(AccountIdsInUse)
       case false => registrationService.validateSalt(user.salt) flatMap { saltToUse =>
+
         registrationService.createNewUser(user.copy(salt = saltToUse)) map {
           case MongoSuccessCreate =>
+            emailService.sendEmailVerificationMessage(stringDeObfuscate.decrypt(user.email).getOrElse(throw new Exception("Decryption error")))
             logger.info(s"[registerUser] - Registration successful; new user under ${user.id}")
             Registered
           case MongoFailedCreate =>
