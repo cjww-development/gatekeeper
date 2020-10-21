@@ -38,8 +38,10 @@ docker run -d -p 27017:27017 -v ~/data:/data/db mongo
 How to run
 ==========
 ```
-sbt run
+sbt -Demail.from=test@email.com -Dplay.http.router=testing.Routes run
 ```
+
+test@emai.com should be replaced with a email address or domain that's been verified in AWS SES
 
 This will start the application on port *5678*
 
