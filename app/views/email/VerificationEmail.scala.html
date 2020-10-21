@@ -1,7 +1,7 @@
 @import org.joda.time.DateTime
 @import views.html.EmailMain
 
-@()
+@(queryParam: String)
 
 @EmailMain() {
   <div class="form-signin">
@@ -14,7 +14,7 @@
     <p class="default-text">Please click below to verify your email address</p>
 
     <hr>
-    <a class="btn btn-lg btn-primary btn-block white-text" href="https://google.com">Verify your email</a>
+    <a class="btn btn-lg btn-primary btn-block white-text" href="https://google.com?verify=@{queryParam}">Verify your email</a>
     <hr>
     <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
   </div>

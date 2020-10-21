@@ -71,6 +71,7 @@ class TOTPServiceSpec
     id        = s"user-${UUID.randomUUID()}",
     userName  = "testUserName".encrypt,
     email     = "test@email.com".encrypt,
+    emailVerified = true,
     accType   = "individual",
     password  = "testPassword",
     authorisedClients = List(),

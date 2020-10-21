@@ -17,16 +17,26 @@
 package services
 
 import java.nio.charset.StandardCharsets
+import java.util.UUID
 
-import javax.inject.Inject
 import com.amazonaws.regions.Regions
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailService
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder
-import com.amazonaws.services.simpleemail.model.{Body, Content, Destination, Message, SendEmailRequest, SendEmailResult}
+import com.amazonaws.services.simpleemail.{AmazonSimpleEmailService, AmazonSimpleEmailServiceClientBuilder}
+import com.amazonaws.services.simpleemail.model._
+import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoDeleteResponse}
+import com.cjwwdev.security.obfuscation.Obfuscators
+import com.cjwwdev.security.Implicits._
+import org.mongodb.scala.model.Filters.{and, equal}
+import database.EmailVerificationStore
+import javax.inject.Inject
+import models.EmailVerification
+import org.joda.time.DateTime
 import play.api.Configuration
 import views.html.email.VerificationEmail
 
-class DefaultEmailService @Inject()(val config: Configuration) extends EmailService {
+import scala.concurrent.{Future, ExecutionContext => ExC}
+
+class DefaultEmailService @Inject()(val config: Configuration,
+                                    val emailVerificationStore: EmailVerificationStore) extends EmailService {
   override val emailSenderAddress: String = config.get[String]("email.from")
   override val verificationSubjectLine: String = config.get[String]("email.verification-subject")
   override val emailClient: AmazonSimpleEmailService = AmazonSimpleEmailServiceClientBuilder
@@ -36,13 +46,16 @@ class DefaultEmailService @Inject()(val config: Configuration) extends EmailServ
 }
 
 trait EmailService {
-
   val emailSenderAddress: String
   val verificationSubjectLine: String
 
   val emailClient: AmazonSimpleEmailService
 
-  def sendEmailVerificationMessage(to: String): SendEmailResult = {
+  val emailVerificationStore: EmailVerificationStore
+
+  def sendEmailVerificationMessage(to: String, record: EmailVerification): SendEmailResult = {
+    val queryParam = record.encrypt
+
     val destination: Destination = new Destination()
       .withToAddresses(to)
 
@@ -52,7 +65,7 @@ trait EmailService {
 
     val bodyContent: Content = new Content()
       .withCharset(StandardCharsets.UTF_8.name())
-      .withData(VerificationEmail().body)
+      .withData(VerificationEmail(queryParam).body)
 
     val body: Body = new Body()
       .withHtml(bodyContent)
@@ -67,5 +80,30 @@ trait EmailService {
       .withSource(emailSenderAddress)
 
     emailClient.sendEmail(request)
+  }
+
+  def saveVerificationRecord(userId: String, email: String, accType: String)(implicit ec: ExC): Future[EmailVerification] = {
+    val record = EmailVerification(
+      verificationId = s"verify-${UUID.randomUUID().toString}",
+      userId,
+      email,
+      accType,
+      createdAt = new DateTime()
+    )
+    emailVerificationStore.createEmailVerificationRecord(record) map(_ => record)
+  }
+
+  def validateVerificationRecord(record: EmailVerification)(implicit ec: ExC): Future[Option[EmailVerification]] = {
+    val query = and(
+      equal("verificationId", record.verificationId),
+      equal("userId", record.userId),
+      equal("email", record.email),
+    )
+    emailVerificationStore.validateEmailVerificationRecord(query)
+  }
+
+  def removeVerificationRecord(verificationId: String)(implicit ec: ExC): Future[MongoDeleteResponse] = {
+    val query = equal("verificationId", verificationId)
+    emailVerificationStore.deleteEmailVerificationRecord(query)
   }
 }

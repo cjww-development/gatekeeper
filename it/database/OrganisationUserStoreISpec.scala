@@ -37,6 +37,7 @@ class OrganisationUserStoreISpec extends PlaySpec with IntegrationApp with Asser
     id        = "testUserId",
     userName  = "testUserName",
     email     = "test@email.com",
+    emailVerified = true,
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",

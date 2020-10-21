@@ -16,25 +16,32 @@
 
 package orchestrators
 
+import com.cjwwdev.security.obfuscation.Obfuscators
+import com.cjwwdev.security.Implicits._
 import helpers.Assertions
-import helpers.services.MockRegistrationService
+import helpers.services.{MockEmailService, MockRegistrationService}
 import models.{RegisteredApplication, User}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import services.RegistrationService
+import services.{EmailService, RegistrationService}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class RegistrationOrchestratorSpec extends PlaySpec with Assertions with MockRegistrationService {
+class RegistrationOrchestratorSpec extends PlaySpec with Assertions with MockRegistrationService with MockEmailService with Obfuscators {
+
+  override val locale: String = ""
 
   val testOrchestrator: RegistrationOrchestrator = new RegistrationOrchestrator {
     override val registrationService: RegistrationService = mockRegistrationService
+    override protected val emailService: EmailService = mockEmailService
+    override val locale: String = ""
   }
 
   val testUser: User = User(
     id        = "testId",
     userName  = "testUsername",
-    email     = "test@email.com",
+    email     = "test@email.com".encrypt,
+    emailVerified = true,
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",
@@ -63,6 +70,7 @@ class RegistrationOrchestratorSpec extends PlaySpec with Assertions with MockReg
         mockIsIdentifierInUse(inUse = false)
         mockValidateSalt(salt = "testSalt")
         mockCreateNewUser(success = true)
+        mockSendEmailVerificationMessage()
 
         awaitAndAssert(testOrchestrator.registerUser(testUser)) {
           _ mustBe Registered

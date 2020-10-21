@@ -52,6 +52,7 @@ class LoginControllerSpec
     id        = s"user-${UUID.randomUUID()}",
     userName  = "testUserName",
     email     = "test@email.com",
+    emailVerified = true,
     accType   = "individual",
     password  = "testPassword",
     salt      = "testSalt",

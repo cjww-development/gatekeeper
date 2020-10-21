@@ -66,6 +66,7 @@ class GrantOrchestratorSpec
     id        = s"org-user-${UUID.randomUUID().toString}",
     userName  = "testUsername",
     email     = "test@email.com",
+    emailVerified = true,
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",

@@ -14,29 +14,24 @@
  * limitations under the License.
  */
 
-package controllers.test
+package controllers.api
 
 import javax.inject.Inject
 import org.slf4j.LoggerFactory
 import play.api.i18n.Lang
 import play.api.mvc._
-import views.html.email.VerificationEmail
 
 import scala.concurrent.{ExecutionContext => ExC}
 
-class DefaultEmailViewTestController @Inject()(val controllerComponents: ControllerComponents) extends EmailViewTestController {
+class DefaultEmailController @Inject()(val controllerComponents: ControllerComponents) extends EmailController {
   override implicit val ec: ExC = controllerComponents.executionContext
 }
 
-trait EmailViewTestController extends BaseController {
+trait EmailController extends BaseController {
 
   implicit val ec: ExC
 
   implicit def langs(implicit rh: RequestHeader): Lang = messagesApi.preferred(rh).lang
 
   private val logger = LoggerFactory.getLogger(this.getClass)
-
-  def emailVerification(): Action[AnyContent] = Action { implicit req =>
-    Ok(VerificationEmail("test-query-param"))
-  }
 }

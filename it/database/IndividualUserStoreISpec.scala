@@ -37,6 +37,7 @@ class IndividualUserStoreISpec extends PlaySpec with IntegrationApp with Asserti
     id        = "testUserId",
     userName  = "testUserName",
     email     = "test@email.com",
+    emailVerified = true,
     accType   = "individual",
     password  = "testPassword",
     salt      = "testSalt",

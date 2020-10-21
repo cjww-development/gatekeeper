@@ -21,6 +21,7 @@ import java.util.UUID
 import com.cjwwdev.security.Implicits._
 import com.cjwwdev.security.deobfuscation.DeObfuscators
 import com.cjwwdev.security.obfuscation.Obfuscators
+import org.bson.codecs.configuration.CodecProvider
 import org.joda.time.DateTime
 import utils.StringUtils
 import org.mongodb.scala.bson.codecs.Macros
@@ -30,6 +31,7 @@ import scala.reflect.ClassTag
 case class User(id: String,
                 userName: String,
                 email: String,
+                emailVerified: Boolean,
                 accType: String,
                 salt: String,
                 password: String,
@@ -41,7 +43,7 @@ case class User(id: String,
 object User extends Obfuscators with DeObfuscators {
   override val locale: String = "models.User"
 
-  val codec = Macros.createCodecProviderIgnoreNone[User]()
+  val codec: CodecProvider = Macros.createCodecProviderIgnoreNone[User]()
 
   implicit val classTag: ClassTag[User] = ClassTag[User](classOf[User])
 
@@ -57,6 +59,7 @@ object User extends Obfuscators with DeObfuscators {
       id,
       userName.trim.encrypt,
       email = email.trim.encrypt,
+      emailVerified = false,
       accType.trim,
       salt = saltStr,
       password = StringUtils.hasher(saltStr, password),

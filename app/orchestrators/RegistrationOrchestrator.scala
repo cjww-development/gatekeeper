@@ -52,15 +52,17 @@ trait RegistrationOrchestrator extends DeObfuscators {
         logger.warn(s"[registerUser] - Aborting registration; either email or username are already in use")
         Future.successful(AccountIdsInUse)
       case false => registrationService.validateSalt(user.salt) flatMap { saltToUse =>
-
-        registrationService.createNewUser(user.copy(salt = saltToUse)) map {
+        registrationService.createNewUser(user.copy(salt = saltToUse)) flatMap {
           case MongoSuccessCreate =>
-            emailService.sendEmailVerificationMessage(stringDeObfuscate.decrypt(user.email).getOrElse(throw new Exception("Decryption error")))
-            logger.info(s"[registerUser] - Registration successful; new user under ${user.id}")
-            Registered
+            val emailAddr = stringDeObfuscate.decrypt(user.email).getOrElse(throw new Exception("Decryption error"))
+            emailService.saveVerificationRecord(user.id, user.email, user.accType) map { record =>
+              emailService.sendEmailVerificationMessage(emailAddr, record)
+              logger.info(s"[registerUser] - Registration successful; new user under ${user.id}")
+              Registered
+            }
           case MongoFailedCreate =>
             logger.error(s"[registerUser] - Registration unsuccessful; There was a problem creating the user")
-            RegistrationError
+            Future.successful(RegistrationError)
         }
       }
     }

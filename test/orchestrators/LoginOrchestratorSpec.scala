@@ -42,6 +42,7 @@ class LoginOrchestratorSpec
     id        = "testId",
     userName  = "testUsername",
     email     = "test@email.com",
+    emailVerified = true,
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",
