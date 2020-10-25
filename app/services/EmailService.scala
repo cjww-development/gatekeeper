@@ -20,17 +20,17 @@ import java.nio.charset.StandardCharsets
 import java.util.UUID
 
 import com.amazonaws.regions.Regions
-import com.amazonaws.services.simpleemail.{AmazonSimpleEmailService, AmazonSimpleEmailServiceClientBuilder}
 import com.amazonaws.services.simpleemail.model._
-import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoDeleteResponse}
-import com.cjwwdev.security.obfuscation.Obfuscators
+import com.amazonaws.services.simpleemail.{AmazonSimpleEmailService, AmazonSimpleEmailServiceClientBuilder}
+import com.cjwwdev.mongo.responses.MongoDeleteResponse
 import com.cjwwdev.security.Implicits._
-import org.mongodb.scala.model.Filters.{and, equal}
 import database.EmailVerificationStore
 import javax.inject.Inject
 import models.EmailVerification
 import org.joda.time.DateTime
+import org.mongodb.scala.model.Filters.{and, equal}
 import play.api.Configuration
+import play.api.mvc.Request
 import views.html.email.VerificationEmail
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
@@ -53,7 +53,7 @@ trait EmailService {
 
   val emailVerificationStore: EmailVerificationStore
 
-  def sendEmailVerificationMessage(to: String, record: EmailVerification): SendEmailResult = {
+  def sendEmailVerificationMessage(to: String, record: EmailVerification)(implicit req: Request[_]): SendEmailResult = {
     val queryParam = record.encrypt
 
     val destination: Destination = new Destination()

@@ -23,10 +23,11 @@ import database.{EmailVerificationStore, LoginAttemptStore, UserStore}
 import helpers.Assertions
 import helpers.aws.MockSES
 import helpers.database.{MockAppStore, MockEmailVerificationStore, MockIndividualStore, MockLoginAttemptStore, MockOrganisationStore}
-import models.{LoginAttempt, User}
+import models.{EmailVerification, LoginAttempt, User}
 import org.joda.time.DateTime
 import org.mongodb.scala.bson.BsonString
 import org.scalatestplus.play.PlaySpec
+import play.api.test.FakeRequest
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -46,9 +47,19 @@ class EmailServiceSpec
   "sendEmailVerificationMessage" should {
     "return a SendEmailResult" when {
       "the verification email has been sent" in {
+        implicit val fakeRequest = FakeRequest()
+
+        val testVerificationRecord = EmailVerification(
+          verificationId = "test-verify-id",
+          userId = "test-user-id",
+          email = "test@email.com",
+          accType = "individual",
+          createdAt = new DateTime()
+        )
+
         mockSendEmail()
 
-        assertOutput(testService.sendEmailVerificationMessage("test@email.com")) {
+        assertOutput(testService.sendEmailVerificationMessage("test@email.com", testVerificationRecord)) {
           _.getMessageId mustBe "testMessageId"
         }
       }

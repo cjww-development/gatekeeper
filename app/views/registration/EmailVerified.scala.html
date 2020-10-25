@@ -5,16 +5,15 @@
 
 @()(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
 
-@Main("Register an OAuth Service", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
+@Main("Email verified", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <div class="form-signin">
         <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
-        <h1 class="h3 mb-3 font-weight-normal">Welcome</h1>
+        <h1 class="h3 mb-3 font-weight-normal">Email verified</h1>
 
         <hr>
 
-        <p class="default-text">Your account has been created, sign in below.</p>
-
-        <p class="default-text">We have also sent an email to the email address you provided. Please use the link in the email to verify your email address.</p>
+        <p class="default-text">You have successfully verified your email address</p>
+        <p class="default-text">Click the button below to sign into your account</p>
 
         <hr>
 

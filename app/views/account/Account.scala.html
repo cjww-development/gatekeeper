@@ -33,7 +33,11 @@
         <div class="card">
             <div class="card-body">
                 <h5 class="card-title">Account security</h5>
-                <p class="default-text">You need to verify your email address</p>
+                @if(userDetails.emailVerified) {
+                    <p class="default-text">Your email address is verified</p>
+                } else {
+                    <p class="default-text">You need to verify your email address</p>
+                }
 
                 @if(userDetails.mfaEnabled) {
                     <p class="default-text">Two factor authentication is enabled</p>

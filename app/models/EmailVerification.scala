@@ -16,6 +16,7 @@
 
 package models
 
+import com.cjwwdev.security.deobfuscation.{DeObfuscation, DeObfuscator}
 import com.cjwwdev.security.obfuscation.{Obfuscation, Obfuscator}
 import org.bson.codecs.configuration.CodecProvider
 import org.joda.time.DateTime
@@ -28,9 +29,10 @@ case class EmailVerification(verificationId: String,
                              accType: String,
                              createdAt: DateTime)
 
-object EmailVerification extends TimeFormat with Obfuscation {
+object EmailVerification extends TimeFormat with Obfuscation with DeObfuscation {
   override val locale: String = ""
   val codec: CodecProvider = Macros.createCodecProviderIgnoreNone[EmailVerification]()
   implicit val format: OFormat[EmailVerification] = Json.format[EmailVerification]
   implicit val obfuscator: Obfuscator[EmailVerification] = (value: EmailVerification) => obfuscate(Json.toJson(value))
+  implicit val deObfuscator: DeObfuscator[EmailVerification] = (value: String) => deObfuscate(value)
 }

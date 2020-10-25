@@ -1,5 +1,6 @@
 GET         /register                               controllers.ui.RegistrationController.showUserReg()
 POST        /register                               controllers.ui.RegistrationController.submitUserReg()
+GET         /register/email-verification            controllers.ui.EmailController.verifyUserEmailAddress(payload)
 
 
 GET         /login                                  controllers.ui.LoginController.loginShow()

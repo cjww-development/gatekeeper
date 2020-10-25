@@ -86,6 +86,7 @@ class ServiceBindings extends Module {
     bind[ShutteringController].to[DefaultShutteringController].eagerly(),
     bind[AccountController].to[DefaultAccountController].eagerly(),
     bind[ClientController].to[DefaultClientController].eagerly(),
+    bind[EmailController].to[DefaultEmailController].eagerly()
   )
 
   private def apiControllers(): Seq[Binding[_]] = Seq(

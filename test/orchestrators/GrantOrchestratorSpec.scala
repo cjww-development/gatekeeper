@@ -90,6 +90,7 @@ class GrantOrchestratorSpec
           id = "",
           userName = "test-org",
           email = "",
+          emailVerified = false,
           accType = "",
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,

@@ -19,19 +19,27 @@ package orchestrators
 import com.cjwwdev.security.obfuscation.Obfuscators
 import com.cjwwdev.security.Implicits._
 import helpers.Assertions
-import helpers.services.{MockEmailService, MockRegistrationService}
-import models.{RegisteredApplication, User}
+import helpers.services.{MockEmailService, MockRegistrationService, MockUserService}
+import models.{EmailVerification, RegisteredApplication, User}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import services.{EmailService, RegistrationService}
+import play.api.test.FakeRequest
+import services.{EmailService, RegistrationService, UserService}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class RegistrationOrchestratorSpec extends PlaySpec with Assertions with MockRegistrationService with MockEmailService with Obfuscators {
+class RegistrationOrchestratorSpec
+  extends PlaySpec
+    with Assertions
+    with MockRegistrationService
+    with MockEmailService
+    with MockUserService
+    with Obfuscators {
 
   override val locale: String = ""
 
   val testOrchestrator: RegistrationOrchestrator = new RegistrationOrchestrator {
+    override protected val userService: UserService = mockUserService
     override val registrationService: RegistrationService = mockRegistrationService
     override protected val emailService: EmailService = mockEmailService
     override val locale: String = ""
@@ -65,11 +73,20 @@ class RegistrationOrchestratorSpec extends PlaySpec with Assertions with MockReg
   )
 
   "registerUser" should {
+    implicit val fakeRequest = FakeRequest()
+
     "return a Registered response" when {
       "the user is successfully registered" in {
         mockIsIdentifierInUse(inUse = false)
         mockValidateSalt(salt = "testSalt")
         mockCreateNewUser(success = true)
+        mockSaveVerificationRecord(verificationRecord = EmailVerification(
+          verificationId = "testVerifyId",
+          userId = "testUserId",
+          email = "test@email.com",
+          accType = "individual",
+          createdAt = new DateTime()
+        ))
         mockSendEmailVerificationMessage()
 
         awaitAndAssert(testOrchestrator.registerUser(testUser)) {

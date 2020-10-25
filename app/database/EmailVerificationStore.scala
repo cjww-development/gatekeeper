@@ -49,7 +49,7 @@ trait EmailVerificationStore extends DatabaseRepository with CodecReg {
     IndexModel(Indexes.ascending("userId"), IndexOptions().background(false).unique(false)),
     IndexModel(Indexes.ascending("email"), IndexOptions().background(false).unique(false)),
     IndexModel(Indexes.ascending("accType"), IndexOptions().background(false).unique(false)),
-    IndexModel(Indexes.ascending("issuedAt"), IndexOptions().background(false).expireAfter(expiry, TimeUnit.HOURS))
+    IndexModel(Indexes.ascending("createdAt"), IndexOptions().background(false).expireAfter(expiry, TimeUnit.HOURS))
   )
 
   private def emailVerificationStore(implicit ct: ClassTag[EmailVerification], codec: CodecRegistry) = collection[EmailVerification](ct, codec)

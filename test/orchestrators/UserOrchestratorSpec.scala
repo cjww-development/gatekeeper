@@ -38,7 +38,7 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
   val monthInt: Int = now.getMonthOfYear
   val month = f"$monthInt%02d"
 
-  val nowString = s"${now.getYear}-${month}-${now.getDayOfMonth}"
+  val nowString = s"${now.getYear}-$month-${now.getDayOfMonth}"
 
   val testIndUser: User = User(
     id        = s"user-${UUID.randomUUID()}",
@@ -93,6 +93,7 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
           id = testIndUser.id,
           userName = testIndUser.userName,
           email = testIndUser.email,
+          emailVerified = true,
           accType = testIndUser.accType,
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
@@ -104,6 +105,7 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
             id = testIndUser.id,
             userName = testIndUser.userName,
             email = testIndUser.email,
+            emailVerified = true,
             accType = testIndUser.accType,
             authorisedClients = List.empty[AuthorisedClient],
             mfaEnabled = false,
@@ -117,6 +119,7 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
           id = testOrgUser.id,
           userName = testOrgUser.userName,
           email = testOrgUser.email,
+          emailVerified = true,
           accType = testOrgUser.accType,
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
@@ -128,6 +131,7 @@ class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountServ
             id = testOrgUser.id,
             userName = testOrgUser.userName,
             email = testOrgUser.email,
+            emailVerified = true,
             accType = testOrgUser.accType,
             authorisedClients = List.empty[AuthorisedClient],
             mfaEnabled = false,

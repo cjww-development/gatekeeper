@@ -16,12 +16,13 @@
 
 package orchestrators
 
-import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
+import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoFailedUpdate, MongoSuccessCreate, MongoSuccessUpdate}
 import com.cjwwdev.security.deobfuscation.DeObfuscators
 import javax.inject.Inject
-import models.{RegisteredApplication, User}
+import models.{EmailVerification, RegisteredApplication, User}
 import org.slf4j.LoggerFactory
-import services.{EmailService, RegistrationService}
+import play.api.mvc.Request
+import services.{EmailService, RegistrationService, UserService}
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
@@ -34,7 +35,13 @@ sealed trait AppRegistrationResponse
 case object AppRegistered extends AppRegistrationResponse
 case object AppRegistrationError extends AppRegistrationResponse
 
+sealed trait VerificationResponse
+case object EmailVerified extends VerificationResponse
+case object ErrorRetryAllowed extends VerificationResponse
+case object NoRecordFound extends VerificationResponse
+
 class DefaultRegistrationOrchestrator @Inject()(val registrationService: RegistrationService,
+                                                val userService: UserService,
                                                 val emailService: EmailService) extends RegistrationOrchestrator {
   override val locale: String = ""
 }
@@ -43,10 +50,11 @@ trait RegistrationOrchestrator extends DeObfuscators {
 
   protected val registrationService: RegistrationService
   protected val emailService: EmailService
+  protected val userService: UserService
 
   override val logger = LoggerFactory.getLogger(this.getClass)
 
-  def registerUser(user: User)(implicit ec: ExC): Future[UserRegistrationResponse] = {
+  def registerUser(user: User)(implicit ec: ExC, req: Request[_]): Future[UserRegistrationResponse] = {
     registrationService.isIdentifierInUse(user.email, user.userName) flatMap {
       case true =>
         logger.warn(s"[registerUser] - Aborting registration; either email or username are already in use")
@@ -74,6 +82,24 @@ trait RegistrationOrchestrator extends DeObfuscators {
         case MongoSuccessCreate => AppRegistered
         case MongoFailedCreate  => AppRegistrationError
       }
+    }
+  }
+
+  def confirmEmailAddress(verificationRecord: EmailVerification)(implicit ec: ExC): Future[VerificationResponse] = {
+    emailService.validateVerificationRecord(verificationRecord) flatMap {
+      case Some(rec) => userService.setEmailVerifiedStatus(rec.userId, verified = true) flatMap {
+        case MongoSuccessUpdate =>
+          logger.info(s"[confirmEmailAddress] - Email for ${rec.userId} is now verified")
+          emailService.removeVerificationRecord(rec.verificationId) map {
+            _ => EmailVerified
+          }
+        case MongoFailedUpdate =>
+          logger.warn(s"[confirmEmailAddress] - Failed to set the verification status for user ${rec.userId}; retry is allowed")
+          Future.successful(ErrorRetryAllowed)
+      }
+      case None =>
+        logger.warn(s"[confirmEmailAddress] - No verification record found for ${verificationRecord.verificationId}")
+        Future.successful(NoRecordFound)
     }
   }
 }

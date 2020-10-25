@@ -14,36 +14,31 @@
  * limitations under the License.
  */
 
-package helpers.orchestrators
+package helpers.services
 
-import models.{RegisteredApplication, User}
-import orchestrators._
+import com.cjwwdev.mongo.responses.{MongoFailedUpdate, MongoSuccessUpdate, MongoUpdatedResponse}
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
 import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
+import services.{MFAEnabledResponse, QRCodeResponse, SecretResponse, TOTPService, UserService}
 
 import scala.concurrent.Future
 
-trait MockRegistrationOrchestrator extends MockitoSugar with BeforeAndAfterEach {
+trait MockUserService extends MockitoSugar with BeforeAndAfterEach {
   self: PlaySpec =>
 
-  val mockRegistrationOrchestrator: RegistrationOrchestrator = mock[RegistrationOrchestrator]
+  val mockUserService: UserService = mock[UserService]
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(mockRegistrationOrchestrator)
+    reset(mockUserService)
   }
 
-  def mockRegisterUser(result: UserRegistrationResponse): OngoingStubbing[Future[UserRegistrationResponse]] = {
-    when(mockRegistrationOrchestrator.registerUser(ArgumentMatchers.any[User]())(ArgumentMatchers.any(), ArgumentMatchers.any()))
-      .thenReturn(Future.successful(result))
-  }
-
-  def mockRegisterApplication(success: Boolean): OngoingStubbing[Future[AppRegistrationResponse]] = {
-    when(mockRegistrationOrchestrator.registerApplication(ArgumentMatchers.any[RegisteredApplication]())(ArgumentMatchers.any()))
-      .thenReturn(Future.successful(if(success) AppRegistered else AppRegistrationError))
+  def mockSetEmailVerifiedStatus(updated: Boolean): OngoingStubbing[Future[MongoUpdatedResponse]] = {
+    when(mockUserService.setEmailVerifiedStatus(ArgumentMatchers.any[String](), ArgumentMatchers.any[Boolean]())(ArgumentMatchers.any()))
+      .thenReturn(if(updated) Future.successful(MongoSuccessUpdate) else Future.successful(MongoFailedUpdate))
   }
 }

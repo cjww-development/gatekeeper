@@ -3,7 +3,7 @@
 @import views.html.Main
 @import views.AuthForView
 
-@(mfaStatus: Boolean)(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
+@(mfaStatus: Boolean, emailVerificationStatus: Boolean, email: String)(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
 
 @Main("Account Security", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <div class="form-signin">
@@ -11,6 +11,24 @@
         <h1 class="h3 mb-3 font-weight-normal">Account security</h1>
 
         <hr>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Email verification</h5>
+                @if(emailVerificationStatus) {
+                    <p class="default-text">Your email address</p>
+                    <p class="default-text">@email</p>
+                    <p class="default-text">has been verified</p>
+                } else {
+                    <p class="default-text">Your email address not yet been verified.</p>
+                    <p class="default-text">Use the link in the email we sent to</p>
+                    <p class="default-text">@email</p>
+                    <p class="default-text">to verify</p>
+                    <p class="default-text">Use the button below to resend the email</p>
+                    <a href="" class="btn btn-success btn-block">Resend verification message</a>
+                }
+            </div>
+        </div>
 
         <div class="card">
             <div class="card-body">

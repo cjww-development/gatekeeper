@@ -46,6 +46,7 @@ class TokenServiceSpec
     id = "test-user-id",
     userName = "test-org",
     email = "test@email.com",
+    emailVerified = true,
     accType = "organisation",
     authorisedClients = List.empty[AuthorisedClient],
     mfaEnabled = false,

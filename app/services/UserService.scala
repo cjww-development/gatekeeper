@@ -1,9 +1,9 @@
 package services
 
-import com.cjwwdev.mongo.responses.{MongoFailedUpdate, MongoSuccessUpdate}
+import com.cjwwdev.mongo.responses.{MongoFailedUpdate, MongoSuccessUpdate, MongoUpdatedResponse}
 import com.cjwwdev.security.SecurityConfiguration
 import com.cjwwdev.security.deobfuscation.DeObfuscators
-import database.{IndividualUserStore, OrganisationUserStore, UserStore, UserStoreUtils}
+import database.{UserStore, UserStoreUtils}
 import javax.inject.{Inject, Named}
 import models.{AuthorisedClient, UserInfo}
 import org.joda.time.{DateTime, DateTimeZone}
@@ -57,7 +57,7 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
   }
 
   def getUserInfo(userId: String)(implicit ec: ExC): Future[Option[UserInfo]] = {
-    val projections = List("userName", "email", "createdAt", "authorisedClients", "mfaEnabled", "accType")
+    val projections = List("userName", "email", "emailVerified", "createdAt", "authorisedClients", "mfaEnabled", "accType")
     getUserStore(userId).projectValue("id", userId, projections:_*) map { data =>
       if(data.nonEmpty) {
         logger.info(s"[getUserInfo] - Found user data for user $userId")
@@ -65,6 +65,7 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
           id = data("id").asString().getValue,
           userName = stringDeObfuscate.decrypt(data("userName").asString().getValue).getOrElse("---"),
           email = stringDeObfuscate.decrypt(data("email").asString().getValue).getOrElse("---"),
+          emailVerified = data("emailVerified").asBoolean().getValue,
           accType = data("accType").asString().getValue,
           authorisedClients = getAuthorisedClientFromBson(data),
           mfaEnabled = data("mfaEnabled").asBoolean().getValue,
@@ -123,6 +124,19 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
       case None =>
         logger.warn(s"[unlinkClientFromUser] - Failed to unlink client to user; user not found")
         Future.successful(NoUserFound)
+    }
+  }
+
+  def setEmailVerifiedStatus(userId: String, verified: Boolean)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
+    val collection = getUserStore(userId)
+    val update: Boolean => Bson = verified => set("emailVerified", verified)
+    collection.updateUser(query(userId), update(verified)) map {
+      case MongoSuccessUpdate =>
+        logger.info(s"[setEmailVerifiedStatus] - Set email verification status to $verified for user $userId")
+        MongoSuccessUpdate
+      case MongoFailedUpdate =>
+        logger.warn(s"[setEmailVerifiedStatus] - Failed to set email verification status for user $userId")
+        MongoFailedUpdate
     }
   }
 }

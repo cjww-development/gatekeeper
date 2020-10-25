@@ -22,6 +22,7 @@ import play.api.libs.json.{Json, OFormat}
 case class UserInfo(id: String,
                     userName: String,
                     email: String,
+                    emailVerified: Boolean,
                     accType: String,
                     authorisedClients: List[AuthorisedClient],
                     mfaEnabled: Boolean,
