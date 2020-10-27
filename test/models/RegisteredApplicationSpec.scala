@@ -19,7 +19,9 @@ package models
 import helpers.Assertions
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import play.api.libs.json.{JsError, JsPath, JsString, Json}
+import play.api.libs.json.{JsArray, JsError, JsNumber, JsPath, JsString, Json}
+
+import scala.collection.Seq
 
 class RegisteredApplicationSpec extends PlaySpec with Assertions {
 
@@ -34,7 +36,11 @@ class RegisteredApplicationSpec extends PlaySpec with Assertions {
           "homeUrl"     -> "http://localhost:5678",
           "redirectUrl" -> "http://localhost:5678/redirect",
           "clientType"  -> "confidential",
-          "createdAt"   -> JsString(DateTime.now().toString)
+          "createdAt"   -> JsString(DateTime.now().toString),
+          "oauth2Flows" -> JsArray(),
+          "idTokenExpiry" -> JsNumber(0L),
+          "accessTokenExpiry" -> JsNumber(0L),
+          "refreshTokenExpiry" -> JsNumber(0L)
         )
 
         val result = Json.fromJson[RegisteredApplication](testJson).get
@@ -60,7 +66,11 @@ class RegisteredApplicationSpec extends PlaySpec with Assertions {
           "homeUrl"     -> "http://localhost:5678",
           "redirectUrl" -> "http://localhost:5678/redirect",
           "clientType"  -> "public",
-          "createdAt"   -> JsString(DateTime.now().toString)
+          "createdAt"   -> JsString(DateTime.now().toString),
+          "oauth2Flows" -> JsArray(),
+          "idTokenExpiry" -> JsNumber(0L),
+          "accessTokenExpiry" -> JsNumber(0L),
+          "refreshTokenExpiry" -> JsNumber(0L)
         )
 
         val result = Json.fromJson[RegisteredApplication](testJson).get

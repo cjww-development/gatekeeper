@@ -20,6 +20,7 @@ import java.util.UUID
 
 import com.cjwwdev.security.obfuscation.Obfuscators
 import com.cjwwdev.security.Implicits._
+import org.bson.codecs.configuration.CodecProvider
 import org.joda.time.DateTime
 import org.mongodb.scala.bson.codecs.Macros
 import play.api.libs.json._
@@ -35,12 +36,16 @@ case class RegisteredApplication(appId: String,
                                  clientType: String,
                                  clientId: String,
                                  clientSecret: Option[String],
+                                 oauth2Flows: Seq[String],
+                                 idTokenExpiry: Long,
+                                 accessTokenExpiry: Long,
+                                 refreshTokenExpiry: Long,
                                  createdAt: DateTime)
 
 object RegisteredApplication extends Obfuscators with TimeFormat {
   override val locale: String = this.getClass.getCanonicalName
 
-  val codec = Macros.createCodecProviderIgnoreNone[RegisteredApplication]()
+  val codec: CodecProvider = Macros.createCodecProviderIgnoreNone[RegisteredApplication]()
 
   def generateIds(iterations: Int): String = {
     (0 to iterations)
@@ -70,11 +75,15 @@ object RegisteredApplication extends Obfuscators with TimeFormat {
       homeUrl,
       redirectUrl,
       clientType,
-      generateIds(iterations = 0),
-      clientType match {
+      clientId = generateIds(iterations = 0),
+      clientSecret = clientType match {
         case "confidential" => Some(generateIds(iterations = 1))
         case "public"       => None
       },
+      oauth2Flows = Seq(),
+      idTokenExpiry = 0L,
+      accessTokenExpiry = 0L,
+      refreshTokenExpiry = 0L,
       DateTime.now()
     )
   }
@@ -113,6 +122,10 @@ object RegisteredApplication extends Obfuscators with TimeFormat {
           case "confidential" => Some(generateIds(iterations = 2))
           case "public"       => None
         },
+        oauth2Flows = json.\("oauth2Flows").as[Seq[String]],
+        idTokenExpiry = json.\("idTokenExpiry").as[Long],
+        accessTokenExpiry = json.\("accessTokenExpiry").as[Long],
+        refreshTokenExpiry = json.\("refreshTokenExpiry").as[Long],
         createdAt = json.\("createdAt").as[DateTime]
       ))
     }

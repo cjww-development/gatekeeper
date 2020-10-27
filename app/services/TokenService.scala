@@ -16,16 +16,18 @@
 
 package services
 
+import java.text.SimpleDateFormat
 import java.time.{Clock, Instant}
-import java.util.UUID
+import java.util.{Date, Locale, UUID}
+import java.util.concurrent.TimeUnit
 
 import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoDeleteResponse, MongoFailedCreate, MongoSuccessCreate, MongoUpdatedResponse}
 import database.TokenRecordStore
 import javax.inject.Inject
-import models.TokenRecord
+import models.{TokenExpiry, TokenRecord}
 import org.joda.time.DateTime
-import org.mongodb.scala.model.Filters.{and, equal}
-import org.mongodb.scala.model.Updates.set
+import org.mongodb.scala.model.Filters.{and, equal, exists}
+import org.mongodb.scala.model.Updates.{min, set}
 import org.slf4j.LoggerFactory
 import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}
 import play.api.Configuration
@@ -160,8 +162,6 @@ trait TokenService {
         case "refresh_token" => "refreshTokenId"
       }
 
-      println(s"$field -> $tokenId")
-
       val eqs = Seq(equal("tokenSetId", setId)) ++ field.map(field => Seq(equal(field, tokenId))).getOrElse(Seq())
       val query = and(eqs:_*)
 
@@ -175,5 +175,46 @@ trait TokenService {
       val query = equal("tokenSetId", setId)
       tokenRecordStore.deleteTokenRecord(query) map(Right(_))
     }
+  }
+
+  def convertDaysMinsToMilli(tokenExpiry: TokenExpiry): (Long, Long, Long) = {
+    val dayAndMinToMill: (Long, Long) => Long = (day, min) => {
+      TimeUnit.DAYS.toMillis(day) + TimeUnit.MINUTES.toMillis(min)
+    }
+
+    (
+      dayAndMinToMill(tokenExpiry.idTokenDays, tokenExpiry.idTokenMins),
+      dayAndMinToMill(tokenExpiry.accessTokenDays, tokenExpiry.accessTokenMins),
+      dayAndMinToMill(tokenExpiry.refreshTokenDays, tokenExpiry.refreshTokenMins)
+    )
+  }
+
+  def convertMilliToTokenExpiry(idTokenExpiry: Long, accessTokenExpiry: Long, refreshTokenExpiry: Long): TokenExpiry = {
+    val getDaysAndMins: Long => (Long, Long) = expiry => {
+      val days = TimeUnit.MILLISECONDS.toDays(expiry)
+
+      if(days < 1) {
+        val mins = TimeUnit.MILLISECONDS.toMinutes(expiry)
+        days -> mins
+      } else {
+        val daysInMillis = TimeUnit.DAYS.toMillis(days)
+        val mins = TimeUnit.MILLISECONDS.toMinutes(expiry - daysInMillis)
+
+        days -> mins
+      }
+    }
+
+    val (idDays, idMins) = getDaysAndMins(idTokenExpiry)
+    val (accessDays, accessMins) = getDaysAndMins(accessTokenExpiry)
+    val (refreshDays, refreshMins) = getDaysAndMins(refreshTokenExpiry)
+
+    TokenExpiry(
+      idTokenDays = idDays,
+      idTokenMins = idMins,
+      accessTokenDays = accessDays,
+      accessTokenMins = accessMins,
+      refreshTokenDays = refreshDays,
+      refreshTokenMins = refreshMins
+    )
   }
 }

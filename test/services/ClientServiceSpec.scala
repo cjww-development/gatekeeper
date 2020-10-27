@@ -52,6 +52,10 @@ class ClientServiceSpec
     clientType   = "confidential",
     clientId     = "testClientId".encrypt,
     clientSecret = Some("testClientSecret".encrypt),
+    oauth2Flows = Seq(),
+    idTokenExpiry = 0L,
+    accessTokenExpiry = 0L,
+    refreshTokenExpiry = 0L,
     createdAt    = DateTime.now()
   )
 

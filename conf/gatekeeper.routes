@@ -34,5 +34,7 @@ GET         /client/regenerate                      controllers.ui.ClientControl
 POST        /client/regenerate                      controllers.ui.ClientController.regenerateIdAndSecretSubmit(appId)
 GET         /client/delete                          controllers.ui.ClientController.deleteClientShow(appId)
 POST        /client/delete                          controllers.ui.ClientController.deleteClientSubmit(appId)
+POST        /client/update/flows                    controllers.ui.ClientController.updateOAuthFlows(appId)
+POST        /client/update/expiry                   controllers.ui.ClientController.updateTokenExpiry(appId)
 
 GET         /assets/*file                           controllers.Assets.at(path="/public", file)

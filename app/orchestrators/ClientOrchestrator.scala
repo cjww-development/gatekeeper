@@ -16,11 +16,11 @@
 
 package orchestrators
 
-import com.cjwwdev.mongo.responses.{MongoDeleteResponse, MongoFailedDelete, MongoSuccessDelete}
+import com.cjwwdev.mongo.responses.{MongoDeleteResponse, MongoFailedDelete, MongoFailedUpdate, MongoSuccessDelete, MongoSuccessUpdate}
 import com.cjwwdev.security.deobfuscation.DeObfuscators
 import com.cjwwdev.security.obfuscation.Obfuscators
 import javax.inject.Inject
-import models.{AuthorisedClient, RegisteredApplication, TokenRecord}
+import models.{AuthorisedClient, RegisteredApplication, TokenExpiry, TokenRecord}
 import org.slf4j.{Logger, LoggerFactory}
 import services._
 
@@ -30,6 +30,8 @@ sealed trait AppUpdateResponse
 case object SecretsUpdated extends AppUpdateResponse
 case object NoAppFound extends AppUpdateResponse
 case object UpdatedFailed extends AppUpdateResponse
+case object FlowsUpdated extends AppUpdateResponse
+case object ExpiryUpdated extends AppUpdateResponse
 
 class DefaultClientOrchestrator @Inject()(val clientService: ClientService,
                                           val userService: UserService,
@@ -126,5 +128,39 @@ trait ClientOrchestrator extends Obfuscators with DeObfuscators {
 
   def unlinkAppFromUser(appId: String, userId: String)(implicit ec: ExC): Future[LinkResponse] = {
     userService.unlinkClientFromUser(userId, appId)
+  }
+
+  def updateAppOAuthFlows(flows: Seq[String], appId: String, orgUserId: String)(implicit ec: ExC): Future[AppUpdateResponse] = {
+    clientService.updateOAuth2Flows(flows, appId, orgUserId) map {
+      case MongoSuccessUpdate =>
+        logger.info(s"[updateAppOAuthFlows] - Updated the compatible oauth2 flows for app $appId belonging to org user $orgUserId")
+        FlowsUpdated
+      case MongoFailedUpdate =>
+        logger.warn(s"[updateAppOAuthFlows] - Failed to update the compatible oauth2 flows for app $appId belonging to org user $orgUserId")
+        UpdatedFailed
+    }
+  }
+
+  def updateTokenExpiry(appId: String, orgUserId: String, tokenExpiry: TokenExpiry)(implicit ec: ExC): Future[AppUpdateResponse] = {
+    val (id, access, refresh) = tokenService.convertDaysMinsToMilli(tokenExpiry)
+    clientService.updateTokenExpiry(orgUserId, appId, id, access, refresh) map {
+      case MongoSuccessUpdate =>
+        logger.info(s"[updateTokenExpiry] - Updated the token expiry for app $appId belonging to org user $orgUserId")
+        ExpiryUpdated
+      case MongoFailedUpdate =>
+        logger.warn(s"[updateTokenExpiry] - Failed to update the token expiry for app $appId belonging to org user $orgUserId")
+        UpdatedFailed
+    }
+  }
+
+  def getTokenExpiry(appId: String, orgUserId: String)(implicit ec: ExC): Future[Option[TokenExpiry]] = {
+    clientService.getRegisteredApp(orgUserId, appId) map {
+      case Some(app) =>
+        logger.info(s"[getTokenExpiry] - Found registered app for appId $appId belonging to org user $orgUserId")
+        Some(tokenService.convertMilliToTokenExpiry(app.idTokenExpiry, app.accessTokenExpiry, app.refreshTokenExpiry))
+      case None =>
+        logger.warn(s"[getTokenExpiry] - Could not find registered app for appId $appId belonging to org user $orgUserId")
+        None
+    }
   }
 }

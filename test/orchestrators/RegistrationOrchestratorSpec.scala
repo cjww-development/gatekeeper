@@ -69,6 +69,10 @@ class RegistrationOrchestratorSpec
     clientType   = "confidential",
     clientId     = "testId",
     clientSecret = Some("testSecret"),
+    oauth2Flows = Seq(),
+    idTokenExpiry = 0L,
+    accessTokenExpiry = 0L,
+    refreshTokenExpiry = 0L,
     createdAt    = DateTime.now()
   )
 

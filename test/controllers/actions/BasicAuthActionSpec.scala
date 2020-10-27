@@ -56,6 +56,10 @@ class BasicAuthActionSpec extends PlaySpec with MockClientService with Assertion
     clientType   = "confidential",
     clientId     = "testId",
     clientSecret = Some("testSecret"),
+    oauth2Flows = Seq(),
+    idTokenExpiry = 0L,
+    accessTokenExpiry = 0L,
+    refreshTokenExpiry = 0L,
     createdAt    = now
   )
 

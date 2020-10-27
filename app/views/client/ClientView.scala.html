@@ -5,10 +5,11 @@
 @import views.html.helper.CSRF
 @import views.AuthForView
 
-@(app: RegisteredApplication)(implicit rh: RequestHeader)
+@(app: RegisteredApplication, tokenExpiry: TokenExpiry)(implicit rh: RequestHeader)
 
 @Main("View a registered client", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <script src="https://cdn.jsdelivr.net/npm/jdenticon@@3.0.1" async></script>
+    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/checkbox.css")">
 
     <div class="form-signin">
         <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
@@ -32,7 +33,7 @@
                 <p class="default-text"><strong>Client type</strong></p>
                 <p class="default-text">@{app.clientType}</p>
                 <hr>
-                <p class="default-text"><strong>Created at</strong></p>
+                <p class="default-text"><strong>Created on</strong></p>
                 <p class="default-text">@{app.createdAt.toLocalDate}</p>
             </div>
         </div>
@@ -55,7 +56,9 @@
                         <input type="text" class="form-control" value="@{app.redirectUrl}">
                     </div>
 
-                    <button class="btn btn-lg btn-primary btn-block" type="submit">Update @{app.name}</button>
+                    <hr>
+
+                    <button class="btn btn-lg btn-primary btn-block" type="submit">Update redirects</button>
                 </form>
             </div>
         </div>
@@ -73,6 +76,8 @@
                         <input type="text" id="secret-text" class="form-control" hidden value="@{app.clientSecret.get}">
                     </div>
 
+                    <hr>
+
                     <div class="white-text">
                         <a class="btn btn-lg btn-success btn-block" id="secret-button" onclick="changeInputType()">Reveal secret</a>
                     </div>
@@ -80,11 +85,102 @@
             </div>
         }
 
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title default-text">Allowed OAuth2 flows</h4>
+
+                <form action="@uiRoutes.ClientController.updateOAuthFlows(app.appId)" method="post">
+                    @CSRF.formField
+
+                    <label class="checkbox checkbox-success" for="auth-code-check">
+                        <input type="checkbox" id="auth-code-check" name="auth-code-check" value="authorization_code" @if(app.oauth2Flows.contains("authorization_code")){ checked }/> Auth code grant
+                    </label>
+
+                    <label class="checkbox checkbox-success" for="client-cred-check">
+                        <input type="checkbox" id="client-cred-check" name="client-cred-check" value="client_credentials" @if(app.oauth2Flows.contains("client_credentials")){ checked }/> Client credentials
+                    </label>
+
+                    <hr>
+
+                    <button class="btn btn-lg btn-primary btn-block" type="submit">Update flows</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title default-text">Token expiry</h4>
+
+                <form action="@uiRoutes.ClientController.updateTokenExpiry(app.appId)" method="post">
+                    @CSRF.formField
+
+                    <p class="default-text"><strong>Id token</strong></p>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="basic-addon1">Days</span>
+                        </div>
+                        <input type="number" min="0" class="form-control" placeholder="How many days the token is valid" name="id-token-days" value="@{tokenExpiry.idTokenDays}">
+                    </div>
+
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="basic-addon1">Mins</span>
+                        </div>
+                        <input type="number" min="5" max="60" class="form-control" placeholder="How many mins the token is valid" name="id-token-mins" value="@{tokenExpiry.idTokenMins}">
+                    </div>
+
+                    <div class="alert alert-info" role="alert">Must be between 5 minutes and 1 day</div>
+
+                    <hr>
+
+                    <p class="default-text"><strong>Access token</strong></p>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="basic-addon1">Days</span>
+                        </div>
+                        <input type="number" min="0" class="form-control" placeholder="How many days the token is valid" name="access-token-days" value="@{tokenExpiry.accessTokenDays}">
+                    </div>
+
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="basic-addon1">Mins</span>
+                        </div>
+                        <input type="number" min="0" max="60" class="form-control" placeholder="How many mins the token is valid" name="access-token-mins" value="@{tokenExpiry.accessTokenMins}">
+                    </div>
+
+                    <div class="alert alert-info" role="alert">Must be between 5 minutes and 1 day</div>
+
+                    <hr>
+
+                    <p class="default-text"><strong>Refresh token</strong></p>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="basic-addon1">Days</span>
+                        </div>
+                        <input type="number" min="0" max="3650" class="form-control" placeholder="How many days the token is valid" name="refresh-token-days" value="@{tokenExpiry.refreshTokenDays}">
+                    </div>
+
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="basic-addon1">Mins</span>
+                        </div>
+                        <input type="number" min="0" max="60" class="form-control" placeholder="How many mins the token is valid" name="refresh-token-mins" value="@{tokenExpiry.refreshTokenMins}">
+                    </div>
+
+                    <p class="default-text">Must be between 60 minutes and 3650 days</p>
+                    <div class="alert alert-info" role="alert">Must be between 60 minutes and 3650 days</div>
+
+                    <hr>
+
+                    <button class="btn btn-lg btn-primary btn-block" type="submit">Update expiry</button>
+                </form>
+            </div>
+        </div>
+
         <hr>
 
         @if(app.clientType == "confidential") {
             <a class="btn btn-lg btn-warning btn-block" href="@uiRoutes.ClientController.regenerateIdAndSecretShow(app.appId)">Regenerate id and secret</a>
-
         } else {
             <a class="btn btn-lg btn-warning btn-block" href="@uiRoutes.ClientController.regenerateIdAndSecretShow(app.appId)">Regenerate id</a>
         }
@@ -109,7 +205,6 @@
             } else {
                 document.getElementById("secret-text").setAttribute("hidden", "")
                 document.getElementById("secret-pass").removeAttribute("hidden")
-
             }
         }
     </script>

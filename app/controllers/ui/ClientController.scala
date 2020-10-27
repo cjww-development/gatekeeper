@@ -20,6 +20,7 @@ import com.cjwwdev.mongo.responses.{MongoFailedDelete, MongoSuccessDelete}
 import controllers.actions.AuthenticatedAction
 import forms.AppRegistrationForm.{form => appRegForm}
 import javax.inject.Inject
+import models.TokenExpiry
 import orchestrators._
 import org.slf4j.LoggerFactory
 import play.api.i18n.{I18NSupportLowPriorityImplicits, I18nSupport, Lang}
@@ -30,6 +31,7 @@ import views.html.client.{AuthorisedClientView, AuthorisedClientsView, ClientVie
 import views.html.misc.{NotFound => NotFoundView}
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
+import scala.util.Try
 
 class DefaultClientController @Inject()(val controllerComponents: ControllerComponents,
                                         val scopeService: ScopeService,
@@ -68,9 +70,13 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
   }
 
   def getClientDetails(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => orgUserId =>
-    clientOrchestrator.getRegisteredApp(orgUserId, appId) map {
-      case Some(app) => Ok(ClientView(app))
-      case None      => NotFound(NotFoundView())
+    for {
+      app <- clientOrchestrator.getRegisteredApp(orgUserId, appId)
+      expiry <- clientOrchestrator.getTokenExpiry(appId, orgUserId)
+    } yield if(app.isDefined && expiry.isDefined) {
+      Ok(ClientView(app.get, expiry.get))
+    } else {
+      NotFound(NotFoundView())
     }
   }
 
@@ -130,6 +136,31 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
   def revokeSession(tokenSetId: String, appId: String): Action[AnyContent] = authenticatedUser { implicit req => userId =>
     tokenOrchestrator.revokeTokens(tokenSetId, userId, appId) map {
       _ => Redirect(routes.ClientController.getAuthorisedApp(appId))
+    }
+  }
+
+  def updateOAuthFlows(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => orgUserId =>
+    val reqBody = req.body.asFormUrlEncoded.getOrElse(Map())
+    val oauthFlows = reqBody.getOrElse("auth-code-check", Seq()) ++ reqBody.getOrElse("client-cred-check", Seq())
+
+    clientOrchestrator.updateAppOAuthFlows(oauthFlows, appId, orgUserId) map {
+      _ => Redirect(routes.ClientController.getClientDetails(appId))
+    }
+  }
+
+  def updateTokenExpiry(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => orgUserId =>
+    val body = req.body.asFormUrlEncoded.getOrElse(Map())
+    val expiry = TokenExpiry(
+      idTokenMins = Try(body.getOrElse("id-token-mins", Seq("0")).map(_.toLong).head).getOrElse(0),
+      idTokenDays = Try(body.getOrElse("id-token-days", Seq("0")).map(_.toLong).head).getOrElse(0),
+      accessTokenDays = Try(body.getOrElse("access-token-days", Seq("0")).map(_.toLong).head).getOrElse(0),
+      accessTokenMins = Try(body.getOrElse("access-token-mins", Seq("0")).map(_.toLong).head).getOrElse(0),
+      refreshTokenDays = Try(body.getOrElse("refresh-token-days", Seq("0")).map(_.toLong).head).getOrElse(0),
+      refreshTokenMins = Try(body.getOrElse("refresh-token-mins", Seq("0")).map(_.toLong).head).getOrElse(0)
+    )
+
+    clientOrchestrator.updateTokenExpiry(appId, orgUserId, expiry) map {
+      _ => Redirect(routes.ClientController.getClientDetails(appId))
     }
   }
 }

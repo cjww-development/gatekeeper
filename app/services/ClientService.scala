@@ -16,7 +16,7 @@
 
 package services
 
-import com.cjwwdev.mongo.responses.{MongoDeleteResponse, MongoFailedUpdate, MongoSuccessUpdate}
+import com.cjwwdev.mongo.responses.{MongoDeleteResponse, MongoFailedUpdate, MongoSuccessUpdate, MongoUpdatedResponse}
 import com.cjwwdev.security.obfuscation.Obfuscators
 import com.cjwwdev.security.Implicits._
 import database.AppStore
@@ -144,5 +144,31 @@ trait ClientService extends Obfuscators {
     )
 
     appStore.deleteApp(query)
+  }
+
+  def updateOAuth2Flows(flows: Seq[String], appId: String, orgUserId: String)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
+    val query = and(
+      equal("owner", orgUserId),
+      equal("appId", appId)
+    )
+
+    val update = set("oauth2Flows", flows)
+
+    appStore.updateApp(query, update)
+  }
+
+  def updateTokenExpiry(orgUserId: String, appId: String, idExpiry: Long, accessExpiry: Long, refreshExpiry: Long)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
+    val query = and(
+      equal("owner", orgUserId),
+      equal("appId", appId)
+    )
+
+    val update = and(
+      set("idTokenExpiry", idExpiry),
+      set("accessTokenExpiry", accessExpiry),
+      set("refreshTokenExpiry", refreshExpiry)
+    )
+
+    appStore.updateApp(query, update)
   }
 }

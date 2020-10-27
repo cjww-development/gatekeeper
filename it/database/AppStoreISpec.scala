@@ -25,6 +25,7 @@ import org.scalatestplus.play.PlaySpec
 import org.mongodb.scala.model.Filters.{and => mongoAnd, equal => mongoEqual}
 import org.mongodb.scala.model.Updates.set
 
+import scala.collection.Seq
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class AppStoreISpec extends PlaySpec with IntegrationApp with Assertions with BeforeAndAfterAll with CodecReg {
@@ -43,6 +44,10 @@ class AppStoreISpec extends PlaySpec with IntegrationApp with Assertions with Be
     clientType   = "confidential",
     clientId     = "testClientId",
     clientSecret = Some("testClientSecret"),
+    oauth2Flows = Seq(),
+    idTokenExpiry = 0L,
+    accessTokenExpiry = 0L,
+    refreshTokenExpiry = 0L,
     createdAt    = DateTime.now()
   )
 

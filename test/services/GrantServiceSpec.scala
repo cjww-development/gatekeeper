@@ -52,6 +52,10 @@ class GrantServiceSpec
     clientType   = "confidential",
     clientId     = "testId".encrypt,
     clientSecret = Some("testSecret".encrypt),
+    oauth2Flows = Seq(),
+    idTokenExpiry = 0L,
+    accessTokenExpiry = 0L,
+    refreshTokenExpiry = 0L,
     createdAt    = DateTime.now()
   )
 
