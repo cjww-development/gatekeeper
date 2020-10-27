@@ -41,19 +41,25 @@
         <div class="card">
             <div class="card-body">
                 <h4 class="card-title default-text">Redirects</h4>
-                <form action="" method="post">
+                <form action="@uiRoutes.ClientController.updateHomeAndRedirect(app.appId)" method="post">
+                    @CSRF.formField
+
                     <div class="input-group mb-3">
                         <div class="input-group-prepend">
                             <span class="input-group-text" id="basic-addon1">Home</span>
                         </div>
-                        <input type="text" class="form-control" value="@{app.homeUrl}">
+                        <input type="text" class="form-control" name="home-url" value="@{app.homeUrl}">
                     </div>
 
                     <div class="input-group mb-3">
                         <div class="input-group-prepend">
                             <span class="input-group-text" id="basic-addon1">Redirect</span>
                         </div>
-                        <input type="text" class="form-control" value="@{app.redirectUrl}">
+                        <input type="text" class="form-control" name="redirect-url" value="@{app.redirectUrl}">
+                    </div>
+
+                    <div class="alert alert-warning" role="alert">
+                        Localhost addresses can be used for development and testing. For live services, localhost should not be used and the address should use a secure protocol (https)
                     </div>
 
                     <hr>

@@ -171,4 +171,18 @@ trait ClientService extends Obfuscators {
 
     appStore.updateApp(query, update)
   }
+
+  def updateRedirects(orgUserId: String, appId: String, homeUrl: String, redirectUrl: String)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
+    val query = and(
+      equal("owner", orgUserId),
+      equal("appId", appId)
+    )
+
+    val update = and(
+      set("homeUrl", homeUrl),
+      set("redirectUrl", redirectUrl)
+    )
+
+    appStore.updateApp(query, update)
+  }
 }

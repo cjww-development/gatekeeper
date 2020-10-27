@@ -163,4 +163,14 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
       _ => Redirect(routes.ClientController.getClientDetails(appId))
     }
   }
+
+  def updateHomeAndRedirect(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => orgUserId =>
+    val body = req.body.asFormUrlEncoded.getOrElse(Map())
+    val homeUrl = body.getOrElse("home-url", Seq("")).head
+    val redirectUrl = body.getOrElse("redirect-url", Seq("")).head
+
+    clientOrchestrator.updateRedirects(appId, orgUserId, homeUrl, redirectUrl) map {
+      _ => Redirect(routes.ClientController.getClientDetails(appId))
+    }
+  }
 }

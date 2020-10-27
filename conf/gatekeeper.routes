@@ -36,5 +36,6 @@ GET         /client/delete                          controllers.ui.ClientControl
 POST        /client/delete                          controllers.ui.ClientController.deleteClientSubmit(appId)
 POST        /client/update/flows                    controllers.ui.ClientController.updateOAuthFlows(appId)
 POST        /client/update/expiry                   controllers.ui.ClientController.updateTokenExpiry(appId)
+POST        /client/update/urls                     controllers.ui.ClientController.updateHomeAndRedirect(appId)
 
 GET         /assets/*file                           controllers.Assets.at(path="/public", file)

@@ -32,6 +32,7 @@ case object NoAppFound extends AppUpdateResponse
 case object UpdatedFailed extends AppUpdateResponse
 case object FlowsUpdated extends AppUpdateResponse
 case object ExpiryUpdated extends AppUpdateResponse
+case object UrlsUpdated extends AppUpdateResponse
 
 class DefaultClientOrchestrator @Inject()(val clientService: ClientService,
                                           val userService: UserService,
@@ -161,6 +162,17 @@ trait ClientOrchestrator extends Obfuscators with DeObfuscators {
       case None =>
         logger.warn(s"[getTokenExpiry] - Could not find registered app for appId $appId belonging to org user $orgUserId")
         None
+    }
+  }
+
+  def updateRedirects(appId: String, orgUserId: String, homeUrl: String, redirectUrl: String)(implicit ec: ExC): Future[AppUpdateResponse] = {
+    clientService.updateRedirects(orgUserId, appId, homeUrl, redirectUrl) map {
+      case MongoSuccessUpdate =>
+        logger.info(s"[updateRedirects] - Updated the home url and redirect url for app $appId belonging to org user $orgUserId")
+        UrlsUpdated
+      case MongoFailedUpdate =>
+        logger.warn(s"[updateRedirects] - Failed to update home url and redirect url for app $appId belonging to org user $orgUserId")
+        UpdatedFailed
     }
   }
 }
