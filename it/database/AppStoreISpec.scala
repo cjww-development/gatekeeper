@@ -45,6 +45,7 @@ class AppStoreISpec extends PlaySpec with IntegrationApp with Assertions with Be
     clientId     = "testClientId",
     clientSecret = Some("testClientSecret"),
     oauth2Flows = Seq(),
+    oauth2Scopes = Seq(),
     idTokenExpiry = 0L,
     accessTokenExpiry = 0L,
     refreshTokenExpiry = 0L,

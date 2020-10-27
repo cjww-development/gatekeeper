@@ -53,6 +53,7 @@ class ClientServiceSpec
     clientId     = "testClientId".encrypt,
     clientSecret = Some("testClientSecret".encrypt),
     oauth2Flows = Seq(),
+    oauth2Scopes = Seq(),
     idTokenExpiry = 0L,
     accessTokenExpiry = 0L,
     refreshTokenExpiry = 0L,

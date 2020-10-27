@@ -74,7 +74,7 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
       app <- clientOrchestrator.getRegisteredApp(orgUserId, appId)
       expiry <- clientOrchestrator.getTokenExpiry(appId, orgUserId)
     } yield if(app.isDefined && expiry.isDefined) {
-      Ok(ClientView(app.get, expiry.get))
+      Ok(ClientView(app.get, expiry.get, scopeService.getValidScopes))
     } else {
       NotFound(NotFoundView())
     }
@@ -144,6 +144,17 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
     val oauthFlows = reqBody.getOrElse("auth-code-check", Seq()) ++ reqBody.getOrElse("client-cred-check", Seq())
 
     clientOrchestrator.updateAppOAuthFlows(oauthFlows, appId, orgUserId) map {
+      _ => Redirect(routes.ClientController.getClientDetails(appId))
+    }
+  }
+
+  def updateOAuthScopes(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => orgUserId =>
+    val reqBody = req.body.asFormUrlEncoded.getOrElse(Map())
+    val oauthScopes = scopeService.getValidScopes.flatMap { scope =>
+      reqBody.getOrElse(s"${scope.name}-check", Seq())
+    }
+
+    clientOrchestrator.updateAppOAuthScopes(oauthScopes, appId, orgUserId) map {
       _ => Redirect(routes.ClientController.getClientDetails(appId))
     }
   }

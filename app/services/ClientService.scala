@@ -157,6 +157,17 @@ trait ClientService extends Obfuscators {
     appStore.updateApp(query, update)
   }
 
+  def updateOAuth2Scopes(scopes: Seq[String], appId: String, orgUserId: String)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
+    val query = and(
+      equal("owner", orgUserId),
+      equal("appId", appId)
+    )
+
+    val update = set("oauth2Scopes", scopes)
+
+    appStore.updateApp(query, update)
+  }
+
   def updateTokenExpiry(orgUserId: String, appId: String, idExpiry: Long, accessExpiry: Long, refreshExpiry: Long)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
     val query = and(
       equal("owner", orgUserId),

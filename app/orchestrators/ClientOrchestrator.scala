@@ -142,6 +142,17 @@ trait ClientOrchestrator extends Obfuscators with DeObfuscators {
     }
   }
 
+  def updateAppOAuthScopes(scopes: Seq[String], appId: String, orgUserId: String)(implicit ec: ExC): Future[AppUpdateResponse] = {
+    clientService.updateOAuth2Scopes(scopes, appId, orgUserId) map {
+      case MongoSuccessUpdate =>
+        logger.info(s"[updateAppOAuthScopes] - Updated the compatible oauth2 scopes for app $appId belonging to org user $orgUserId")
+        FlowsUpdated
+      case MongoFailedUpdate =>
+        logger.warn(s"[updateAppOAuthScopes] - Failed to update the compatible scopes flows for app $appId belonging to org user $orgUserId")
+        UpdatedFailed
+    }
+  }
+
   def updateTokenExpiry(appId: String, orgUserId: String, tokenExpiry: TokenExpiry)(implicit ec: ExC): Future[AppUpdateResponse] = {
     val (id, access, refresh) = tokenService.convertDaysMinsToMilli(tokenExpiry)
     clientService.updateTokenExpiry(orgUserId, appId, id, access, refresh) map {

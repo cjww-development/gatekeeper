@@ -35,6 +35,7 @@ POST        /client/regenerate                      controllers.ui.ClientControl
 GET         /client/delete                          controllers.ui.ClientController.deleteClientShow(appId)
 POST        /client/delete                          controllers.ui.ClientController.deleteClientSubmit(appId)
 POST        /client/update/flows                    controllers.ui.ClientController.updateOAuthFlows(appId)
+POST        /client/update/scopes                   controllers.ui.ClientController.updateOAuthScopes(appId)
 POST        /client/update/expiry                   controllers.ui.ClientController.updateTokenExpiry(appId)
 POST        /client/update/urls                     controllers.ui.ClientController.updateHomeAndRedirect(appId)
 

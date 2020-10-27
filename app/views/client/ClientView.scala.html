@@ -5,7 +5,7 @@
 @import views.html.helper.CSRF
 @import views.AuthForView
 
-@(app: RegisteredApplication, tokenExpiry: TokenExpiry)(implicit rh: RequestHeader)
+@(app: RegisteredApplication, tokenExpiry: TokenExpiry, validScopes: Seq[Scope])(implicit rh: RequestHeader)
 
 @Main("View a registered client", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <script src="https://cdn.jsdelivr.net/npm/jdenticon@@3.0.1" async></script>
@@ -109,6 +109,26 @@
                     <hr>
 
                     <button class="btn btn-lg btn-primary btn-block" type="submit">Update flows</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title default-text">Allowed scopes</h4>
+
+                <form action="@uiRoutes.ClientController.updateOAuthScopes(app.appId)" method="post">
+                    @CSRF.formField
+
+                    @for(scope <- validScopes) {
+                        <label class="checkbox checkbox-success" for="@{scope.name}-check">
+                            <input type="checkbox" id="@{scope.name}-check" name="@{scope.name}-check" value="@{scope.name}" @if(app.oauth2Scopes.contains(scope.name)) { checked }/> @{scope.readableName}
+                        </label>
+                    }
+
+                    <hr>
+
+                    <button class="btn btn-lg btn-primary btn-block" type="submit">Update scopes</button>
                 </form>
             </div>
         </div>

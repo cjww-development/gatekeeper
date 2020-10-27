@@ -38,6 +38,7 @@ class RegisteredApplicationSpec extends PlaySpec with Assertions {
           "clientType"  -> "confidential",
           "createdAt"   -> JsString(DateTime.now().toString),
           "oauth2Flows" -> JsArray(),
+          "oauth2Scopes" -> JsArray(),
           "idTokenExpiry" -> JsNumber(0L),
           "accessTokenExpiry" -> JsNumber(0L),
           "refreshTokenExpiry" -> JsNumber(0L)
@@ -68,6 +69,7 @@ class RegisteredApplicationSpec extends PlaySpec with Assertions {
           "clientType"  -> "public",
           "createdAt"   -> JsString(DateTime.now().toString),
           "oauth2Flows" -> JsArray(),
+          "oauth2Scopes" -> JsArray(),
           "idTokenExpiry" -> JsNumber(0L),
           "accessTokenExpiry" -> JsNumber(0L),
           "refreshTokenExpiry" -> JsNumber(0L)

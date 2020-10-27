@@ -37,6 +37,7 @@ case class RegisteredApplication(appId: String,
                                  clientId: String,
                                  clientSecret: Option[String],
                                  oauth2Flows: Seq[String],
+                                 oauth2Scopes: Seq[String],
                                  idTokenExpiry: Long,
                                  accessTokenExpiry: Long,
                                  refreshTokenExpiry: Long,
@@ -81,6 +82,7 @@ object RegisteredApplication extends Obfuscators with TimeFormat {
         case "public"       => None
       },
       oauth2Flows = Seq(),
+      oauth2Scopes = Seq(),
       idTokenExpiry = 0L,
       accessTokenExpiry = 0L,
       refreshTokenExpiry = 0L,
@@ -123,6 +125,7 @@ object RegisteredApplication extends Obfuscators with TimeFormat {
           case "public"       => None
         },
         oauth2Flows = json.\("oauth2Flows").as[Seq[String]],
+        oauth2Scopes = json.\("oauth2Scopes").as[Seq[String]],
         idTokenExpiry = json.\("idTokenExpiry").as[Long],
         accessTokenExpiry = json.\("accessTokenExpiry").as[Long],
         refreshTokenExpiry = json.\("refreshTokenExpiry").as[Long],
