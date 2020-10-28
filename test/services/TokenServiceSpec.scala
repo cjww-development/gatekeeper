@@ -66,7 +66,7 @@ class TokenServiceSpec
   "createAccessToken" should {
     "return a signed access token" when {
       "given a clientId, userId and scope" in {
-        assertOutput(testService.createAccessToken("testClientId", "testUserId", "testSetId", "testTokenId", "openid")) { token =>
+        assertOutput(testService.createAccessToken("testClientId", "testUserId", "testSetId", "testTokenId", "openid", 900000)) { token =>
           val split = token.split("\\.")
           split.length mustBe 3
 
@@ -90,7 +90,7 @@ class TokenServiceSpec
           "" -> ""
         )
 
-        assertOutput(testService.createIdToken("testClientId", "testUserId", "testSetId", "testTokenId", userInfo.toMap)) { token =>
+        assertOutput(testService.createIdToken("testClientId", "testUserId", "testSetId", "testTokenId", userInfo.toMap, 900000)) { token =>
           val split = token.split("\\.")
           split.length mustBe 3
 
@@ -112,7 +112,7 @@ class TokenServiceSpec
   "createClientAccessToken" should {
     "return a signed access token" when {
       "given a clientId" in {
-        assertOutput(testService.createClientAccessToken("testClientId", "testSetId", "testTokenId")) { token =>
+        assertOutput(testService.createClientAccessToken("testClientId", "testSetId", "testTokenId", 900000)) { token =>
           val split = token.split("\\.")
           split.length mustBe 3
 

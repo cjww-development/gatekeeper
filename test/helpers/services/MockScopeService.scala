@@ -49,4 +49,9 @@ trait MockScopeService extends MockitoSugar with BeforeAndAfterEach {
     when(mockScopeService.validateScopes(ArgumentMatchers.any[String]()))
       .thenReturn(valid)
   }
+
+  def mockValidateScopesWithApp(valid: Boolean): OngoingStubbing[Boolean] = {
+    when(mockScopeService.validateScopes(ArgumentMatchers.any[String](), ArgumentMatchers.any[List[String]]()))
+      .thenReturn(valid)
+  }
 }

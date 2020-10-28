@@ -30,6 +30,7 @@ import scala.concurrent.{Future, ExecutionContext => ExC}
 sealed trait GrantInitiateResponse
 case object InvalidApplication extends GrantInitiateResponse
 case object InvalidScopesRequested extends GrantInitiateResponse
+case object InvalidOAuth2Flow extends GrantInitiateResponse
 case object InvalidResponseType extends GrantInitiateResponse
 case class ValidatedGrantRequest(app: RegisteredApplication, scopes: Seq[Scope]) extends GrantInitiateResponse
 case class ScopeDrift(app: RegisteredApplication, authorisedScopes: Seq[Scope], requestedScopes: Seq[Scope]) extends GrantInitiateResponse
@@ -52,8 +53,8 @@ trait GrantOrchestrator {
   def validateIncomingGrant(responseType: String, clientId: String, scope: String, requestingUserId: String)(implicit ec: ExC): Future[GrantInitiateResponse] = {
     if(responseType == "code") {
       clientService.getRegisteredAppById(clientId) flatMap {
-        case Some(app) =>
-          val validScopes = scopeService.validateScopes(scope)
+        case Some(app) => if(app.oauth2Flows.contains("authorization_code")) {
+          val validScopes = scopeService.validateScopes(scope, app.oauth2Scopes.toSeq)
           if(validScopes) {
             for {
               Some(orgUser) <- userService.getUserInfo(app.owner)
@@ -68,7 +69,6 @@ trait GrantOrchestrator {
                   scopeService.getScopeDetails(requestedScopes)
                 )
               } else {
-                println("authed")
                 PreviouslyAuthorised
               }
             } else {
@@ -84,6 +84,10 @@ trait GrantOrchestrator {
             logger.warn(s"[validateIncomingGrant] - The requested scopes weren't valid")
             Future.successful(InvalidScopesRequested)
           }
+        } else {
+          logger.warn(s"[validateIncomingGrant] - The authorization_code OAuth2 flow is not supported by client $clientId")
+          Future.successful(InvalidOAuth2Flow)
+        }
         case None =>
           logger.warn(s"[validateIncomingGrant] - There are no clients registered against clientId $clientId")
           Future.successful(InvalidApplication)
@@ -111,7 +115,6 @@ trait GrantOrchestrator {
           grantService.saveGrant(grant).flatMap {
             case MongoSuccessCreate =>
               logger.info(s"[saveIncomingGrant] - Successfully created authorisation grant for userId $userId targeted for client $clientId")
-              userService.linkClientToUser(userId, app.appId, grant.scope)
               userService.linkClientToUser(userId, app.appId, grant.scope) map {
                 _ => Some(grant)
               }

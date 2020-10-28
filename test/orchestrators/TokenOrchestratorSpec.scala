@@ -69,11 +69,11 @@ class TokenOrchestratorSpec
     clientType   = "confidential",
     clientId     = "testId".encrypt,
     clientSecret = Some("testSecret".encrypt),
-    oauth2Flows = Seq(),
-    oauth2Scopes = Seq(),
-    idTokenExpiry = 0L,
-    accessTokenExpiry = 0L,
-    refreshTokenExpiry = 0L,
+    oauth2Flows = Seq("authorization_code", "client_credentials"),
+    oauth2Scopes = Seq("openid"),
+    idTokenExpiry = 900000L,
+    accessTokenExpiry = 900000L,
+    refreshTokenExpiry = 900000L,
     createdAt    = DateTime.now()
   )
 

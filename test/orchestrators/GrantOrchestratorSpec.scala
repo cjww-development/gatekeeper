@@ -59,8 +59,8 @@ class GrantOrchestratorSpec
     clientType   = "confidential",
     clientId     = "testId".encrypt,
     clientSecret = Some("testSecret".encrypt),
-    oauth2Flows = Seq(),
-    oauth2Scopes = Seq(),
+    oauth2Flows = Seq("authorization_code"),
+    oauth2Scopes = Seq("username"),
     idTokenExpiry = 0L,
     accessTokenExpiry = 0L,
     refreshTokenExpiry = 0L,
@@ -85,7 +85,7 @@ class GrantOrchestratorSpec
     "return a ValidatedGrantRequest" when {
       "the app is found and redirects and scopes are valid and the app owner is found" in {
         mockGetRegisteredAppById(app = Some(testApp))
-        mockValidateScopes(valid = true)
+        mockValidateScopesWithApp(valid = true)
         mockGetValidScopes(scopes = Seq(Scope(
           name = "username",
           readableName = "username",

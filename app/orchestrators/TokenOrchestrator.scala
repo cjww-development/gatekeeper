@@ -33,6 +33,7 @@ case object InvalidGrant extends TokenResponse
 case object InvalidGrantType extends TokenResponse
 case object InvalidUser extends TokenResponse
 case object InvalidClient extends TokenResponse
+case object InvalidOAuthFlow extends TokenResponse
 
 class DefaultTokenOrchestrator @Inject()(val grantService: GrantService,
                                          val userService: UserService,
@@ -65,16 +66,16 @@ trait TokenOrchestrator extends DeObfuscators {
           case Some(userData) =>
             val clientId = stringDeObfuscate.decrypt(grant.clientId).getOrElse(grant.clientId)
             clientService.getRegisteredAppById(clientId) flatMap {
-              case Some(app) =>
+              case Some(app) => if(app.oauth2Flows.contains("authorization_code")) {
                 logger.info(s"[authorizationCodeGrant] - Issuing new Id and access token for ${grant.userId} for use by clientId ${grant.clientId}")
                 val scopedData = userData.toMap.filter{ case (k, _) => scopes.exists(_.name == k)}
                 val tokenSetId = tokenService.generateTokenRecordSetId
                 val accessId = tokenService.generateTokenRecordSetId
                 val idId = tokenService.generateTokenRecordSetId
 
-                val accessToken = tokenService.createAccessToken(clientId, grant.userId, tokenSetId, accessId, grant.scope.mkString(","))
+                val accessToken = tokenService.createAccessToken(clientId, grant.userId, tokenSetId, accessId, grant.scope.mkString(","), app.accessTokenExpiry)
                 val idToken = if(scopes.exists(_.name == "openid")) {
-                  Some(tokenService.createIdToken(clientId, grant.userId, tokenSetId, idId, scopedData))
+                  Some(tokenService.createIdToken(clientId, grant.userId, tokenSetId, idId, scopedData, app.idTokenExpiry))
                 } else {
                   None
                 }
@@ -84,12 +85,16 @@ trait TokenOrchestrator extends DeObfuscators {
                     Issued(
                       tokenType = "Bearer",
                       scope = grant.scope.mkString(","),
-                      expiresIn = tokenService.expiry,
+                      expiresIn = app.accessTokenExpiry,
                       accessToken,
                       idToken
                     )
                   case MongoFailedCreate => TokenError
                 }
+              } else {
+                logger.warn(s"[authorizationCodeGrant] - The app ${app.appId} is not allowed to obtain client creds")
+                Future.successful(InvalidOAuthFlow)
+              }
             }
           case None =>
             logger.warn(s"[authorizationCodeGrant] - could not validate user on userId ${grant.userId}")
@@ -104,13 +109,13 @@ trait TokenOrchestrator extends DeObfuscators {
   def clientCredentialsGrant(scope: String)(implicit ec: ExC, req: Request[_]): Future[TokenResponse] = {
     basicAuth.decode.fold({
       case (clientId, clientSecret) => clientService.getRegisteredAppByIdAndSecret(clientId, clientSecret) flatMap {
-        case Some(app) =>
+        case Some(app) => if(app.oauth2Flows.contains("client_credentials")) {
           logger.info(s"[clientCredentialsGrant] - Issuing new access token for client ${app.appId} for use by client ${app.appId}")
 
           val clientId = stringDeObfuscate.decrypt(app.clientId).getOrElse(throw new Exception(s"Could not decrypt clientId for client ${app.appId}"))
           val tokenSetId = tokenService.generateTokenRecordSetId
           val accessId = tokenService.generateTokenRecordSetId
-          val accessToken = tokenService.createClientAccessToken(clientId, tokenSetId, accessId)
+          val accessToken = tokenService.createClientAccessToken(clientId, tokenSetId, accessId, app.accessTokenExpiry)
 
           tokenService.createTokenRecordSet(tokenSetId, app.appId, app.appId, accessId, None, None) map {
             case MongoSuccessCreate =>
@@ -123,6 +128,10 @@ trait TokenOrchestrator extends DeObfuscators {
               )
             case MongoFailedCreate => TokenError
           }
+        } else {
+          logger.warn(s"[clientCredentialsGrant] - The app ${app.appId} is not allowed to obtain client creds")
+          Future.successful(InvalidOAuthFlow)
+        }
         case None =>
           logger.warn(s"[clientCredentialsGrant] - No matching client was found, unable to issue client token")
           Future.successful(InvalidClient)

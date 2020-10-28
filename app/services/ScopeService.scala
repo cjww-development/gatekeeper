@@ -50,7 +50,15 @@ trait ScopeService {
     val inboundScopes = scopes.split(",").map(_.trim)
     val validatedScopes = inboundScopes.map(str => approvedScopes.exists(_.name == str))
     val valid = !validatedScopes.contains(false)
-    logger.info(s"[validateRequestedScopes] - Are the requested scopes valid? $valid")
+    logger.info(s"[validateScopes] - Are the requested scopes valid? $valid")
+    valid
+  }
+
+  def validateScopes(scopes: String, appScopes: Seq[String]): Boolean = {
+    val inboundScopes = scopes.split(",").map(_.trim)
+    val validatedScopes = inboundScopes.map(str => appScopes.contains(str))
+    val valid = !validatedScopes.contains(false)
+    logger.info(s"[validateScopes] - Are the requested scopes valid? $valid")
     valid
   }
 }

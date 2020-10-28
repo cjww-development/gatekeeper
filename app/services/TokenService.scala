@@ -54,7 +54,7 @@ trait TokenService {
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  def createAccessToken(clientId: String, userId: String, setId: String, tokenId: String, scope: String): String = {
+  def createAccessToken(clientId: String, userId: String, setId: String, tokenId: String, scope: String, expiry: Long): String = {
     val now = Instant.now
 
     val claims = JwtClaim()
@@ -62,7 +62,7 @@ trait TokenService {
       .by(issuer)
       .issuedAt(now.getEpochSecond)
       .startsAt(now.getEpochSecond)
-      .expiresAt(now.plusSeconds(expiry).getEpochSecond)
+      .expiresAt(now.plusMillis(expiry).getEpochSecond)
       .about(userId)
       .++[String](
         "scp" -> scope,
@@ -74,7 +74,7 @@ trait TokenService {
     Jwt.encode(claims, signature, JwtAlgorithm.HS512)
   }
 
-  def createIdToken(clientId: String, userId: String, setId: String, tokenId: String, userData: Map[String, String]): String = {
+  def createIdToken(clientId: String, userId: String, setId: String, tokenId: String, userData: Map[String, String], expiry: Long): String = {
     val now = Instant.now
 
     val claims = JwtClaim()
@@ -82,7 +82,7 @@ trait TokenService {
       .by(issuer)
       .issuedAt(now.getEpochSecond)
       .startsAt(now.getEpochSecond)
-      .expiresAt(now.plusSeconds(expiry).getEpochSecond)
+      .expiresAt(now.plusMillis(expiry).getEpochSecond)
       .about(userId)
       .++[String](Seq(
         "tsid" -> setId,
@@ -93,7 +93,7 @@ trait TokenService {
     Jwt.encode(claims, signature, JwtAlgorithm.HS512)
   }
 
-  def createClientAccessToken(clientId: String, setId: String, tokenId: String): String = {
+  def createClientAccessToken(clientId: String, setId: String, tokenId: String, expiry: Long): String = {
     val now = Instant.now
 
     val claims = JwtClaim()
@@ -101,7 +101,7 @@ trait TokenService {
       .by(issuer)
       .issuedAt(now.getEpochSecond)
       .startsAt(now.getEpochSecond)
-      .expiresAt(now.plusSeconds(expiry).getEpochSecond)
+      .expiresAt(now.plusMillis(expiry).getEpochSecond)
       .about(clientId)
       .++[String](
         "tsid" -> setId,
