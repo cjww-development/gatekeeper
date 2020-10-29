@@ -24,7 +24,12 @@ class DefaultWellKnownConfigOrchestrator @Inject()(val config: Configuration) ex
   override val issuer: String = config.get[String]("well-known-config.issuer")
   override val authEndpoint: String = s"$issuer/api${controllers.ui.routes.OAuthController.authoriseGet("", "", "").url.split("\\?").head}"
   override val tokenEndpoint: String = s"$issuer/api${controllers.ui.routes.OAuthController.getToken().url.split("\\?").head}"
+  override val revokeEndpoint: String = s"$issuer/api${controllers.api.routes.RevokationController.revokeToken().url.split("\\?").head}"
   override val grantTypes: Seq[String] = config.get[Seq[String]]("well-known-config.grant-types")
+  override val supportedScopes: Seq[String] = config.get[Seq[String]]("well-known-config.scopes")
+  override val responseTypes: Seq[String] = config.get[Seq[String]]("well-known-config.response-types")
+  override val tokenEndpointAuth: Seq[String] = config.get[Seq[String]]("well-known-config.token-auth-method")
+
 }
 
 trait WellKnownConfigOrchestrator {
@@ -32,7 +37,11 @@ trait WellKnownConfigOrchestrator {
   val issuer: String
   val authEndpoint: String
   val tokenEndpoint: String
+  val revokeEndpoint: String
   val grantTypes: Seq[String]
+  val supportedScopes: Seq[String]
+  val responseTypes: Seq[String]
+  val tokenEndpointAuth: Seq[String]
 
   def getConfig: WellKnownConfig = {
     WellKnownConfig(
@@ -42,11 +51,11 @@ trait WellKnownConfigOrchestrator {
       userInfoEndpoint = "",
       jwksUri = "",
       registrationEndpoint = "",
-      scopesSupported = Seq(),
-      responseTypesSupported = Seq(),
+      scopesSupported = supportedScopes,
+      responseTypesSupported = responseTypes,
       grantTypesSupported = grantTypes,
-      subjectTypesSupported = Seq(),
-      idTokenSigningAlgValuesSupported = Seq()
+      tokenEndpointAuth = tokenEndpointAuth,
+      revokeEndpoint = revokeEndpoint
     )
   }
 }

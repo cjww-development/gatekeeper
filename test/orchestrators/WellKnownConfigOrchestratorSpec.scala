@@ -29,6 +29,10 @@ class WellKnownConfigOrchestratorSpec
     override val authEndpoint: String = "testAuthEndpoint"
     override val tokenEndpoint: String = "testTokenEndpoint"
     override val grantTypes: Seq[String] = Seq("testGrantType")
+    override val supportedScopes: Seq[String] = Seq("testScope")
+    override val responseTypes: Seq[String] = Seq("testResponseType")
+    override val revokeEndpoint: String = "testRevokeEndpoint"
+    override val tokenEndpointAuth: Seq[String] = Seq("testAuth")
   }
 
   val testWkc = WellKnownConfig(
@@ -38,11 +42,11 @@ class WellKnownConfigOrchestratorSpec
     userInfoEndpoint = "",
     jwksUri = "",
     registrationEndpoint = "",
-    scopesSupported = Seq(),
-    responseTypesSupported = Seq(),
+    scopesSupported = Seq("testScope"),
+    responseTypesSupported = Seq("testResponseType"),
     grantTypesSupported = Seq("testGrantType"),
-    subjectTypesSupported = Seq(),
-    idTokenSigningAlgValuesSupported = Seq()
+    tokenEndpointAuth = Seq("testAuth"),
+    revokeEndpoint = "testRevokeEndpoint"
   )
 
   "getConfig" should {

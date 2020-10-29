@@ -22,19 +22,24 @@ case class WellKnownConfig(issuer: String,
                            authorizationEndpoint: String,
                            tokenEndpoint: String,
                            userInfoEndpoint: String,
+                           revokeEndpoint: String,
                            jwksUri: String,
                            registrationEndpoint: String,
                            scopesSupported: Seq[String],
                            responseTypesSupported: Seq[String],
                            grantTypesSupported: Seq[String],
-                           subjectTypesSupported: Seq[String],
-                           idTokenSigningAlgValuesSupported: Seq[String])
+                           tokenEndpointAuth: Seq[String])
 
 object WellKnownConfig {
   implicit val writer: Writes[WellKnownConfig] = (wkc: WellKnownConfig) => Json.obj(
-    "issuer"                 -> wkc.issuer,
-    "authorization_endpoint" -> wkc.authorizationEndpoint,
-    "token_endpoint"         -> wkc.tokenEndpoint,
-    "grant_types_supported"  -> wkc.grantTypesSupported
+    "issuer"                                     -> wkc.issuer,
+    "authorization_endpoint"                     -> wkc.authorizationEndpoint,
+    "token_endpoint"                             -> wkc.tokenEndpoint,
+    "grant_types_supported"                      -> wkc.grantTypesSupported,
+    "scopes_supported"                           -> wkc.scopesSupported,
+    "response_types_supported"                   -> wkc.responseTypesSupported,
+    "token_endpoint_auth_methods_supported"      -> wkc.tokenEndpointAuth,
+    "revocation_endpoint"                        -> wkc.revokeEndpoint,
+    "revocation_endpoint_auth_methods_supported" -> wkc.tokenEndpointAuth
   )
 }
