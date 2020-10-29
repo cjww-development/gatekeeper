@@ -83,9 +83,9 @@ object RegisteredApplication extends Obfuscators with TimeFormat {
       },
       oauth2Flows = Seq(),
       oauth2Scopes = Seq(),
-      idTokenExpiry = 0L,
-      accessTokenExpiry = 0L,
-      refreshTokenExpiry = 0L,
+      idTokenExpiry = 3600000L,
+      accessTokenExpiry = 3600000L,
+      refreshTokenExpiry = 2592000000L,
       DateTime.now()
     )
   }
