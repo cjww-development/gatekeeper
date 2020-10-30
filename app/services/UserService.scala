@@ -9,7 +9,7 @@ import models.{AuthorisedClient, UserInfo}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mongodb.scala.bson.BsonValue
 import org.mongodb.scala.bson.conversions.Bson
-import org.mongodb.scala.model.Filters.equal
+import org.mongodb.scala.model.Filters.{and, equal}
 import org.mongodb.scala.model.Updates.set
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -136,6 +136,23 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
         MongoSuccessUpdate
       case MongoFailedUpdate =>
         logger.warn(s"[setEmailVerifiedStatus] - Failed to set email verification status for user $userId")
+        MongoFailedUpdate
+    }
+  }
+
+  def updateUserEmailAddress(userId: String, emailAddress: String)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
+    val collection = getUserStore(userId)
+    val update: String => Bson = email => and(
+      set("email", email),
+      set("emailVerified", false)
+    )
+
+    collection.updateUser(query(userId), update(emailAddress)) map {
+      case MongoSuccessUpdate =>
+        logger.info(s"[updateUserEmailAddress] - Updated email address for user $userId")
+        MongoSuccessUpdate
+      case MongoFailedUpdate =>
+        logger.warn(s"[updateUserEmailAddress] - Failed to update email address for user $userId")
         MongoFailedUpdate
     }
   }

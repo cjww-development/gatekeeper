@@ -10,6 +10,8 @@ POST        /login/mfa-challenge                    controllers.ui.LoginControll
 GET         /logout                                 controllers.ui.LoginController.logout()
 
 GET         /account                                controllers.ui.AccountController.show()
+GET         /account/details                        controllers.ui.AccountController.accountDetails()
+POST        /account/details/update/email           controllers.ui.AccountController.updateUserEmail()
 GET         /account/security                       controllers.ui.AccountController.accountSecurity()
 GET         /account/security/mfa-setup             controllers.ui.AccountController.totpSetup()
 POST        /account/security/mfa-setup             controllers.ui.AccountController.postTotpSetupVerification()

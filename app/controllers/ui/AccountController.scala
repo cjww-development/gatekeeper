@@ -23,8 +23,9 @@ import orchestrators.{ClientOrchestrator, MFAOrchestrator, MFATOTPQR, UserOrches
 import org.slf4j.LoggerFactory
 import play.api.i18n.{I18NSupportLowPriorityImplicits, I18nSupport, Lang}
 import play.api.mvc._
-import views.html.account.Account
+import views.html.account.{Account, AccountDetails}
 import views.html.account.security.{Security, TOTP, MFADisableConfirm}
+import views.html.misc.{NotFound => NotFoundView}
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
@@ -115,6 +116,21 @@ trait AccountController extends BaseController with I18NSupportLowPriorityImplic
       } else {
         Future.successful(Redirect(routes.AccountController.accountSecurity()))
       }
+    }
+  }
+
+  def accountDetails(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+    userOrchestrator.getUserDetails(userId) map {
+      _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user)))
+    }
+  }
+
+  def updateUserEmail(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+    val body = req.body.asFormUrlEncoded.getOrElse(Map())
+    val emailAddress = body.getOrElse("email", Seq("")).head
+
+    userOrchestrator.updateEmailAndReverify(userId, emailAddress) map {
+      _ => Redirect(routes.AccountController.accountDetails())
     }
   }
 }

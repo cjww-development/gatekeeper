@@ -26,7 +26,7 @@
                 <h5 class="card-title">Your details</h5>
                 <p class="default-text">@{userDetails.email}</p>
                 <p class="default-text">Member since @{userDetails.createdAt.toString("yyyy-MM-dd")}</p>
-                <a href="" class="btn btn-primary btn-block">Update your details</a>
+                <a href="@uiRoutes.AccountController.accountDetails()" class="btn btn-primary btn-block">Update your details</a>
             </div>
         </div>
 
