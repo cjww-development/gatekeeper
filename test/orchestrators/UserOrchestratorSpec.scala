@@ -19,18 +19,25 @@ package orchestrators
 import java.util.UUID
 
 import helpers.Assertions
-import helpers.services.MockAccountService
+import helpers.services.{MockAccountService, MockEmailService, MockRegistrationService}
 import models.{AuthorisedClient, User, UserInfo}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import services.UserService
+import services.{EmailService, RegistrationService, UserService}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class UserOrchestratorSpec extends PlaySpec with Assertions with MockAccountService {
+class UserOrchestratorSpec
+  extends PlaySpec
+    with Assertions
+    with MockAccountService
+    with MockEmailService
+    with MockRegistrationService {
 
   val testOrchestrator: UserOrchestrator = new UserOrchestrator {
     override protected val userService: UserService = mockAccountService
+    override protected val emailService: EmailService = mockEmailService
+    override protected val registrationService: RegistrationService = mockRegistrationService
   }
 
   val now: DateTime = DateTime.now()

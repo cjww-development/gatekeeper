@@ -1,11 +1,11 @@
 @import controllers.routes
 @import controllers.ui.{routes => uiRoutes}
-@import org.joda.time.DateTime
 @import views.html.Main
 @import views.html.helper.CSRF
 @import views.AuthForView
+@import views.html.components.forms.TextInput
 
-@(user: UserInfo)(implicit rh: RequestHeader)
+@(user: UserInfo, emailInUse: Boolean, passwordForm: Form[ChangeOfPassword])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
 
 @Main("Account details", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <script src="https://cdn.jsdelivr.net/npm/jdenticon@@3.0.1" async></script>
@@ -43,18 +43,26 @@
         <div class="card">
             <div class="card-body">
                 <h4 class="card-title default-text">Update email</h4>
-                <form action="" method="post">
+                <form action="@uiRoutes.AccountController.updateUserEmail()" method="post">
                     @CSRF.formField
 
-                    <div class="input-group mb-3">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text" id="basic-addon1">Email</span>
-                        </div>
-                        <input type="text" class="form-control" name="email" value="@{user.email}">
-                    </div>
+                    @if(emailInUse) {
+                        <label for="email" class="sr-only">Email</label>
+                        <input type="text" name="email" id="email" class="form-control form-input-topper is-invalid" placeholder="Email" value="@{user.email}">
 
-                    <div class="alert alert-warning" role="alert">
-                        Updating your email address will mean that it needs to be re-verified. An email will be sent to your new email address containing a verification link.
+                        <div class="alert alert-danger form-input-bottom alert-error-border" role="alert">
+                            This email address is already in use
+                        </div>
+                    } else {
+                        <label for="email" class="sr-only">Email</label>
+                        <input type="text" name="email" id="email" class="form-control" placeholder="Email" value="@{user.email}">
+                    }
+
+                    <div id="email-update-warning">
+                        <br>
+                        <div class="alert alert-warning" role="alert">
+                            Updating your email address will mean that it needs to be re-verified. An email will be sent to your new email address containing a verification link.
+                        </div>
                     </div>
 
                     <hr>
@@ -63,5 +71,142 @@
                 </form>
             </div>
         </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title default-text">Update password</h4>
+                <form action="@uiRoutes.AccountController.updatePassword()" method="post">
+                    @CSRF.formField
+
+                    @changePasswordForm(passwordForm)
+
+                    <hr>
+
+                    <button class="btn btn-lg btn-primary btn-block" type="submit">Update password</button>
+                </form>
+            </div>
+        </div>
     </div>
+
+    <script>
+        $("#email-update-warning").hide();
+
+        $("#email").focusin(function() {
+            $("#email-update-warning").show();
+        }).focusout(function () {
+            $("#email-update-warning").hide();
+        });
+    </script>
+}
+
+@changePasswordForm(form: Form[ChangeOfPassword]) = {
+    @if(form.hasErrors) {
+        @if(form("newPassword").hasErrors) {
+            @form("newPassword").error.map { err =>
+                @TextInput(
+                    form("oldPassword"),
+                    isReadOnly = false,
+                    Symbol("_id") -> "oldPasswordInput",
+                    Symbol("_name") -> "oldPassword",
+                    Symbol("_label") -> "Old password",
+                    Symbol("_type") -> "password",
+                    Symbol("_class") -> "form-control form-input-topper"
+                )
+
+                @TextInput(
+                    form("newPassword"),
+                    isReadOnly = false,
+                    Symbol("_id") -> "newPasswordInput",
+                    Symbol("_name") -> "newPassword",
+                    Symbol("_label") -> "New password",
+                    Symbol("_type") -> "password",
+                    Symbol("_class") -> "form-control form-input-middle"
+                )
+
+                @TextInput(
+                    form("confirmPassword"),
+                    isReadOnly = false,
+                    Symbol("_id") -> "confirmPasswordInput",
+                    Symbol("_name") -> "confirmPassword",
+                    Symbol("_label") -> "Confirm password",
+                    Symbol("_type") -> "password",
+                    Symbol("_class") -> "form-control form-input-middle"
+                )
+
+                <div class="alert alert-danger form-input-bottom alert-error-border" role="alert">
+                    @err.message
+                </div>
+            }
+        }
+
+        @if(form("oldPassword").hasErrors) {
+            @form("oldPassword").error.map { err =>
+                @TextInput(
+                    form("oldPassword"),
+                    isReadOnly = false,
+                    Symbol("_id") -> "oldPasswordInput",
+                    Symbol("_name") -> "oldPassword",
+                    Symbol("_label") -> "Old password",
+                    Symbol("_type") -> "password",
+                    Symbol("_class") -> "form-control form-input-topper"
+                )
+
+                <div class="alert alert-danger form-input-bottom alert-error-border" role="alert">
+                @err.message
+                </div>
+
+                <br>
+
+                @TextInput(
+                    form("newPassword"),
+                    isReadOnly = false,
+                    Symbol("_id") -> "newPasswordInput",
+                    Symbol("_name") -> "newPassword",
+                    Symbol("_label") -> "New password",
+                    Symbol("_type") -> "password",
+                    Symbol("_class") -> "form-control form-input-topper"
+                )
+
+                @TextInput(
+                    form("confirmPassword"),
+                    isReadOnly = false,
+                    Symbol("_id") -> "confirmPasswordInput",
+                    Symbol("_name") -> "confirmPassword",
+                    Symbol("_label") -> "Confirm password",
+                    Symbol("_type") -> "password",
+                    Symbol("_class") -> "form-control form-input-bottom"
+                )
+            }
+        }
+    } else {
+        @TextInput(
+            form("oldPassword"),
+            isReadOnly = false,
+            Symbol("_id") -> "oldPasswordInput",
+            Symbol("_name") -> "oldPassword",
+            Symbol("_label") -> "Old password",
+            Symbol("_type") -> "password",
+            Symbol("_class") -> "form-control form-input-topper"
+        )
+
+        @TextInput(
+            form("newPassword"),
+            isReadOnly = false,
+            Symbol("_id") -> "newPasswordInput",
+            Symbol("_name") -> "newPassword",
+            Symbol("_label") -> "New password",
+            Symbol("_type") -> "password",
+            Symbol("_class") -> "form-control form-input-middle"
+        )
+
+        @TextInput(
+            form("confirmPassword"),
+            isReadOnly = false,
+            Symbol("_id") -> "confirmPasswordInput",
+            Symbol("_name") -> "confirmPassword",
+            Symbol("_label") -> "Confirm password",
+            Symbol("_type") -> "password",
+            Symbol("_class") -> "form-control form-input-bottom"
+        )
+    }
 }

@@ -18,10 +18,11 @@ package orchestrators
 
 import com.cjwwdev.security.obfuscation.Obfuscators
 import javax.inject.Inject
-import models.UserInfo
+import models.{ChangeOfPassword, UserInfo}
 import org.slf4j.LoggerFactory
 import play.api.mvc.Request
-import services.{EmailService, UserService}
+import services.{EmailService, RegistrationService, UserService}
+import utils.StringUtils
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
@@ -29,9 +30,14 @@ sealed trait UserUpdateResponse
 case object NoUpdateRequired extends UserUpdateResponse
 case object NoUser extends UserUpdateResponse
 case object EmailUpdated extends UserUpdateResponse
+case object EmailInUse extends UserUpdateResponse
+case object PasswordMismatch extends UserUpdateResponse
+case object PasswordUpdated extends UserUpdateResponse
+case object InvalidOldPassword extends UserUpdateResponse
 
 class DefaultUserOrchestrator @Inject()(val userService: UserService,
-                                        val emailService: EmailService) extends UserOrchestrator
+                                        val emailService: EmailService,
+                                        val registrationService: RegistrationService) extends UserOrchestrator
 
 trait UserOrchestrator extends Obfuscators {
 
@@ -39,6 +45,7 @@ trait UserOrchestrator extends Obfuscators {
 
   protected val userService: UserService
   protected val emailService: EmailService
+  protected val registrationService: RegistrationService
 
   override val logger = LoggerFactory.getLogger(this.getClass)
 
@@ -55,12 +62,19 @@ trait UserOrchestrator extends Obfuscators {
     userService.getUserInfo(userId) flatMap {
       case Some(user) => if(user.email != email) {
         val obsEmail = stringObs.encrypt(email)
-        for {
-          _ <- userService.updateUserEmailAddress(userId, obsEmail)
-          vRec   <- emailService.saveVerificationRecord(userId, obsEmail, user.accType)
-        } yield {
-          emailService.sendEmailVerificationMessage(email, vRec)
-          EmailUpdated
+        registrationService.isIdentifierInUse(obsEmail, "") flatMap { inUse =>
+          if(inUse) {
+            logger.error(s"[updateEmailAndReverify] - The email requested is already in use")
+            Future.successful(EmailInUse)
+          } else {
+            for {
+              _ <- userService.updateUserEmailAddress(userId, obsEmail)
+              vRec <- emailService.saveVerificationRecord(userId, obsEmail, user.accType)
+            } yield {
+              emailService.sendEmailVerificationMessage(email, vRec)
+              EmailUpdated
+            }
+          }
         }
       } else {
         logger.warn(s"[updateEmailAndReverify] - Aborting update, email address for user $userId has not changed")
@@ -69,6 +83,29 @@ trait UserOrchestrator extends Obfuscators {
       case None =>
         logger.error(s"[updateEmailAndReverify] - Failed updating email, no user found for userId $userId")
         Future.successful(NoUser)
+    }
+  }
+
+  def updatePassword(userId: String, changeOfPassword: ChangeOfPassword)(implicit ec: ExC): Future[UserUpdateResponse] = {
+    if(changeOfPassword.newPassword == changeOfPassword.confirmedPassword) {
+      userService.validateCurrentPassword(userId, changeOfPassword.oldPassword) flatMap { isMatched =>
+        if(isMatched) {
+          val salt = StringUtils.salter(length = 32)
+          for {
+            saltToUse <- registrationService.validateSalt(salt)
+            _ <- userService.updatePassword(userId, StringUtils.hasher(saltToUse, changeOfPassword.newPassword), saltToUse)
+          } yield {
+            logger.info(s"[updatePassword] - Password for user $userId has been updated")
+            PasswordUpdated
+          }
+        } else {
+          logger.warn(s"[updatePassword] - The current password for user $userId did not match")
+          Future.successful(InvalidOldPassword)
+        }
+      }
+    } else {
+      logger.error(s"[updatePassword] - The supplied passwords do not match for user $userId")
+      Future.successful(PasswordMismatch)
     }
   }
 }

@@ -12,6 +12,7 @@ GET         /logout                                 controllers.ui.LoginControll
 GET         /account                                controllers.ui.AccountController.show()
 GET         /account/details                        controllers.ui.AccountController.accountDetails()
 POST        /account/details/update/email           controllers.ui.AccountController.updateUserEmail()
+POST        /account/details/update/password        controllers.ui.AccountController.updatePassword()
 GET         /account/security                       controllers.ui.AccountController.accountSecurity()
 GET         /account/security/mfa-setup             controllers.ui.AccountController.totpSetup()
 POST        /account/security/mfa-setup             controllers.ui.AccountController.postTotpSetupVerification()

@@ -19,13 +19,15 @@ package controllers.ui
 import controllers.actions.AuthenticatedAction
 import forms.TOTPSetupCodeVerificationForm
 import javax.inject.Inject
-import orchestrators.{ClientOrchestrator, MFAOrchestrator, MFATOTPQR, UserOrchestrator}
+import orchestrators.{ClientOrchestrator, EmailInUse, InvalidOldPassword, MFAOrchestrator, MFATOTPQR, PasswordMismatch, UserOrchestrator}
 import org.slf4j.LoggerFactory
 import play.api.i18n.{I18NSupportLowPriorityImplicits, I18nSupport, Lang}
 import play.api.mvc._
 import views.html.account.{Account, AccountDetails}
-import views.html.account.security.{Security, TOTP, MFADisableConfirm}
+import views.html.account.security.{MFADisableConfirm, Security, TOTP}
 import views.html.misc.{NotFound => NotFoundView}
+import forms.ChangeOfPasswordForm.{form => changeOfPasswordForm}
+import forms.ChangeOfPasswordForm._
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
@@ -121,7 +123,7 @@ trait AccountController extends BaseController with I18NSupportLowPriorityImplic
 
   def accountDetails(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
     userOrchestrator.getUserDetails(userId) map {
-      _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user)))
+      _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, changeOfPasswordForm)))
     }
   }
 
@@ -129,8 +131,28 @@ trait AccountController extends BaseController with I18NSupportLowPriorityImplic
     val body = req.body.asFormUrlEncoded.getOrElse(Map())
     val emailAddress = body.getOrElse("email", Seq("")).head
 
-    userOrchestrator.updateEmailAndReverify(userId, emailAddress) map {
-      _ => Redirect(routes.AccountController.accountDetails())
+    userOrchestrator.updateEmailAndReverify(userId, emailAddress) flatMap {
+      case EmailInUse => userOrchestrator.getUserDetails(userId) map {
+        _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = true, changeOfPasswordForm)))
+      }
+      case _ => Future.successful(Redirect(routes.AccountController.accountDetails()))
     }
+  }
+
+  def updatePassword(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+    changeOfPasswordForm.bindFromRequest().fold(
+      err => userOrchestrator.getUserDetails(userId) map {
+        _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, err)))
+      },
+      pwd => userOrchestrator.updatePassword(userId, pwd) flatMap {
+        case PasswordMismatch => userOrchestrator.getUserDetails(userId) map {
+          _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, changeOfPasswordForm.fill(pwd).renderNewPasswordMismatch)))
+        }
+        case InvalidOldPassword => userOrchestrator.getUserDetails(userId) map {
+          _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, changeOfPasswordForm.fill(pwd).renderInvalidOldPasswordError)))
+        }
+        case _ => Future.successful(Redirect(routes.AccountController.accountDetails()))
+      }
+    )
   }
 }

@@ -12,6 +12,7 @@ import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters.{and, equal}
 import org.mongodb.scala.model.Updates.set
 import org.slf4j.{Logger, LoggerFactory}
+import utils.StringUtils
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 import scala.jdk.CollectionConverters._
@@ -154,6 +155,38 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
       case MongoFailedUpdate =>
         logger.warn(s"[updateUserEmailAddress] - Failed to update email address for user $userId")
         MongoFailedUpdate
+    }
+  }
+
+  def updatePassword(userId: String, password: String, salt: String)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
+    val collection = getUserStore(userId)
+    val update = and(
+      set("password", password),
+      set("salt", salt)
+    )
+
+    collection.updateUser(query(userId), update) map {
+      case MongoSuccessUpdate =>
+        logger.info(s"[updatePassword] - Updated password and salt for user $userId")
+        MongoSuccessUpdate
+      case MongoFailedUpdate =>
+        logger.warn(s"[updatePassword] - Failed to update password and salt for user $userId")
+        MongoFailedUpdate
+    }
+  }
+
+  def validateCurrentPassword(userId: String, currentPassword: String)(implicit ec: ExC): Future[Boolean] = {
+    val collection = getUserStore(userId)
+
+    collection.projectValue("id", userId, "salt", "password") map { data =>
+      val salt = data("salt").asString().getValue
+      val actualPassword = data("password").asString().getValue
+
+      val hashedCurrentPassword = StringUtils.hasher(salt, currentPassword)
+
+      val isMatched = hashedCurrentPassword == actualPassword
+      logger.info(s"[validateCurrentPassword] - The supplied password did match what is on file for user $userId")
+      isMatched
     }
   }
 }
