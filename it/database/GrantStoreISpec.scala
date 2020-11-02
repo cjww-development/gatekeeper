@@ -40,6 +40,9 @@ class GrantStoreISpec extends PlaySpec with IntegrationApp with Assertions with 
     userId = "testUserId",
     accType = "testType",
     redirectUri = "testRedirect",
+    codeVerifier = None,
+    codeChallenge = None,
+    codeChallengeMethod = None,
     createdAt = DateTime.now()
   )
 

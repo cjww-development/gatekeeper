@@ -113,6 +113,9 @@ class TokenOrchestratorSpec
     userId = "testUserId",
     accType = "individual",
     redirectUri = "testRedirect",
+    codeVerifier = None,
+    codeChallenge = None,
+    codeChallengeMethod = None,
     createdAt = DateTime.now()
   )
 

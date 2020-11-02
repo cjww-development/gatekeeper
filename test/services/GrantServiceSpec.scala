@@ -68,6 +68,9 @@ class GrantServiceSpec
     userId = "testUserId",
     accType = "testType",
     redirectUri = testApp.redirectUrl,
+    codeVerifier = None,
+    codeChallenge = None,
+    codeChallengeMethod = None,
     createdAt = DateTime.now()
   )
 

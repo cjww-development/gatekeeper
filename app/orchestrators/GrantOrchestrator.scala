@@ -25,7 +25,7 @@ import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 import services.{ClientService, GrantService, ScopeService, UserService}
 
-import scala.concurrent.{Future, ExecutionContext => ExC}
+import scala.concurrent.{Future, blocking, ExecutionContext => ExC}
 
 sealed trait GrantInitiateResponse
 case object InvalidApplication extends GrantInitiateResponse
@@ -98,7 +98,7 @@ trait GrantOrchestrator {
     }
   }
 
-  def saveIncomingGrant(responseType: String, clientId: String, userId: String, scope: Seq[String])(implicit ec: ExC): Future[Option[Grant]] = {
+  def saveIncomingGrant(responseType: String, clientId: String, userId: String, scope: Seq[String], codeVerifier: Option[String], codeChallenge: Option[String], codeChallengeMethod: Option[String])(implicit ec: ExC): Future[Option[Grant]] = {
     userService.getUserInfo(userId) flatMap {
       case Some(user) => clientService.getRegisteredAppById(clientId) flatMap {
         case Some(app) =>
@@ -110,6 +110,9 @@ trait GrantOrchestrator {
             userId,
             user.accType,
             app.redirectUrl,
+            codeVerifier,
+            codeChallenge,
+            codeChallengeMethod,
             DateTime.now()
           )
           grantService.saveGrant(grant).flatMap {

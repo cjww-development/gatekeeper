@@ -27,6 +27,9 @@ case class Grant(responseType: String,
                  userId: String,
                  accType: String,
                  redirectUri: String,
+                 codeVerifier: Option[String],
+                 codeChallenge: Option[String],
+                 codeChallengeMethod: Option[String],
                  createdAt: DateTime)
 
 object Grant extends TimeFormat {
