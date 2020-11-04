@@ -16,10 +16,13 @@
 
 package services
 
+import java.security.MessageDigest
+import java.util.Base64
+
 import com.cjwwdev.mongo.responses.MongoCreateResponse
 import database.{AppStore, GrantStore}
 import javax.inject.Inject
-import models.{Grant, RegisteredApplication}
+import models.Grant
 import org.mongodb.scala.model.Filters.{and, equal}
 import org.slf4j.LoggerFactory
 
@@ -45,20 +48,56 @@ trait GrantService {
     grantStore.createGrant(grant)
   }
 
-  def validateGrant(authCode: String, clientId: String, redirectUri: String)(implicit ec: ExC): Future[Option[Grant]] = {
-    val query = and(
+  def validateGrant(authCode: String, clientId: String, redirectUri: String, codeVerifier: Option[String])(implicit ec: ExC): Future[Option[Grant]] = {
+    def transformVeriferToChallenge(codeVerifier: String): String = {
+      val bytes = codeVerifier.getBytes("US-ASCII")
+      val messageDigest = MessageDigest.getInstance("SHA-256")
+      messageDigest.update(bytes, 0, bytes.length)
+      val digest = messageDigest.digest
+      Base64
+        .getUrlEncoder
+        .withoutPadding
+        .encodeToString(digest)
+    }
+
+    val query = codeVerifier.fold(
+      and(
+        equal("authCode", authCode),
+        equal("clientId", clientId),
+        equal("redirectUri", redirectUri)
+      )
+    )(verifier => and(
       equal("authCode", authCode),
       equal("clientId", clientId),
-      equal("redirectUri", redirectUri)
-    )
+      equal("redirectUri", redirectUri),
+      equal("codeVerifier", verifier)
+    ))
 
     grantStore.validateGrant(query) map { grant =>
       if(grant.isDefined) {
         logger.info(s"[validateGrant] - Authorisation grant found")
+        (codeVerifier, grant.get.codeChallenge) match {
+          case (Some(verifier), Some(challenge)) => if(transformVeriferToChallenge(verifier) == challenge) {
+            logger.info(s"[validateGrant] - Validated grant using the PKCE verifier")
+            grant
+          } else {
+            logger.warn(s"[validateGrant] - Grant found but unable to validate using the supplied verifier")
+            None
+          }
+          case (None, Some(_)) =>
+            logger.warn("[validateGrant] - Grant found containing PKCE challenge but no verifier was supplied")
+            None
+          case (Some(_), None) =>
+            logger.warn(s"[validateGrant] - Grant found containing no PKCE challenge but a verifier was supplied; retry with basic auth")
+            None
+          case (None, None) =>
+            logger.info(s"[validateGrant] - Grant found with no PKCE challenge and no verifier was supplied")
+            grant
+        }
       } else {
         logger.warn(s"[validateGrant] - No authorisation grant was found")
+        None
       }
-      grant
     }
   }
 }

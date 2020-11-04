@@ -63,7 +63,8 @@ trait OAuthController extends BaseController with AuthenticatedAction {
         val authCode = params("code").headOption.getOrElse("")
         val clientId = params("client_id").headOption.getOrElse("")
         val redirectUri = params("redirect_uri").headOption.getOrElse("")
-        tokenOrchestrator.authorizationCodeGrant(authCode, clientId, redirectUri) map {
+        val codeVerifier = params.getOrElse("code_verifier", Seq()).headOption
+        tokenOrchestrator.authorizationCodeGrant(authCode, clientId, redirectUri, codeVerifier) map {
           case iss@Issued(_,_,_,_,_) => Ok(Json.toJson(iss))
           case resp => BadRequest(Json.obj("error" -> resp.toString))
         }

@@ -145,7 +145,7 @@ class TokenOrchestratorSpec
         mockGetRegisteredAppById(app = Some(testApp))
         getMockExpiry(expiry = 900000)
 
-        awaitAndAssert(testOrchestrator.authorizationCodeGrant("testAuthCode", "testClientId", "testRedirect")) {
+        awaitAndAssert(testOrchestrator.authorizationCodeGrant("testAuthCode", "testClientId", "testRedirect", None)) {
           _ mustBe Issued(
             tokenType = "Bearer",
             scope = "openid",
@@ -180,7 +180,7 @@ class TokenOrchestratorSpec
         mockGetRegisteredAppById(app = Some(testApp))
         getMockExpiry(expiry = 900000)
 
-        awaitAndAssert(testOrchestrator.authorizationCodeGrant("testAuthCode", "testClientId", "testRedirect")) {
+        awaitAndAssert(testOrchestrator.authorizationCodeGrant("testAuthCode", "testClientId", "testRedirect", None)) {
           _ mustBe Issued(
             tokenType = "Bearer",
             scope = "openid",
@@ -200,7 +200,7 @@ class TokenOrchestratorSpec
         mockCreateIdToken()
         getMockExpiry(expiry = 900000)
 
-        awaitAndAssert(testOrchestrator.authorizationCodeGrant("testAuthCode", "testClientId", "testRedirect")) {
+        awaitAndAssert(testOrchestrator.authorizationCodeGrant("testAuthCode", "testClientId", "testRedirect", None)) {
           _ mustBe InvalidUser
         }
       }
@@ -210,7 +210,7 @@ class TokenOrchestratorSpec
       "the grant could not be validated" in {
         mockValidateGrant(grant = None)
 
-        awaitAndAssert(testOrchestrator.authorizationCodeGrant("testAuthCode", "testClientId", "testRedirect")) {
+        awaitAndAssert(testOrchestrator.authorizationCodeGrant("testAuthCode", "testClientId", "testRedirect", None)) {
           _ mustBe InvalidGrant
         }
       }

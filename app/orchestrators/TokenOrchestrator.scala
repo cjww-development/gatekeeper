@@ -56,8 +56,8 @@ trait TokenOrchestrator extends DeObfuscators {
 
   override val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
-  def authorizationCodeGrant(authCode: String, clientId: String, redirectUri: String)(implicit ec: ExC): Future[TokenResponse] = {
-    grantService.validateGrant(authCode, clientId, redirectUri) flatMap {
+  def authorizationCodeGrant(authCode: String, clientId: String, redirectUri: String, codeVerifier: Option[String])(implicit ec: ExC): Future[TokenResponse] = {
+    grantService.validateGrant(authCode, clientId, redirectUri, codeVerifier) flatMap {
       case Some(grant) =>
         logger.info("[authorizationCodeGrant] - Grant has been validated")
         val scopes = scopeService.getScopeDetails(grant.scope)

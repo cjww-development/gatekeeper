@@ -43,7 +43,7 @@ trait MockGrantService extends MockitoSugar with BeforeAndAfterEach {
   }
 
   def mockValidateGrant(grant: Option[Grant]): OngoingStubbing[Future[Option[Grant]]] = {
-    when(mockGrantService.validateGrant(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
+    when(mockGrantService.validateGrant(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[Option[String]]())(ArgumentMatchers.any()))
       .thenReturn(Future.successful(grant))
   }
 }

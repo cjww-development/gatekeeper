@@ -119,7 +119,7 @@ class GrantServiceSpec
       "the auth code and state have been validated" in {
         mockValidateGrant(app = Some(testGrant))
 
-        awaitAndAssert(testService.validateGrant(testGrant.authCode, testApp.clientId, testApp.redirectUrl)) {
+        awaitAndAssert(testService.validateGrant(testGrant.authCode, testApp.clientId, testApp.redirectUrl, None)) {
           _ mustBe Some(testGrant)
         }
       }
@@ -129,7 +129,7 @@ class GrantServiceSpec
       "the auth code and state could not be validated" in {
         mockValidateGrant(app = None)
 
-        awaitAndAssert(testService.validateGrant(testGrant.authCode, testApp.clientId, testApp.redirectUrl)) {
+        awaitAndAssert(testService.validateGrant(testGrant.authCode, testApp.clientId, testApp.redirectUrl, None)) {
           _ mustBe None
         }
       }
