@@ -20,7 +20,7 @@ import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
 import database.TokenRecordStore
 import helpers.Assertions
 import helpers.database.MockTokenRecordStore
-import models.{AuthorisedClient, TokenRecord, UserInfo}
+import models.{AuthorisedClient, RefreshToken, TokenRecord, UserInfo}
 import org.apache.commons.net.util.Base64
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
@@ -123,6 +123,29 @@ class TokenServiceSpec
           payload.\("sub").as[String] mustBe "testClientId"
           payload.\("tsid").as[String] mustBe "testSetId"
           payload.\("tid").as[String] mustBe "testTokenId"
+        }
+      }
+    }
+  }
+
+  "createRefreshToken" should {
+    "return a Refresh token" when {
+      "given the clientId, userId and expiry" in {
+        assertOutput(testService.createRefreshToken("testClientId", "testUserId", 900000, "testSetId", "testTokenId", Seq("testScope"))) { token =>
+          val res = RefreshToken.dec(token)
+
+          assert(res.isRight)
+          res.fold(
+            err => fail(s"Refresh token could not be decrypted", err),
+            token => {
+              token.aud   mustBe "testClientId"
+              token.sub   mustBe "testUserId"
+              token.iss   mustBe "testIssuer"
+              token.tsid  mustBe "testSetId"
+              token.tid   mustBe "testTokenId"
+              token.scope mustBe Seq("testScope")
+            }
+          )
         }
       }
     }

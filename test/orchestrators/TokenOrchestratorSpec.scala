@@ -141,6 +141,7 @@ class TokenOrchestratorSpec
         mockGenerateTokenRecordSetId()
         mockCreateAccessToken()
         mockCreateIdToken()
+        mockCreateRefreshToken()
         mockCreateTokenRecordSet(success = true)
         mockGetRegisteredAppById(app = Some(testApp))
         getMockExpiry(expiry = 900000)
@@ -151,7 +152,8 @@ class TokenOrchestratorSpec
             scope = "openid",
             expiresIn = 900000,
             "testAccessToken",
-            Some("testIdToken")
+            Some("testIdToken"),
+            Some("testRefreshToken")
           )
         }
       }
@@ -176,6 +178,7 @@ class TokenOrchestratorSpec
         mockGenerateTokenRecordSetId()
         mockCreateAccessToken()
         mockCreateIdToken()
+        mockCreateRefreshToken()
         mockCreateTokenRecordSet(success = true)
         mockGetRegisteredAppById(app = Some(testApp))
         getMockExpiry(expiry = 900000)
@@ -186,7 +189,8 @@ class TokenOrchestratorSpec
             scope = "openid",
             expiresIn = 900000,
             "testAccessToken",
-            Some("testIdToken")
+            Some("testIdToken"),
+            Some("testRefreshToken")
           )
         }
       }
@@ -235,6 +239,7 @@ class TokenOrchestratorSpec
             scope = "testScope",
             expiresIn = 900000,
             "testAccessToken",
+            None,
             None
           )
         }

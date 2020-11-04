@@ -53,6 +53,11 @@ trait MockTokenService extends MockitoSugar with BeforeAndAfterEach {
       .thenReturn("testIdToken")
   }
 
+  def mockCreateRefreshToken(): OngoingStubbing[String] = {
+    when(mockTokenService.createRefreshToken(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[Long](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[Seq[String]]()))
+      .thenReturn("testRefreshToken")
+  }
+
   def getMockExpiry(expiry: Long): OngoingStubbing[Long] = {
     when(mockTokenService.expiry)
       .thenReturn(expiry)

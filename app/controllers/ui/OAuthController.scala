@@ -44,13 +44,15 @@ trait OAuthController extends BaseController with AuthenticatedAction {
 
   private implicit val issuedWriter: Writes[Issued] = (issued: Issued) => {
     val idToken = issued.idToken.fold(Json.obj())(id => Json.obj("id_token" -> id))
+    val refreshToken = issued.refreshToken.fold(Json.obj())(refresh => Json.obj("refresh_token" -> refresh))
+
 
     Json.obj(
       "token_type" -> issued.tokenType,
       "scope" -> issued.scope,
       "expires_in" -> issued.expiresIn,
       "access_token" -> issued.accessToken,
-    ) ++ idToken
+    ) ++ idToken ++ refreshToken
   }
 
   def getToken(): Action[AnyContent] = Action.async { implicit req =>
@@ -65,13 +67,13 @@ trait OAuthController extends BaseController with AuthenticatedAction {
         val redirectUri = params("redirect_uri").headOption.getOrElse("")
         val codeVerifier = params.getOrElse("code_verifier", Seq()).headOption
         tokenOrchestrator.authorizationCodeGrant(authCode, clientId, redirectUri, codeVerifier) map {
-          case iss@Issued(_,_,_,_,_) => Ok(Json.toJson(iss))
+          case iss@Issued(_,_,_,_,_,_) => Ok(Json.toJson(iss))
           case resp => BadRequest(Json.obj("error" -> resp.toString))
         }
       case "client_credentials" =>
         val scope = params("scope").headOption.getOrElse("")
         tokenOrchestrator.clientCredentialsGrant(scope) map {
-          case iss@Issued(_,_,_,_,_) => Ok(Json.toJson(iss))
+          case iss@Issued(_,_,_,_,_,_) => Ok(Json.toJson(iss))
           case resp => BadRequest(Json.obj("error" -> resp.toString))
         }
       case e =>

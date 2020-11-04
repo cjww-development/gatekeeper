@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit
 import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoDeleteResponse, MongoFailedCreate, MongoSuccessCreate, MongoUpdatedResponse}
 import database.TokenRecordStore
 import javax.inject.Inject
-import models.{TokenExpiry, TokenRecord}
+import models.{RefreshToken, TokenExpiry, TokenRecord}
 import org.joda.time.DateTime
 import org.mongodb.scala.model.Filters.{and, equal, exists}
 import org.mongodb.scala.model.Updates.{min, set}
@@ -110,6 +110,23 @@ trait TokenService {
       .toJson
 
     Jwt.encode(claims, signature, JwtAlgorithm.HS512)
+  }
+
+  def createRefreshToken(clientId: String, userId: String, expiry: Long, setId: String, tokenId: String, scope: Seq[String]): String = {
+    val now = Instant.now
+
+    val token = RefreshToken(
+      sub = userId,
+      aud = clientId,
+      iss = issuer,
+      iat = now.getEpochSecond,
+      exp = now.plusMillis(expiry).getEpochSecond,
+      tsid = setId,
+      tid = tokenId,
+      scope
+    )
+
+    RefreshToken.enc(token)
   }
 
   def generateTokenRecordSetId: String = {

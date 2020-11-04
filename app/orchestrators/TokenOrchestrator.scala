@@ -19,6 +19,7 @@ package orchestrators
 import com.cjwwdev.mongo.responses.{MongoDeleteResponse, MongoFailedCreate, MongoSuccessCreate, MongoUpdatedResponse}
 import com.cjwwdev.security.deobfuscation.DeObfuscators
 import javax.inject.Inject
+import models.RefreshToken
 import org.slf4j.{Logger, LoggerFactory}
 import play.api.mvc.Request
 import services._
@@ -27,7 +28,7 @@ import utils.BasicAuth
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
 sealed trait TokenResponse
-case class Issued(tokenType: String, scope: String, expiresIn: Long, accessToken: String, idToken: Option[String]) extends TokenResponse
+case class Issued(tokenType: String, scope: String, expiresIn: Long, accessToken: String, idToken: Option[String], refreshToken: Option[String]) extends TokenResponse
 case object TokenError extends TokenResponse
 case object InvalidGrant extends TokenResponse
 case object InvalidGrantType extends TokenResponse
@@ -72,6 +73,7 @@ trait TokenOrchestrator extends DeObfuscators {
                 val tokenSetId = tokenService.generateTokenRecordSetId
                 val accessId = tokenService.generateTokenRecordSetId
                 val idId = tokenService.generateTokenRecordSetId
+                val refreshId = tokenService.generateTokenRecordSetId
 
                 val accessToken = tokenService.createAccessToken(clientId, grant.userId, tokenSetId, accessId, grant.scope.mkString(","), app.accessTokenExpiry)
                 val idToken = if(scopes.exists(_.name == "openid")) {
@@ -80,6 +82,8 @@ trait TokenOrchestrator extends DeObfuscators {
                   None
                 }
 
+                val refreshToken = tokenService.createRefreshToken(clientId, grant.userId, app.refreshTokenExpiry, tokenSetId, refreshId, grant.scope)
+
                 tokenService.createTokenRecordSet(tokenSetId, grant.userId, app.appId, accessId, idToken.map(_ => idId), None) map {
                   case MongoSuccessCreate =>
                     Issued(
@@ -87,7 +91,8 @@ trait TokenOrchestrator extends DeObfuscators {
                       scope = grant.scope.mkString(","),
                       expiresIn = app.accessTokenExpiry,
                       accessToken,
-                      idToken
+                      idToken,
+                      Some(refreshToken)
                     )
                   case MongoFailedCreate => TokenError
                 }
@@ -124,7 +129,8 @@ trait TokenOrchestrator extends DeObfuscators {
                 scope,
                 expiresIn = tokenService.expiry,
                 accessToken,
-                idToken = None
+                idToken = None,
+                refreshToken = None
               )
             case MongoFailedCreate => TokenError
           }
