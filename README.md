@@ -5,13 +5,25 @@ gatekeeper
 
 Gatekeeper is an OAuth2 and OIDC implementation.
 
-#### Feature list
+Features
+============
 - Client registration
-- User registration
-- Developer registration
+    - Update Redirects
+    - Limit scopes
+    - Limit available OAuth2 flows
+    - Modify token validity
+    - Regenerate client Id and secret
+- User and developer registration
+    - Update email and password
+    - Email verification (via AWS SES)
+    - TOTP MFA
+    - See list of apps accessing your account
+    - Revoke sessions for apps accessing your account
+    - Completely revoke access for apps accessing your account
 - Grant types
 	- authorization_code
 	- client_credentials
+
 
 
 Prerequisites
@@ -41,7 +53,7 @@ How to run
 sbt -Demail.from=test@email.com -Dplay.http.router=testing.Routes run
 ```
 
-test@emai.com should be replaced with a email address or domain that's been verified in AWS SES
+test@email.com should be replaced with a email address or domain that's been verified in AWS SES
 
 This will start the application on port *5678*
 
