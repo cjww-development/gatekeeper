@@ -141,7 +141,7 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
 
   def updateOAuthFlows(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => orgUserId =>
     val reqBody = req.body.asFormUrlEncoded.getOrElse(Map())
-    val oauthFlows = reqBody.getOrElse("auth-code-check", Seq()) ++ reqBody.getOrElse("client-cred-check", Seq())
+    val oauthFlows = reqBody.getOrElse("auth-code-check", Seq()) ++ reqBody.getOrElse("client-cred-check", Seq()) ++ reqBody.getOrElse("refresh-check", Seq())
 
     clientOrchestrator.updateAppOAuthFlows(oauthFlows, appId, orgUserId) map {
       _ => Redirect(routes.ClientController.getClientDetails(appId))

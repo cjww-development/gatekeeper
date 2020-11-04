@@ -106,6 +106,10 @@
                         <input type="checkbox" id="client-cred-check" name="client-cred-check" value="client_credentials" @if(app.oauth2Flows.contains("client_credentials")){ checked }/> Client credentials
                     </label>
 
+                    <label class="checkbox checkbox-success" for="refresh-check">
+                        <input type="checkbox" id="client-cred-check" name="client-cred-check" value="refresh_token" @if(app.oauth2Flows.contains("refresh_token")){ checked }/> Refresh token grant
+                    </label>
+
                     <hr>
 
                     <button class="btn btn-lg btn-primary btn-block" type="submit">Update flows</button>
