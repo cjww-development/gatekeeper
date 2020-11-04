@@ -101,8 +101,6 @@ trait TokenRecordStore extends DatabaseRepository with CodecReg {
       .deleteOne(query)
       .toFuture()
       .map { x =>
-        println(x.getDeletedCount)
-        println(x.wasAcknowledged())
         logger.info(s"[deleteTokenRecord] - Deleted token record")
         MongoSuccessDelete
       }.recover { e =>

@@ -157,6 +157,17 @@ trait TokenService {
     }
   }
 
+  def updateTokenRecordSet(recordSetId: String, accessTokenId: String, idTokenId: String)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
+    val query = equal("tokenSetId", recordSetId)
+    val update = and(
+      set("accessTokenId", accessTokenId),
+      set("idTokenId", idTokenId),
+      set("issuedAt", new DateTime())
+    )
+
+    tokenRecordStore.updateTokenRecord(query, update)
+  }
+
   def getActiveSessionsFor(userId: String, appId: String)(implicit ec: ExC): Future[Seq[TokenRecord]] = {
     val query = and(equal("userId", userId), equal("appId", appId))
     tokenRecordStore.getActiveRecords(query)

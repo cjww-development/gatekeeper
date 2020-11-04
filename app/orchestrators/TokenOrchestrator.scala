@@ -16,7 +16,7 @@
 
 package orchestrators
 
-import com.cjwwdev.mongo.responses.{MongoDeleteResponse, MongoFailedCreate, MongoSuccessCreate, MongoUpdatedResponse}
+import com.cjwwdev.mongo.responses.{MongoDeleteResponse, MongoFailedCreate, MongoFailedUpdate, MongoSuccessCreate, MongoSuccessUpdate, MongoUpdatedResponse}
 import com.cjwwdev.security.deobfuscation.DeObfuscators
 import javax.inject.Inject
 import models.RefreshToken
@@ -147,6 +147,57 @@ trait TokenOrchestrator extends DeObfuscators {
         logger.warn(s"[clientCredentialsGrant] - Could not validate the requested client")
         Future.successful(InvalidClient)
     })
+  }
+
+  def refreshTokenGrant(token: String)(implicit ec: ExC): Future[TokenResponse] = {
+    RefreshToken.dec(token).fold(
+      err => {
+        logger.warn(s"[refreshTokenGrant] - There was a problem decrypting the refresh token", err)
+        Future.successful(TokenError)
+      },
+      refreshToken => {
+        val scopes = scopeService.getScopeDetails(refreshToken.scope)
+
+        userService.getUserInfo(refreshToken.sub) flatMap {
+          case Some(userData) =>
+            clientService.getRegisteredAppById(refreshToken.aud) flatMap {
+              case Some(app) => if(app.oauth2Flows.contains("refresh_token")) {
+                val scopedData = userData.toMap.filter{ case (k, _) => scopes.exists(_.name == k)}
+                val accessId = tokenService.generateTokenRecordSetId
+                val idId = tokenService.generateTokenRecordSetId
+                val accessToken = tokenService.createAccessToken(refreshToken.aud, refreshToken.sub, refreshToken.tsid, accessId, refreshToken.scope.mkString(","), app.accessTokenExpiry)
+                val idToken = if(refreshToken.scope.contains("openid")) {
+                  Some(tokenService.createIdToken(refreshToken.aud, refreshToken.sub, refreshToken.tsid, idId, scopedData, app.idTokenExpiry))
+                } else {
+                  None
+                }
+
+                tokenService.updateTokenRecordSet(refreshToken.tsid, accessId, idId) map {
+                  case MongoSuccessUpdate =>
+                    Issued(
+                      tokenType = "Bearer",
+                      scope = refreshToken.scope.mkString(","),
+                      expiresIn = tokenService.expiry,
+                      accessToken,
+                      idToken,
+                      refreshToken = Some(token)
+                    )
+                  case MongoFailedUpdate => TokenError
+                }
+              } else {
+                logger.warn(s"[refreshTokenGrant] - The app ${refreshToken.aud} is not allowed to get access tokens via refresh tokens")
+                Future.successful(InvalidOAuthFlow)
+              }
+              case None =>
+                logger.warn(s"[refreshTokenGrant] - No matching client was found, unable to issue access token")
+                Future.successful(InvalidClient)
+            }
+          case None =>
+            logger.warn(s"[refreshTokenGrant] - could not validate user on userId ${refreshToken.sub}")
+            Future.successful(InvalidUser)
+        }
+      }
+    )
   }
 
   def revokeTokens(tokenRecordSet: String, userId: String, appId: String)(implicit ec: ExC): Future[MongoDeleteResponse] = {

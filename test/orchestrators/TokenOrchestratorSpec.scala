@@ -22,7 +22,7 @@ import com.cjwwdev.security.Implicits._
 import com.cjwwdev.security.obfuscation.Obfuscators
 import helpers.Assertions
 import helpers.services._
-import models.{AuthorisedClient, Grant, RegisteredApplication, Scope, User, UserInfo}
+import models.{AuthorisedClient, Grant, RefreshToken, RegisteredApplication, Scope, User, UserInfo}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import play.api.test.FakeRequest
@@ -69,7 +69,7 @@ class TokenOrchestratorSpec
     clientType   = "confidential",
     clientId     = "testId".encrypt,
     clientSecret = Some("testSecret".encrypt),
-    oauth2Flows = Seq("authorization_code", "client_credentials"),
+    oauth2Flows = Seq("authorization_code", "client_credentials", "refresh_token"),
     oauth2Scopes = Seq("openid"),
     idTokenExpiry = 900000L,
     accessTokenExpiry = 900000L,
@@ -263,6 +263,127 @@ class TokenOrchestratorSpec
 
         awaitAndAssert(testOrchestrator.clientCredentialsGrant("testScope")) {
           _ mustBe InvalidClient
+        }
+      }
+    }
+  }
+
+  "refreshTokenGrant" should {
+    val refreshToken = RefreshToken.enc(RefreshToken(
+      sub = "testUserId",
+      aud = "testClientId",
+      iss = "testIssuer",
+      iat = 100L,
+      exp = 900L,
+      tsid = "testTokenSetId",
+      tid = "testTokenId",
+      scope = Seq("testScope")
+    ))
+
+    "return Issued" when {
+      "new id and access tokens have been issued" in {
+        mockGetScopeDetails(scopes = Seq(Scope(name = "testScope", readableName = "testScope", desc = "testScope")))
+        mockGetIndividualAccountInfo(value = Some(UserInfo(
+          id = "testUserId",
+          userName = "test-org",
+          email = "",
+          emailVerified = false,
+          accType = "",
+          authorisedClients = List.empty[AuthorisedClient],
+          mfaEnabled = false,
+          createdAt = now
+        )))
+        mockGetRegisteredAppById(app = Some(testApp))
+        mockUpdateTokenRecordSet(success = true)
+
+        awaitAndAssert(testOrchestrator.refreshTokenGrant(refreshToken)) {
+          case Issued(tokenType, scope, expiresIn, accessToken, idToken, refreshToken) =>
+            tokenType mustBe "Bearer"
+            scope mustBe "testScope"
+          case e =>
+            fail("TokenResponse was not of type Issued")
+        }
+      }
+    }
+
+    "return a TokenError" when {
+      "the refresh token could not be decrypted" in {
+        awaitAndAssert(testOrchestrator.refreshTokenGrant("invalid-token")) {
+          _ mustBe TokenError
+        }
+      }
+
+      "there was an issue updating the token record set" in {
+        mockGetScopeDetails(scopes = Seq(Scope(name = "testScope", readableName = "testScope", desc = "testScope")))
+        mockGetIndividualAccountInfo(value = Some(UserInfo(
+          id = "testUserId",
+          userName = "test-org",
+          email = "",
+          emailVerified = false,
+          accType = "",
+          authorisedClients = List.empty[AuthorisedClient],
+          mfaEnabled = false,
+          createdAt = now
+        )))
+        mockGetRegisteredAppById(app = Some(testApp))
+        mockUpdateTokenRecordSet(success = false)
+
+        awaitAndAssert(testOrchestrator.refreshTokenGrant(refreshToken)) {
+          _ mustBe TokenError
+        }
+      }
+    }
+
+    "return an InvalidOAuthFlow" when {
+      "the requesting client isn't allowed to use the refresh token flow" in {
+        mockGetScopeDetails(scopes = Seq(Scope(name = "testScope", readableName = "testScope", desc = "testScope")))
+        mockGetIndividualAccountInfo(value = Some(UserInfo(
+          id = "testUserId",
+          userName = "test-org",
+          email = "",
+          emailVerified = false,
+          accType = "",
+          authorisedClients = List.empty[AuthorisedClient],
+          mfaEnabled = false,
+          createdAt = now
+        )))
+        mockGetRegisteredAppById(app = Some(testApp.copy(oauth2Flows = Seq())))
+
+        awaitAndAssert(testOrchestrator.refreshTokenGrant(refreshToken)) {
+          _ mustBe InvalidOAuthFlow
+        }
+      }
+    }
+
+    "return an InvalidClient" when {
+      "the requesting client doesn't exist" in {
+        mockGetScopeDetails(scopes = Seq(Scope(name = "testScope", readableName = "testScope", desc = "testScope")))
+        mockGetIndividualAccountInfo(value = Some(UserInfo(
+          id = "testUserId",
+          userName = "test-org",
+          email = "",
+          emailVerified = false,
+          accType = "",
+          authorisedClients = List.empty[AuthorisedClient],
+          mfaEnabled = false,
+          createdAt = now
+        )))
+        mockGetRegisteredAppById(app = None)
+
+        awaitAndAssert(testOrchestrator.refreshTokenGrant(refreshToken)) {
+          _ mustBe InvalidClient
+        }
+      }
+    }
+
+    "return an InvalidUser" when {
+      "the user doesn't exist" in {
+        mockGetScopeDetails(scopes = Seq(Scope(name = "testScope", readableName = "testScope", desc = "testScope")))
+        mockGetIndividualAccountInfo(value = None)
+
+
+        awaitAndAssert(testOrchestrator.refreshTokenGrant(refreshToken)) {
+          _ mustBe InvalidUser
         }
       }
     }

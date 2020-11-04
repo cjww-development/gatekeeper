@@ -76,6 +76,12 @@ trait OAuthController extends BaseController with AuthenticatedAction {
           case iss@Issued(_,_,_,_,_,_) => Ok(Json.toJson(iss))
           case resp => BadRequest(Json.obj("error" -> resp.toString))
         }
+      case "refresh_token" =>
+        val refreshToken = params("refresh_token").headOption.getOrElse("")
+        tokenOrchestrator.refreshTokenGrant(refreshToken) map {
+          case iss@Issued(_,_,_,_,_,_) => Ok(Json.toJson(iss))
+          case resp => BadRequest(Json.obj("error" -> resp.toString))
+        }
       case e =>
         logger.error(s"[issueToken] - Could not validate grant type $e")
         Future.successful(BadRequest(Json.obj("error" -> InvalidGrantType.toString)))

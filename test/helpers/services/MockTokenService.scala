@@ -16,7 +16,7 @@
 
 package helpers.services
 
-import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
+import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoFailedUpdate, MongoSuccessCreate, MongoSuccessUpdate, MongoUpdatedResponse}
 import models.TokenRecord
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
@@ -56,6 +56,11 @@ trait MockTokenService extends MockitoSugar with BeforeAndAfterEach {
   def mockCreateRefreshToken(): OngoingStubbing[String] = {
     when(mockTokenService.createRefreshToken(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[Long](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[Seq[String]]()))
       .thenReturn("testRefreshToken")
+  }
+
+  def mockUpdateTokenRecordSet(success: Boolean): OngoingStubbing[Future[MongoUpdatedResponse]] = {
+    when(mockTokenService.updateTokenRecordSet(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
+      .thenReturn(if(success) Future.successful(MongoSuccessUpdate) else Future.successful(MongoFailedUpdate))
   }
 
   def getMockExpiry(expiry: Long): OngoingStubbing[Long] = {
