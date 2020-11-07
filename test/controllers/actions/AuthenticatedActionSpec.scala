@@ -20,7 +20,7 @@ import java.util.UUID
 
 import helpers.Assertions
 import helpers.orchestrators.MockUserOrchestrator
-import models.{AuthorisedClient, Name, ServerCookies, User, UserInfo}
+import models.{AuthorisedClient, Gender, Name, ServerCookies, User, UserInfo}
 import orchestrators.UserOrchestrator
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
@@ -87,7 +87,12 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
           name = Name(
             firstName = None,
             middleName = None,
-            lastName = None
+            lastName = None,
+            nickName = None
+          ),
+          gender = Gender(
+            selection = "not specified",
+            custom = None
           ),
           accType = testIndUser.accType,
           authorisedClients = List.empty[AuthorisedClient],
@@ -153,7 +158,12 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
           name = Name(
             firstName = None,
             middleName = None,
-            lastName = None
+            lastName = None,
+            nickName = None
+          ),
+          gender = Gender(
+            selection = "not specified",
+            custom = None
           ),
           accType = testOrgUser.accType,
           authorisedClients = List.empty[AuthorisedClient],
@@ -185,7 +195,12 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
           name = Name(
             firstName = None,
             middleName = None,
-            lastName = None
+            lastName = None,
+            nickName = None
+          ),
+          gender = Gender(
+            selection = "not specified",
+            custom = None
           ),
           accType = testIndUser.accType,
           authorisedClients = List.empty[AuthorisedClient],

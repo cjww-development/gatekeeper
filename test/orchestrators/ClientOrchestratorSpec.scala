@@ -23,7 +23,7 @@ import com.cjwwdev.security.Implicits._
 import com.cjwwdev.security.obfuscation.Obfuscators
 import helpers.Assertions
 import helpers.services.{MockAccountService, MockClientService, MockTokenService}
-import models.{AuthorisedClient, Name, RegisteredApplication, User, UserInfo}
+import models.{AuthorisedClient, Gender, Name, RegisteredApplication, User, UserInfo}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import services._
@@ -203,6 +203,11 @@ class ClientOrchestratorSpec
             firstName = None,
             middleName = None,
             lastName = None,
+            nickName = None
+          ),
+          gender = Gender(
+            selection = "not specified",
+            custom = None
           ),
           accType = testUser.accType,
           authorisedClients = List(AuthorisedClient(appId = testApp.appId, authorisedScopes = Seq(), authorisedOn = now)),
@@ -230,6 +235,11 @@ class ClientOrchestratorSpec
             firstName = None,
             middleName = None,
             lastName = None,
+            nickName = None
+          ),
+          gender = Gender(
+            selection = "not specified",
+            custom = None
           ),
           accType = testUser.accType,
           authorisedClients = List(),
@@ -264,6 +274,11 @@ class ClientOrchestratorSpec
             firstName = None,
             middleName = None,
             lastName = None,
+            nickName = None
+          ),
+          gender = Gender(
+            selection = "not specified",
+            custom = None
           ),
           accType = testUser.accType,
           authorisedClients = List(AuthorisedClient(appId = testApp.appId, authorisedScopes = Seq(), authorisedOn = now)),
@@ -299,6 +314,11 @@ class ClientOrchestratorSpec
             firstName = None,
             middleName = None,
             lastName = None,
+            nickName = None
+          ),
+          gender = Gender(
+            selection = "not specified",
+            custom = None
           ),
           accType = testUser.accType,
           authorisedClients = List(AuthorisedClient(appId = testApp.appId, authorisedScopes = Seq(), authorisedOn = now)),
@@ -323,6 +343,11 @@ class ClientOrchestratorSpec
             firstName = None,
             middleName = None,
             lastName = None,
+            nickName = None
+          ),
+          gender = Gender(
+            selection = "not specified",
+            custom = None
           ),
           accType = testUser.accType,
           authorisedClients = List(AuthorisedClient(appId = testApp.appId, authorisedScopes = Seq(), authorisedOn = now)),

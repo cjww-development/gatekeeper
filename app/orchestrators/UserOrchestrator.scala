@@ -19,7 +19,7 @@ package orchestrators
 import com.cjwwdev.mongo.responses.MongoUpdatedResponse
 import com.cjwwdev.security.obfuscation.Obfuscators
 import javax.inject.Inject
-import models.{ChangeOfPassword, Name, UserInfo}
+import models.{ChangeOfPassword, Gender, Name, UserInfo}
 import org.slf4j.LoggerFactory
 import play.api.mvc.Request
 import services.{EmailService, RegistrationService, UserService}
@@ -111,6 +111,11 @@ trait UserOrchestrator extends Obfuscators {
   }
 
   def updateName(userId: String, name: Name)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
-    userService.updateName(userId, name.firstName, name.middleName, name.lastName)
+    userService.updateName(userId, name.firstName, name.middleName, name.lastName, name.nickName)
+  }
+
+  def updateGender(userId: String, gender: Gender)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
+    val genderToSave = gender.custom.getOrElse(gender.selection)
+    userService.updateGender(userId, genderToSave)
   }
 }

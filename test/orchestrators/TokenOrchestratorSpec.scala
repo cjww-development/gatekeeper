@@ -22,7 +22,7 @@ import com.cjwwdev.security.Implicits._
 import com.cjwwdev.security.obfuscation.Obfuscators
 import helpers.Assertions
 import helpers.services._
-import models.{AuthorisedClient, Grant, Name, RefreshToken, RegisteredApplication, Scope, User, UserInfo}
+import models.{AuthorisedClient, Gender, Grant, Name, RefreshToken, RegisteredApplication, Scope, User, UserInfo}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import play.api.test.FakeRequest
@@ -135,6 +135,11 @@ class TokenOrchestratorSpec
             firstName = None,
             middleName = None,
             lastName = None,
+            nickName = None
+          ),
+          gender = Gender(
+            selection = "not specified",
+            custom = None
           ),
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
@@ -177,6 +182,11 @@ class TokenOrchestratorSpec
             firstName = None,
             middleName = None,
             lastName = None,
+            nickName = None
+          ),
+          gender = Gender(
+            selection = "not specified",
+            custom = None
           ),
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
@@ -304,6 +314,11 @@ class TokenOrchestratorSpec
             firstName = None,
             middleName = None,
             lastName = None,
+            nickName = None
+          ),
+          gender = Gender(
+            selection = "not specified",
+            custom = None
           ),
           accType = "",
           authorisedClients = List.empty[AuthorisedClient],
@@ -341,6 +356,11 @@ class TokenOrchestratorSpec
             firstName = None,
             middleName = None,
             lastName = None,
+            nickName = None
+          ),
+          gender = Gender(
+            selection = "not specified",
+            custom = None
           ),
           accType = "",
           authorisedClients = List.empty[AuthorisedClient],
@@ -368,6 +388,11 @@ class TokenOrchestratorSpec
             firstName = None,
             middleName = None,
             lastName = None,
+            nickName = None
+          ),
+          gender = Gender(
+            selection = "not specified",
+            custom = None
           ),
           accType = "",
           authorisedClients = List.empty[AuthorisedClient],
@@ -394,6 +419,11 @@ class TokenOrchestratorSpec
             firstName = None,
             middleName = None,
             lastName = None,
+            nickName = None
+          ),
+          gender = Gender(
+            selection = "not specified",
+            custom = None
           ),
           accType = "",
           authorisedClients = List.empty[AuthorisedClient],

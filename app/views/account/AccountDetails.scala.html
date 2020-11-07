@@ -5,7 +5,7 @@
 @import views.AuthForView
 @import views.html.components.forms.TextInput
 
-@(user: UserInfo, emailInUse: Boolean, passwordForm: Form[ChangeOfPassword], nameForm: Form[Name])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
+@(user: UserInfo, emailInUse: Boolean, passwordForm: Form[ChangeOfPassword], nameForm: Form[Name], genderForm: Form[Gender])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
 
 @Main("Account details", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <script src="https://cdn.jsdelivr.net/npm/jdenticon@@3.0.1" async></script>
@@ -101,6 +101,40 @@
                 </form>
             </div>
         </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title default-text">Select gender</h4>
+                <form action="@uiRoutes.AccountController.updateGender()" method="post">
+                    @CSRF.formField
+
+                    <div class="form-group">
+                        <label for="selection">Select your gender</label>
+                        <select class="form-control" id="selection" name="selection">
+                            @for(gender <- Gender.toList) {
+                                <option value="@gender" @if(genderForm("selection").value.contains(gender)) { selected }>
+                                    @{gender.capitalize}
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    @TextInput(
+                        genderForm("custom"),
+                        isReadOnly = !genderForm("selection").value.contains("other"),
+                        Symbol("_id") -> "customGenderInput",
+                        Symbol("_name") -> "custom",
+                        Symbol("_label") -> "Other",
+                        Symbol("_type") -> "text",
+                        Symbol("_class") -> "form-control"
+                    )
+
+                    <hr>
+
+                    <button class="btn btn-lg btn-primary btn-block" type="submit">Update gender</button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -110,6 +144,17 @@
             $("#email-update-warning").show();
         }).focusout(function () {
             $("#email-update-warning").hide();
+        });
+
+        let genderSelector = document.getElementById("selection");
+        let customGenderInput = document.getElementById("customGenderInput");
+        genderSelector.addEventListener("change", () => {
+            if(genderSelector.value !== "other") {
+                customGenderInput.readOnly = true;
+                customGenderInput.value = null;
+            } else {
+                customGenderInput.readOnly = false;
+            }
         });
     </script>
 }
@@ -253,6 +298,16 @@
         Symbol("_id") -> "lastNameInput",
         Symbol("_name") -> "lastName",
         Symbol("_label") -> "Last name",
+        Symbol("_type") -> "text",
+        Symbol("_class") -> "form-control form-input-bottom"
+    )
+
+    @TextInput(
+        form("nickName"),
+        isReadOnly = false,
+        Symbol("_id") -> "nickNameInput",
+        Symbol("_name") -> "nickName",
+        Symbol("_label") -> "Nickname",
         Symbol("_type") -> "text",
         Symbol("_class") -> "form-control form-input-bottom"
     )

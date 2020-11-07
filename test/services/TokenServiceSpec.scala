@@ -20,7 +20,7 @@ import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
 import database.TokenRecordStore
 import helpers.Assertions
 import helpers.database.MockTokenRecordStore
-import models.{AuthorisedClient, Name, RefreshToken, TokenRecord, UserInfo}
+import models.{AuthorisedClient, Gender, Name, RefreshToken, TokenRecord, UserInfo}
 import org.apache.commons.net.util.Base64
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
@@ -51,6 +51,11 @@ class TokenServiceSpec
       firstName = None,
       middleName = None,
       lastName = None,
+      nickName = None
+    ),
+    gender = Gender(
+      selection = "not specified",
+      custom = None
     ),
     accType = "organisation",
     authorisedClients = List.empty[AuthorisedClient],

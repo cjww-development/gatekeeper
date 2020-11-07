@@ -5,15 +5,15 @@ import com.cjwwdev.security.SecurityConfiguration
 import com.cjwwdev.security.deobfuscation.DeObfuscators
 import database.{UserStore, UserStoreUtils}
 import javax.inject.{Inject, Named}
-import models.{AuthorisedClient, Name, UserInfo}
-import models.Name._
+import models.{AuthorisedClient, Gender, Name, UserInfo}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mongodb.scala.bson.BsonValue
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters.{and, equal}
-import org.mongodb.scala.model.Updates.set
+import org.mongodb.scala.model.Updates.{set, unset}
 import org.slf4j.{Logger, LoggerFactory}
 import utils.StringUtils
+import utils.BsonUtils._
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 import scala.jdk.CollectionConverters._
@@ -79,10 +79,18 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
           emailVerified = data("emailVerified").asBoolean().getValue,
           accType = data("accType").asString().getValue,
           name = Name(
-            firstName  = data.get("profile").map(_.asDocument().get("givenName").asString().getValue),
-            middleName = data.get("profile").map(_.asDocument().get("middleName").asString().getValue),
-            lastName   = data.get("profile").map(_.asDocument().get("familyName").asString().getValue)
+            firstName  = data.get("profile").flatMap(_.asDocument().getOptionalString("givenName")),
+            middleName = data.get("profile").flatMap(_.asDocument().getOptionalString("middleName")),
+            lastName   = data.get("profile").flatMap(_.asDocument().getOptionalString("familyName")),
+            nickName   = data.get("profile").flatMap(_.asDocument().getOptionalString("nickname"))
           ),
+          gender = {
+            val genderValue = data.get("profile").flatMap(_.asDocument().getOptionalString("gender")).getOrElse("not specified")
+            Gender(
+              selection = if(Gender.toList.contains(genderValue)) genderValue else "other",
+              custom = if(Gender.toList.contains(genderValue)) None else Some(genderValue)
+            )
+          },
           authorisedClients = getAuthorisedClientFromBson(data),
           mfaEnabled = data("mfaEnabled").asBoolean().getValue,
           createdAt = new DateTime(
@@ -190,13 +198,17 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
     }
   }
 
-  def updateName(userId: String, firstName: Option[String], middleName: Option[String], lastName: Option[String])(implicit ec: ExC): Future[MongoUpdatedResponse] = {
+  def updateName(userId: String, firstName: Option[String], middleName: Option[String], lastName: Option[String], nickName: Option[String])(implicit ec: ExC): Future[MongoUpdatedResponse] = {
     val collection = getUserStore(userId)
     val update = and(
-      firstName.fold(set("profile.givenName", ""))(fn => set("profile.givenName", fn)),
-      middleName.fold(set("profile.middleName", ""))(mN => set("profile.middleName", mN)),
-      lastName.fold(set("profile.familyName", ""))(lN => set("profile.familyName", lN)),
-      set("profile.name", s"${firstName.getOrElse("")} ${middleName.getOrElse("")} ${lastName.getOrElse("")}".trim)
+      firstName.fold(unset("profile.givenName"))(fn => set("profile.givenName", fn)),
+      middleName.fold(unset("profile.middleName"))(mN => set("profile.middleName", mN)),
+      lastName.fold(unset("profile.familyName"))(lN => set("profile.familyName", lN)),
+      nickName.fold(unset("profile.nickname"))(lN => set("profile.nickname", lN)),
+      {
+        val name = s"${firstName.getOrElse("")} ${middleName.getOrElse("")} ${lastName.getOrElse("")}".trim
+        if(name == "") unset("profile.name") else set("profile.name", name)
+      }
     )
 
     collection.updateUser(query(userId), update) map {
@@ -205,6 +217,20 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
         MongoSuccessUpdate
       case MongoFailedUpdate =>
         logger.warn(s"[updateName] - Failed to update names for user $userId")
+        MongoFailedUpdate
+    }
+  }
+
+  def updateGender(userId: String, gender: String)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
+    val collection = getUserStore(userId)
+    val update = if(gender != "not specified") set("profile.gender", gender) else unset("profile.gender")
+
+    collection.updateUser(query(userId), update) map {
+      case MongoSuccessUpdate =>
+        logger.info(s"[updateGender] - Updated gender for user $userId")
+        MongoSuccessUpdate
+      case MongoFailedUpdate =>
+        logger.warn(s"[updateGender] - Failed to update gender for user $userId")
         MongoFailedUpdate
     }
   }

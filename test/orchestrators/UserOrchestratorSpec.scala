@@ -20,7 +20,7 @@ import java.util.UUID
 
 import helpers.Assertions
 import helpers.services.{MockAccountService, MockEmailService, MockRegistrationService}
-import models.{AuthorisedClient, Name, User, UserInfo}
+import models.{AuthorisedClient, Gender, Name, User, UserInfo}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import services.{EmailService, RegistrationService, UserService}
@@ -107,6 +107,11 @@ class UserOrchestratorSpec
             firstName = None,
             middleName = None,
             lastName = None,
+            nickName = None
+          ),
+          gender = Gender(
+            selection = "not specified",
+            custom = None
           ),
           accType = testIndUser.accType,
           authorisedClients = List.empty[AuthorisedClient],
@@ -124,6 +129,11 @@ class UserOrchestratorSpec
               firstName = None,
               middleName = None,
               lastName = None,
+              nickName = None
+            ),
+            gender = Gender(
+              selection = "not specified",
+              custom = None
             ),
             accType = testIndUser.accType,
             authorisedClients = List.empty[AuthorisedClient],
@@ -143,6 +153,11 @@ class UserOrchestratorSpec
             firstName = None,
             middleName = None,
             lastName = None,
+            nickName = None
+          ),
+          gender = Gender(
+            selection = "not specified",
+            custom = None
           ),
           accType = testOrgUser.accType,
           authorisedClients = List.empty[AuthorisedClient],
@@ -160,6 +175,11 @@ class UserOrchestratorSpec
               firstName = None,
               middleName = None,
               lastName = None,
+              nickName = None
+            ),
+            gender = Gender(
+              selection = "not specified",
+              custom = None
             ),
             accType = testOrgUser.accType,
             authorisedClients = List.empty[AuthorisedClient],

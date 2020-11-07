@@ -29,6 +29,7 @@ import views.html.misc.{NotFound => NotFoundView}
 import forms.ChangeOfPasswordForm.{form => changeOfPasswordForm}
 import forms.ChangeOfPasswordForm._
 import forms.NameForm.{form => nameForm}
+import forms.GenderForm.{form => genderForm}
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
@@ -124,7 +125,7 @@ trait AccountController extends BaseController with I18NSupportLowPriorityImplic
 
   def accountDetails(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
     userOrchestrator.getUserDetails(userId) map {
-      _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, changeOfPasswordForm, nameForm.fill(user.name))))
+      _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, changeOfPasswordForm, nameForm.fill(user.name), genderForm.fill(user.gender))))
     }
   }
 
@@ -134,7 +135,7 @@ trait AccountController extends BaseController with I18NSupportLowPriorityImplic
 
     userOrchestrator.updateEmailAndReverify(userId, emailAddress) flatMap {
       case EmailInUse => userOrchestrator.getUserDetails(userId) map {
-        _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = true, changeOfPasswordForm, nameForm.fill(user.name))))
+        _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = true, changeOfPasswordForm, nameForm.fill(user.name), genderForm.fill(user.gender))))
       }
       case _ => Future.successful(Redirect(routes.AccountController.accountDetails()))
     }
@@ -143,14 +144,14 @@ trait AccountController extends BaseController with I18NSupportLowPriorityImplic
   def updatePassword(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
     changeOfPasswordForm.bindFromRequest().fold(
       err => userOrchestrator.getUserDetails(userId) map {
-        _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, err, nameForm.fill(user.name))))
+        _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, err, nameForm.fill(user.name), genderForm.fill(user.gender))))
       },
       pwd => userOrchestrator.updatePassword(userId, pwd) flatMap {
         case PasswordMismatch => userOrchestrator.getUserDetails(userId) map {
-          _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, changeOfPasswordForm.fill(pwd).renderNewPasswordMismatch, nameForm.fill(user.name))))
+          _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, changeOfPasswordForm.fill(pwd).renderNewPasswordMismatch, nameForm.fill(user.name), genderForm.fill(user.gender))))
         }
         case InvalidOldPassword => userOrchestrator.getUserDetails(userId) map {
-          _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, changeOfPasswordForm.fill(pwd).renderInvalidOldPasswordError, nameForm.fill(user.name))))
+          _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, changeOfPasswordForm.fill(pwd).renderInvalidOldPasswordError, nameForm.fill(user.name), genderForm.fill(user.gender))))
         }
         case _ => Future.successful(Redirect(routes.AccountController.accountDetails()))
       }
@@ -160,9 +161,20 @@ trait AccountController extends BaseController with I18NSupportLowPriorityImplic
   def updateName(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
     nameForm.bindFromRequest().fold(
       err => userOrchestrator.getUserDetails(userId) map {
-        _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, changeOfPasswordForm, err)))
+        _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, changeOfPasswordForm, err, genderForm.fill(user.gender))))
       },
       name => userOrchestrator.updateName(userId, name) map {
+        _ => Redirect(routes.AccountController.accountDetails())
+      }
+    )
+  }
+
+  def updateGender(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+    genderForm.bindFromRequest().fold(
+      err => userOrchestrator.getUserDetails(userId) map {
+        _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, changeOfPasswordForm, nameForm.fill(user.name), err)))
+      },
+      gen => userOrchestrator.updateGender(userId, gen) map {
         _ => Redirect(routes.AccountController.accountDetails())
       }
     )

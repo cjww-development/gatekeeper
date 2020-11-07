@@ -29,7 +29,8 @@ object NameForm {
     mapping(
       "firstName" -> optional(text),
       "middleName" -> optional(text),
-      "lastName" -> optional(text)
+      "lastName" -> optional(text),
+      "nickName" -> optional(text),
     )(Name.apply)(Name.unapply)
   )
 }
