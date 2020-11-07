@@ -24,6 +24,7 @@ case class UserInfo(id: String,
                     email: String,
                     emailVerified: Boolean,
                     accType: String,
+                    name: Name,
                     authorisedClients: List[AuthorisedClient],
                     mfaEnabled: Boolean,
                     createdAt: DateTime) {

@@ -22,7 +22,7 @@ import com.cjwwdev.security.Implicits._
 import com.cjwwdev.security.obfuscation.Obfuscators
 import helpers.Assertions
 import helpers.services.{MockAccountService, MockClientService, MockGrantService, MockScopeService}
-import models.{AuthorisedClient, RegisteredApplication, Scope, User, UserInfo}
+import models.{AuthorisedClient, Name, RegisteredApplication, Scope, User, UserInfo}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import services.{ClientService, GrantService, ScopeService, UserService}
@@ -72,6 +72,7 @@ class GrantOrchestratorSpec
     userName  = "testUsername",
     email     = "test@email.com",
     emailVerified = true,
+    profile = None,
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",
@@ -96,6 +97,11 @@ class GrantOrchestratorSpec
           userName = "test-org",
           email = "",
           emailVerified = false,
+          name = Name(
+            firstName = None,
+            middleName = None,
+            lastName = None,
+          ),
           accType = "",
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,

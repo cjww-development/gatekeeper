@@ -5,7 +5,8 @@ import com.cjwwdev.security.SecurityConfiguration
 import com.cjwwdev.security.deobfuscation.DeObfuscators
 import database.{UserStore, UserStoreUtils}
 import javax.inject.{Inject, Named}
-import models.{AuthorisedClient, UserInfo}
+import models.{AuthorisedClient, Name, UserInfo}
+import models.Name._
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mongodb.scala.bson.BsonValue
 import org.mongodb.scala.bson.conversions.Bson
@@ -58,7 +59,16 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
   }
 
   def getUserInfo(userId: String)(implicit ec: ExC): Future[Option[UserInfo]] = {
-    val projections = List("userName", "email", "emailVerified", "createdAt", "authorisedClients", "mfaEnabled", "accType")
+    val projections = List(
+      "userName",
+      "email",
+      "emailVerified",
+      "createdAt",
+      "authorisedClients",
+      "mfaEnabled",
+      "accType",
+      "profile"
+    )
     getUserStore(userId).projectValue("id", userId, projections:_*) map { data =>
       if(data.nonEmpty) {
         logger.info(s"[getUserInfo] - Found user data for user $userId")
@@ -68,6 +78,11 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
           email = stringDeObfuscate.decrypt(data("email").asString().getValue).getOrElse("---"),
           emailVerified = data("emailVerified").asBoolean().getValue,
           accType = data("accType").asString().getValue,
+          name = Name(
+            firstName  = data.get("profile").map(_.asDocument().get("givenName").asString().getValue),
+            middleName = data.get("profile").map(_.asDocument().get("middleName").asString().getValue),
+            lastName   = data.get("profile").map(_.asDocument().get("familyName").asString().getValue)
+          ),
           authorisedClients = getAuthorisedClientFromBson(data),
           mfaEnabled = data("mfaEnabled").asBoolean().getValue,
           createdAt = new DateTime(
@@ -171,6 +186,25 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
         MongoSuccessUpdate
       case MongoFailedUpdate =>
         logger.warn(s"[updatePassword] - Failed to update password and salt for user $userId")
+        MongoFailedUpdate
+    }
+  }
+
+  def updateName(userId: String, firstName: Option[String], middleName: Option[String], lastName: Option[String])(implicit ec: ExC): Future[MongoUpdatedResponse] = {
+    val collection = getUserStore(userId)
+    val update = and(
+      firstName.fold(set("profile.givenName", ""))(fn => set("profile.givenName", fn)),
+      middleName.fold(set("profile.middleName", ""))(mN => set("profile.middleName", mN)),
+      lastName.fold(set("profile.familyName", ""))(lN => set("profile.familyName", lN)),
+      set("profile.name", s"${firstName.getOrElse("")} ${middleName.getOrElse("")} ${lastName.getOrElse("")}".trim)
+    )
+
+    collection.updateUser(query(userId), update) map {
+      case MongoSuccessUpdate =>
+        logger.info(s"[updateName] - Updated names for user $userId")
+        MongoSuccessUpdate
+      case MongoFailedUpdate =>
+        logger.warn(s"[updateName] - Failed to update names for user $userId")
         MongoFailedUpdate
     }
   }

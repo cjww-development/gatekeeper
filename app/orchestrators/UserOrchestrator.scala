@@ -16,9 +16,10 @@
 
 package orchestrators
 
+import com.cjwwdev.mongo.responses.MongoUpdatedResponse
 import com.cjwwdev.security.obfuscation.Obfuscators
 import javax.inject.Inject
-import models.{ChangeOfPassword, UserInfo}
+import models.{ChangeOfPassword, Name, UserInfo}
 import org.slf4j.LoggerFactory
 import play.api.mvc.Request
 import services.{EmailService, RegistrationService, UserService}
@@ -107,5 +108,9 @@ trait UserOrchestrator extends Obfuscators {
       logger.error(s"[updatePassword] - The supplied passwords do not match for user $userId")
       Future.successful(PasswordMismatch)
     }
+  }
+
+  def updateName(userId: String, name: Name)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
+    userService.updateName(userId, name.firstName, name.middleName, name.lastName)
   }
 }

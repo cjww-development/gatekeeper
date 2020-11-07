@@ -41,6 +41,7 @@ class MFAOrchestratorSpec
     userName  = "testUsername",
     email     = "test@email.com",
     emailVerified = true,
+    profile = None,
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",

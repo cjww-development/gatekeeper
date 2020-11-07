@@ -5,7 +5,7 @@
 @import views.AuthForView
 @import views.html.components.forms.TextInput
 
-@(user: UserInfo, emailInUse: Boolean, passwordForm: Form[ChangeOfPassword])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
+@(user: UserInfo, emailInUse: Boolean, passwordForm: Form[ChangeOfPassword], nameForm: Form[Name])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
 
 @Main("Account details", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <script src="https://cdn.jsdelivr.net/npm/jdenticon@@3.0.1" async></script>
@@ -68,6 +68,21 @@
                     <hr>
 
                     <button class="btn btn-lg btn-primary btn-block" type="submit">Update email</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title default-text">Update name</h4>
+                <form action="@uiRoutes.AccountController.updateName()" method="post">
+                    @CSRF.formField
+
+                    @namesForm(nameForm)
+
+                    <hr>
+
+                    <button class="btn btn-lg btn-primary btn-block" type="submit">Update name</button>
                 </form>
             </div>
         </div>
@@ -209,4 +224,36 @@
             Symbol("_class") -> "form-control form-input-bottom"
         )
     }
+}
+
+@namesForm(form: Form[Name]) = {
+    @TextInput(
+        form("firstName"),
+        isReadOnly = false,
+        Symbol("_id") -> "firstNameInput",
+        Symbol("_name") -> "firstName",
+        Symbol("_label") -> "First name",
+        Symbol("_type") -> "text",
+        Symbol("_class") -> "form-control form-input-topper"
+    )
+
+    @TextInput(
+        form("middleName"),
+        isReadOnly = false,
+        Symbol("_id") -> "middleNameInput",
+        Symbol("_name") -> "middleName",
+        Symbol("_label") -> "Middle name",
+        Symbol("_type") -> "text",
+        Symbol("_class") -> "form-control form-input-middle"
+    )
+
+    @TextInput(
+        form("lastName"),
+        isReadOnly = false,
+        Symbol("_id") -> "lastNameInput",
+        Symbol("_name") -> "lastName",
+        Symbol("_label") -> "Last name",
+        Symbol("_type") -> "text",
+        Symbol("_class") -> "form-control form-input-bottom"
+    )
 }

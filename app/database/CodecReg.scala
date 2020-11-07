@@ -17,7 +17,7 @@
 package database
 
 import database.registries.JodaCodec
-import models.{AuthorisedClient, EmailVerification, Grant, LoginAttempt, RegisteredApplication, Scope, TokenRecord, User}
+import models.{AuthorisedClient, EmailVerification, Grant, LoginAttempt, Profile, RegisteredApplication, Scope, TokenRecord, User}
 import org.bson.codecs.configuration.CodecRegistries.{fromCodecs, fromProviders, fromRegistries}
 import org.bson.codecs.configuration.CodecRegistry
 import org.mongodb.scala.bson.codecs.DEFAULT_CODEC_REGISTRY
@@ -26,7 +26,17 @@ import org.mongodb.scala.bson.codecs.Macros._
 trait CodecReg {
   implicit val codec: CodecRegistry = fromRegistries(
     fromCodecs(new JodaCodec),
-    fromProviders(User.codec, RegisteredApplication.codec, Grant.codec, LoginAttempt.codec, AuthorisedClient.codec, Scope.codec, TokenRecord.codec, EmailVerification.codec),
+    fromProviders(
+      User.codec,
+      RegisteredApplication.codec,
+      Grant.codec,
+      LoginAttempt.codec,
+      AuthorisedClient.codec,
+      Scope.codec,
+      TokenRecord.codec,
+      EmailVerification.codec,
+      Profile.codec
+    ),
     DEFAULT_CODEC_REGISTRY
   )
 }

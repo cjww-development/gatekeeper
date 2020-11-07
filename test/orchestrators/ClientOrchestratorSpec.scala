@@ -23,7 +23,7 @@ import com.cjwwdev.security.Implicits._
 import com.cjwwdev.security.obfuscation.Obfuscators
 import helpers.Assertions
 import helpers.services.{MockAccountService, MockClientService, MockTokenService}
-import models.{AuthorisedClient, RegisteredApplication, User, UserInfo}
+import models.{AuthorisedClient, Name, RegisteredApplication, User, UserInfo}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import services._
@@ -72,6 +72,7 @@ class ClientOrchestratorSpec
     userName  = "testUsername",
     email     = "test@email.com",
     emailVerified = true,
+    profile = None,
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",
@@ -198,6 +199,11 @@ class ClientOrchestratorSpec
           userName = testUser.userName,
           email = testUser.email,
           emailVerified = testUser.emailVerified,
+          name = Name(
+            firstName = None,
+            middleName = None,
+            lastName = None,
+          ),
           accType = testUser.accType,
           authorisedClients = List(AuthorisedClient(appId = testApp.appId, authorisedScopes = Seq(), authorisedOn = now)),
           mfaEnabled = false,
@@ -220,6 +226,11 @@ class ClientOrchestratorSpec
           userName = testUser.userName,
           email = testUser.email,
           emailVerified = testUser.emailVerified,
+          name = Name(
+            firstName = None,
+            middleName = None,
+            lastName = None,
+          ),
           accType = testUser.accType,
           authorisedClients = List(),
           mfaEnabled = false,
@@ -249,6 +260,11 @@ class ClientOrchestratorSpec
           userName = testUser.userName,
           email = testUser.email,
           emailVerified = testUser.emailVerified,
+          name = Name(
+            firstName = None,
+            middleName = None,
+            lastName = None,
+          ),
           accType = testUser.accType,
           authorisedClients = List(AuthorisedClient(appId = testApp.appId, authorisedScopes = Seq(), authorisedOn = now)),
           mfaEnabled = false,
@@ -279,6 +295,11 @@ class ClientOrchestratorSpec
           userName = testUser.userName,
           email = testUser.email,
           emailVerified = testUser.emailVerified,
+          name = Name(
+            firstName = None,
+            middleName = None,
+            lastName = None,
+          ),
           accType = testUser.accType,
           authorisedClients = List(AuthorisedClient(appId = testApp.appId, authorisedScopes = Seq(), authorisedOn = now)),
           mfaEnabled = false,
@@ -298,6 +319,11 @@ class ClientOrchestratorSpec
           userName = testUser.userName,
           email = testUser.email,
           emailVerified = testUser.emailVerified,
+          name = Name(
+            firstName = None,
+            middleName = None,
+            lastName = None,
+          ),
           accType = testUser.accType,
           authorisedClients = List(AuthorisedClient(appId = testApp.appId, authorisedScopes = Seq(), authorisedOn = now)),
           mfaEnabled = false,

@@ -22,7 +22,7 @@ import com.cjwwdev.security.Implicits._
 import com.cjwwdev.security.obfuscation.Obfuscators
 import helpers.Assertions
 import helpers.services._
-import models.{AuthorisedClient, Grant, RefreshToken, RegisteredApplication, Scope, User, UserInfo}
+import models.{AuthorisedClient, Grant, Name, RefreshToken, RegisteredApplication, Scope, User, UserInfo}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import play.api.test.FakeRequest
@@ -82,6 +82,7 @@ class TokenOrchestratorSpec
     userName  = "testUsername",
     email     = "test@email.com",
     emailVerified = true,
+    profile = None,
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",
@@ -96,6 +97,7 @@ class TokenOrchestratorSpec
     userName  = "testUsername",
     email     = "test@email.com",
     emailVerified = true,
+    profile = None,
     accType   = "individual",
     password  = "testPassword",
     salt      = "testSalt",
@@ -129,6 +131,11 @@ class TokenOrchestratorSpec
           email = "",
           emailVerified = false,
           accType = "",
+          name = Name(
+            firstName = None,
+            middleName = None,
+            lastName = None,
+          ),
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
           createdAt = now
@@ -166,6 +173,11 @@ class TokenOrchestratorSpec
           email = "",
           emailVerified = false,
           accType = "",
+          name = Name(
+            firstName = None,
+            middleName = None,
+            lastName = None,
+          ),
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
           createdAt = now
@@ -288,6 +300,11 @@ class TokenOrchestratorSpec
           userName = "test-org",
           email = "",
           emailVerified = false,
+          name = Name(
+            firstName = None,
+            middleName = None,
+            lastName = None,
+          ),
           accType = "",
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
@@ -320,6 +337,11 @@ class TokenOrchestratorSpec
           userName = "test-org",
           email = "",
           emailVerified = false,
+          name = Name(
+            firstName = None,
+            middleName = None,
+            lastName = None,
+          ),
           accType = "",
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
@@ -342,6 +364,11 @@ class TokenOrchestratorSpec
           userName = "test-org",
           email = "",
           emailVerified = false,
+          name = Name(
+            firstName = None,
+            middleName = None,
+            lastName = None,
+          ),
           accType = "",
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
@@ -363,6 +390,11 @@ class TokenOrchestratorSpec
           userName = "test-org",
           email = "",
           emailVerified = false,
+          name = Name(
+            firstName = None,
+            middleName = None,
+            lastName = None,
+          ),
           accType = "",
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,

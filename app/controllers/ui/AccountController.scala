@@ -28,6 +28,7 @@ import views.html.account.security.{MFADisableConfirm, Security, TOTP}
 import views.html.misc.{NotFound => NotFoundView}
 import forms.ChangeOfPasswordForm.{form => changeOfPasswordForm}
 import forms.ChangeOfPasswordForm._
+import forms.NameForm.{form => nameForm}
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
@@ -90,7 +91,7 @@ trait AccountController extends BaseController with I18NSupportLowPriorityImplic
             case MFATOTPQR(qrCodeData) => BadRequest(TOTP(err, qrCodeData))
           },
           codes => mfaOrchestrator.postTOTPSetupCodeVerification(userId, codes.codeOne, codes.codeTwo) map {
-            resp => Redirect(routes.AccountController.accountSecurity())
+            _ => Redirect(routes.AccountController.accountSecurity())
           }
         )
       } else {
@@ -123,7 +124,7 @@ trait AccountController extends BaseController with I18NSupportLowPriorityImplic
 
   def accountDetails(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
     userOrchestrator.getUserDetails(userId) map {
-      _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, changeOfPasswordForm)))
+      _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, changeOfPasswordForm, nameForm.fill(user.name))))
     }
   }
 
@@ -133,7 +134,7 @@ trait AccountController extends BaseController with I18NSupportLowPriorityImplic
 
     userOrchestrator.updateEmailAndReverify(userId, emailAddress) flatMap {
       case EmailInUse => userOrchestrator.getUserDetails(userId) map {
-        _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = true, changeOfPasswordForm)))
+        _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = true, changeOfPasswordForm, nameForm.fill(user.name))))
       }
       case _ => Future.successful(Redirect(routes.AccountController.accountDetails()))
     }
@@ -142,16 +143,27 @@ trait AccountController extends BaseController with I18NSupportLowPriorityImplic
   def updatePassword(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
     changeOfPasswordForm.bindFromRequest().fold(
       err => userOrchestrator.getUserDetails(userId) map {
-        _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, err)))
+        _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, err, nameForm.fill(user.name))))
       },
       pwd => userOrchestrator.updatePassword(userId, pwd) flatMap {
         case PasswordMismatch => userOrchestrator.getUserDetails(userId) map {
-          _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, changeOfPasswordForm.fill(pwd).renderNewPasswordMismatch)))
+          _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, changeOfPasswordForm.fill(pwd).renderNewPasswordMismatch, nameForm.fill(user.name))))
         }
         case InvalidOldPassword => userOrchestrator.getUserDetails(userId) map {
-          _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, changeOfPasswordForm.fill(pwd).renderInvalidOldPasswordError)))
+          _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, changeOfPasswordForm.fill(pwd).renderInvalidOldPasswordError, nameForm.fill(user.name))))
         }
         case _ => Future.successful(Redirect(routes.AccountController.accountDetails()))
+      }
+    )
+  }
+
+  def updateName(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+    nameForm.bindFromRequest().fold(
+      err => userOrchestrator.getUserDetails(userId) map {
+        _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, changeOfPasswordForm, err)))
+      },
+      name => userOrchestrator.updateName(userId, name) map {
+        _ => Redirect(routes.AccountController.accountDetails())
       }
     )
   }

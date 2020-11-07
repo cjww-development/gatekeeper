@@ -20,7 +20,7 @@ import java.util.UUID
 
 import helpers.Assertions
 import helpers.services.{MockAccountService, MockEmailService, MockRegistrationService}
-import models.{AuthorisedClient, User, UserInfo}
+import models.{AuthorisedClient, Name, User, UserInfo}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import services.{EmailService, RegistrationService, UserService}
@@ -52,6 +52,7 @@ class UserOrchestratorSpec
     userName  = "testUsername",
     email     = "test@email.com",
     emailVerified = true,
+    profile = None,
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",
@@ -66,6 +67,7 @@ class UserOrchestratorSpec
     userName  = "testUsername",
     email     = "test@email.com",
     emailVerified = true,
+    profile = None,
     accType   = "individual",
     password  = "testPassword",
     salt      = "testSalt",
@@ -101,6 +103,11 @@ class UserOrchestratorSpec
           userName = testIndUser.userName,
           email = testIndUser.email,
           emailVerified = true,
+          name = Name(
+            firstName = None,
+            middleName = None,
+            lastName = None,
+          ),
           accType = testIndUser.accType,
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
@@ -113,6 +120,11 @@ class UserOrchestratorSpec
             userName = testIndUser.userName,
             email = testIndUser.email,
             emailVerified = true,
+            name = Name(
+              firstName = None,
+              middleName = None,
+              lastName = None,
+            ),
             accType = testIndUser.accType,
             authorisedClients = List.empty[AuthorisedClient],
             mfaEnabled = false,
@@ -127,6 +139,11 @@ class UserOrchestratorSpec
           userName = testOrgUser.userName,
           email = testOrgUser.email,
           emailVerified = true,
+          name = Name(
+            firstName = None,
+            middleName = None,
+            lastName = None,
+          ),
           accType = testOrgUser.accType,
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
@@ -139,6 +156,11 @@ class UserOrchestratorSpec
             userName = testOrgUser.userName,
             email = testOrgUser.email,
             emailVerified = true,
+            name = Name(
+              firstName = None,
+              middleName = None,
+              lastName = None,
+            ),
             accType = testOrgUser.accType,
             authorisedClients = List.empty[AuthorisedClient],
             mfaEnabled = false,

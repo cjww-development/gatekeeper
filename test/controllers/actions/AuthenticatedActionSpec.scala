@@ -20,7 +20,7 @@ import java.util.UUID
 
 import helpers.Assertions
 import helpers.orchestrators.MockUserOrchestrator
-import models.{AuthorisedClient, ServerCookies, User, UserInfo}
+import models.{AuthorisedClient, Name, ServerCookies, User, UserInfo}
 import orchestrators.UserOrchestrator
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
@@ -48,6 +48,7 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
     userName  = "testUsername",
     email     = "test@email.com",
     emailVerified = true,
+    profile = None,
     accType   = "individual",
     password  = "testPassword",
     salt      = "testSalt",
@@ -62,6 +63,7 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
     userName  = "testUsername",
     email     = "test@email.com",
     emailVerified = true,
+    profile = None,
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",
@@ -77,11 +79,16 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
         val req = FakeRequest()
           .withCookies(ServerCookies.createAuthCookie("testUserId", enc = true))
 
-        mockGetUserDetails(details = Some(UserInfo(
+        mockGetUserDetails(details = Option(UserInfo(
           id = testIndUser.id,
           userName = testIndUser.userName,
           email = testIndUser.email,
           emailVerified = testIndUser.emailVerified,
+          name = Name(
+            firstName = None,
+            middleName = None,
+            lastName = None
+          ),
           accType = testIndUser.accType,
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
@@ -143,6 +150,11 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
           userName = testOrgUser.userName,
           email = testOrgUser.email,
           emailVerified = testOrgUser.emailVerified,
+          name = Name(
+            firstName = None,
+            middleName = None,
+            lastName = None
+          ),
           accType = testOrgUser.accType,
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
@@ -170,6 +182,11 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
           userName = testIndUser.userName,
           email = testIndUser.email,
           emailVerified = testIndUser.emailVerified,
+          name = Name(
+            firstName = None,
+            middleName = None,
+            lastName = None
+          ),
           accType = testIndUser.accType,
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,

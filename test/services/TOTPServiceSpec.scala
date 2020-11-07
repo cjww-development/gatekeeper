@@ -72,6 +72,7 @@ class TOTPServiceSpec
     userName  = "testUserName".encrypt,
     email     = "test@email.com".encrypt,
     emailVerified = true,
+    profile = None,
     accType   = "individual",
     password  = "testPassword",
     authorisedClients = List(),
