@@ -107,6 +107,7 @@ class GrantOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          birthDate = None,
           accType = "",
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,

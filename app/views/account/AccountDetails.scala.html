@@ -5,7 +5,7 @@
 @import views.AuthForView
 @import views.html.components.forms.TextInput
 
-@(user: UserInfo, emailInUse: Boolean, passwordForm: Form[ChangeOfPassword], nameForm: Form[Name], genderForm: Form[Gender])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
+@(user: UserInfo, emailInUse: Boolean, passwordForm: Form[ChangeOfPassword], nameForm: Form[Name], genderForm: Form[Gender], birthdayForm: Form[String])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
 
 @Main("Account details", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <script src="https://cdn.jsdelivr.net/npm/jdenticon@@3.0.1" async></script>
@@ -135,6 +135,30 @@
                 </form>
             </div>
         </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title default-text">Your birthday</h4>
+                <form action="@uiRoutes.AccountController.updateBirthday()" method="post">
+                    @CSRF.formField
+
+                    @TextInput(
+                        birthdayForm("birthday"),
+                        isReadOnly = false,
+                        Symbol("_id") -> "birthdayInput",
+                        Symbol("_name") -> "birthday",
+                        Symbol("_label") -> "Birthday",
+                        Symbol("_type") -> "date",
+                        Symbol("_class") -> "form-control"
+                    )
+
+                    <hr>
+
+                    <a class="btn btn-lg btn-warning btn-block" id="reset-date">Clear date</a>
+                    <button class="btn btn-lg btn-primary btn-block" type="submit">Update birthday</button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -156,6 +180,10 @@
                 customGenderInput.readOnly = false;
             }
         });
+
+        $("#reset-date").click(function(){
+            $('#birthdayInput').val("").datepicker("update");
+        })
     </script>
 }
 

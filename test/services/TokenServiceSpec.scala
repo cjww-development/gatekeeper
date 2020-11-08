@@ -57,6 +57,7 @@ class TokenServiceSpec
       selection = "not specified",
       custom = None
     ),
+    birthDate = None,
     accType = "organisation",
     authorisedClients = List.empty[AuthorisedClient],
     mfaEnabled = false,

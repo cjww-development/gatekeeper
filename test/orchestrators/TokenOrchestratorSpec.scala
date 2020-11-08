@@ -141,6 +141,7 @@ class TokenOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          birthDate = None,
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
           createdAt = now
@@ -188,6 +189,7 @@ class TokenOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          birthDate = None,
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
           createdAt = now
@@ -320,6 +322,7 @@ class TokenOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          birthDate = None,
           accType = "",
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
@@ -362,6 +365,7 @@ class TokenOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          birthDate = None,
           accType = "",
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
@@ -394,6 +398,7 @@ class TokenOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          birthDate = None,
           accType = "",
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
@@ -425,6 +430,7 @@ class TokenOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          birthDate = None,
           accType = "",
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,

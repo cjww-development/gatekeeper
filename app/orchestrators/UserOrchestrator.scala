@@ -24,8 +24,10 @@ import org.slf4j.LoggerFactory
 import play.api.mvc.Request
 import services.{EmailService, RegistrationService, UserService}
 import utils.StringUtils
+import java.text.SimpleDateFormat
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
+import scala.util.Try
 
 sealed trait UserUpdateResponse
 case object NoUpdateRequired extends UserUpdateResponse
@@ -117,5 +119,10 @@ trait UserOrchestrator extends Obfuscators {
   def updateGender(userId: String, gender: Gender)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
     val genderToSave = gender.custom.getOrElse(gender.selection)
     userService.updateGender(userId, genderToSave)
+  }
+
+  def updateBirthday(userId: String, birthday: String)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
+    val date = Try(new SimpleDateFormat("yyyy-MM-dd").parse(birthday)).fold(e => {e.printStackTrace(); None}, dte => Some(dte))
+    userService.updateBirthday(userId, date)
   }
 }

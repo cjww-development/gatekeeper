@@ -113,6 +113,7 @@ class UserOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          birthDate = None,
           accType = testIndUser.accType,
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
@@ -135,6 +136,7 @@ class UserOrchestratorSpec
               selection = "not specified",
               custom = None
             ),
+            birthDate = None,
             accType = testIndUser.accType,
             authorisedClients = List.empty[AuthorisedClient],
             mfaEnabled = false,
@@ -159,6 +161,7 @@ class UserOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          birthDate = None,
           accType = testOrgUser.accType,
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
@@ -181,6 +184,7 @@ class UserOrchestratorSpec
               selection = "not specified",
               custom = None
             ),
+            birthDate = None,
             accType = testOrgUser.accType,
             authorisedClients = List.empty[AuthorisedClient],
             mfaEnabled = false,

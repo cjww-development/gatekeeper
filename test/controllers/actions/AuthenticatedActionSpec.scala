@@ -94,6 +94,7 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
             selection = "not specified",
             custom = None
           ),
+          birthDate = None,
           accType = testIndUser.accType,
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
@@ -165,6 +166,7 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
             selection = "not specified",
             custom = None
           ),
+          birthDate = None,
           accType = testOrgUser.accType,
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
@@ -202,6 +204,7 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
             selection = "not specified",
             custom = None
           ),
+          birthDate = None,
           accType = testIndUser.accType,
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,

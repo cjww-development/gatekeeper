@@ -209,6 +209,7 @@ class ClientOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          birthDate = None,
           accType = testUser.accType,
           authorisedClients = List(AuthorisedClient(appId = testApp.appId, authorisedScopes = Seq(), authorisedOn = now)),
           mfaEnabled = false,
@@ -241,6 +242,7 @@ class ClientOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          birthDate = None,
           accType = testUser.accType,
           authorisedClients = List(),
           mfaEnabled = false,
@@ -280,6 +282,7 @@ class ClientOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          birthDate = None,
           accType = testUser.accType,
           authorisedClients = List(AuthorisedClient(appId = testApp.appId, authorisedScopes = Seq(), authorisedOn = now)),
           mfaEnabled = false,
@@ -320,6 +323,7 @@ class ClientOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          birthDate = None,
           accType = testUser.accType,
           authorisedClients = List(AuthorisedClient(appId = testApp.appId, authorisedScopes = Seq(), authorisedOn = now)),
           mfaEnabled = false,
@@ -349,6 +353,7 @@ class ClientOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          birthDate = None,
           accType = testUser.accType,
           authorisedClients = List(AuthorisedClient(appId = testApp.appId, authorisedScopes = Seq(), authorisedOn = now)),
           mfaEnabled = false,

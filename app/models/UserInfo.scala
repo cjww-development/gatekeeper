@@ -26,6 +26,7 @@ case class UserInfo(id: String,
                     accType: String,
                     name: Name,
                     gender: Gender,
+                    birthDate: Option[String],
                     authorisedClients: List[AuthorisedClient],
                     mfaEnabled: Boolean,
                     createdAt: DateTime) {
@@ -41,5 +42,3 @@ case class UserInfo(id: String,
 object UserInfo extends TimeFormat {
   implicit val format: OFormat[UserInfo] = Json.format[UserInfo]
 }
-
-

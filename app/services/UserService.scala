@@ -1,5 +1,8 @@
 package services
 
+import java.text.SimpleDateFormat
+import java.util.{Calendar, Date}
+
 import com.cjwwdev.mongo.responses.{MongoFailedUpdate, MongoSuccessUpdate, MongoUpdatedResponse}
 import com.cjwwdev.security.SecurityConfiguration
 import com.cjwwdev.security.deobfuscation.DeObfuscators
@@ -14,6 +17,7 @@ import org.mongodb.scala.model.Updates.{set, unset}
 import org.slf4j.{Logger, LoggerFactory}
 import utils.StringUtils
 import utils.BsonUtils._
+import java.text.SimpleDateFormat
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 import scala.jdk.CollectionConverters._
@@ -90,6 +94,13 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
               selection = if(Gender.toList.contains(genderValue)) genderValue else "other",
               custom = if(Gender.toList.contains(genderValue)) None else Some(genderValue)
             )
+          },
+          birthDate = data.get("profile").map(_.asDocument().get("birthDate").asDateTime().getValue).map { dateLong =>
+            val date = new Date(dateLong)
+            val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
+            val dateStr = dateFormat.format(date)
+            println(dateStr)
+            dateStr
           },
           authorisedClients = getAuthorisedClientFromBson(data),
           mfaEnabled = data("mfaEnabled").asBoolean().getValue,
@@ -231,6 +242,20 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
         MongoSuccessUpdate
       case MongoFailedUpdate =>
         logger.warn(s"[updateGender] - Failed to update gender for user $userId")
+        MongoFailedUpdate
+    }
+  }
+
+  def updateBirthday(userId: String, birthday: Option[Date])(implicit ec: ExC): Future[MongoUpdatedResponse] = {
+    val collection = getUserStore(userId)
+    val update = birthday.fold(unset("profile.birthDate"))(date => set("profile.birthDate", date))
+
+    collection.updateUser(query(userId), update) map {
+      case MongoSuccessUpdate =>
+        logger.info(s"[updateBirthday] - Updated birthday for user $userId")
+        MongoSuccessUpdate
+      case MongoFailedUpdate =>
+        logger.warn(s"[updateBirthday] - Failed to update birthday for user $userId")
         MongoFailedUpdate
     }
   }
