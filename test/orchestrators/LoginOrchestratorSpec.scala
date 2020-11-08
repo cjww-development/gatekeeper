@@ -44,6 +44,7 @@ class LoginOrchestratorSpec
     email     = "test@email.com",
     emailVerified = true,
     profile = None,
+    address = None,
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",

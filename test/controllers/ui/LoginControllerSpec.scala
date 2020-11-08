@@ -54,6 +54,7 @@ class LoginControllerSpec
     email     = "test@email.com",
     emailVerified = true,
     profile = None,
+    address = None,
     accType   = "individual",
     password  = "testPassword",
     salt      = "testSalt",

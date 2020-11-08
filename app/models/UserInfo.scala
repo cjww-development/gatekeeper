@@ -27,6 +27,7 @@ case class UserInfo(id: String,
                     name: Name,
                     gender: Gender,
                     birthDate: Option[String],
+                    address: Option[Address],
                     authorisedClients: List[AuthorisedClient],
                     mfaEnabled: Boolean,
                     createdAt: DateTime) {

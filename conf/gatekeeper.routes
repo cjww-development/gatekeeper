@@ -16,6 +16,7 @@ POST        /account/details/update/password        controllers.ui.AccountContro
 POST        /account/details/update/name            controllers.ui.AccountController.updateName()
 POST        /account/details/update/gender          controllers.ui.AccountController.updateGender()
 POST        /account/details/update/birthday        controllers.ui.AccountController.updateBirthday()
+POST        /account/details/update/address         controllers.ui.AccountController.updateAddress()
 GET         /account/security                       controllers.ui.AccountController.accountSecurity()
 GET         /account/security/mfa-setup             controllers.ui.AccountController.totpSetup()
 POST        /account/security/mfa-setup             controllers.ui.AccountController.postTotpSetupVerification()

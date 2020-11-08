@@ -73,6 +73,7 @@ class ClientOrchestratorSpec
     email     = "test@email.com",
     emailVerified = true,
     profile = None,
+    address = None,
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",
@@ -209,6 +210,7 @@ class ClientOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          address = None,
           birthDate = None,
           accType = testUser.accType,
           authorisedClients = List(AuthorisedClient(appId = testApp.appId, authorisedScopes = Seq(), authorisedOn = now)),
@@ -242,6 +244,7 @@ class ClientOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          address = None,
           birthDate = None,
           accType = testUser.accType,
           authorisedClients = List(),
@@ -282,6 +285,7 @@ class ClientOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          address = None,
           birthDate = None,
           accType = testUser.accType,
           authorisedClients = List(AuthorisedClient(appId = testApp.appId, authorisedScopes = Seq(), authorisedOn = now)),
@@ -323,6 +327,7 @@ class ClientOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          address = None,
           birthDate = None,
           accType = testUser.accType,
           authorisedClients = List(AuthorisedClient(appId = testApp.appId, authorisedScopes = Seq(), authorisedOn = now)),
@@ -353,6 +358,7 @@ class ClientOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          address = None,
           birthDate = None,
           accType = testUser.accType,
           authorisedClients = List(AuthorisedClient(appId = testApp.appId, authorisedScopes = Seq(), authorisedOn = now)),

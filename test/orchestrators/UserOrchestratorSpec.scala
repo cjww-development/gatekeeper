@@ -53,6 +53,7 @@ class UserOrchestratorSpec
     email     = "test@email.com",
     emailVerified = true,
     profile = None,
+    address = None,
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",
@@ -68,6 +69,7 @@ class UserOrchestratorSpec
     email     = "test@email.com",
     emailVerified = true,
     profile = None,
+    address = None,
     accType   = "individual",
     password  = "testPassword",
     salt      = "testSalt",
@@ -113,6 +115,7 @@ class UserOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          address = None,
           birthDate = None,
           accType = testIndUser.accType,
           authorisedClients = List.empty[AuthorisedClient],
@@ -132,6 +135,7 @@ class UserOrchestratorSpec
               lastName = None,
               nickName = None
             ),
+            address = None,
             gender = Gender(
               selection = "not specified",
               custom = None
@@ -161,6 +165,7 @@ class UserOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          address = None,
           birthDate = None,
           accType = testOrgUser.accType,
           authorisedClients = List.empty[AuthorisedClient],
@@ -184,6 +189,7 @@ class UserOrchestratorSpec
               selection = "not specified",
               custom = None
             ),
+            address = None,
             birthDate = None,
             accType = testOrgUser.accType,
             authorisedClients = List.empty[AuthorisedClient],

@@ -1,11 +1,12 @@
 @import controllers.routes
 @import controllers.ui.{routes => uiRoutes}
+@import org.joda.time.DateTime
 @import views.html.Main
 @import views.html.helper.CSRF
 @import views.AuthForView
 @import views.html.components.forms.TextInput
 
-@(user: UserInfo, emailInUse: Boolean, passwordForm: Form[ChangeOfPassword], nameForm: Form[Name], genderForm: Form[Gender], birthdayForm: Form[String])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
+@(user: UserInfo, emailInUse: Boolean, passwordForm: Form[ChangeOfPassword], nameForm: Form[Name], genderForm: Form[Gender], birthdayForm: Form[String], addressForm: Form[Address])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
 
 @Main("Account details", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <script src="https://cdn.jsdelivr.net/npm/jdenticon@@3.0.1" async></script>
@@ -159,14 +160,82 @@
                 </form>
             </div>
         </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title default-text">Your address</h4>
+                <form action="@uiRoutes.AccountController.updateAddress()" method="post">
+                    @CSRF.formField
+
+                    @TextInput(
+                        addressForm("streetAddress"),
+                        isReadOnly = false,
+                        Symbol("_id") -> "streetInput",
+                        Symbol("_name") -> "streetAddress",
+                        Symbol("_label") -> "Flat/House and street",
+                        Symbol("_type") -> "text",
+                        Symbol("_class") -> "form-control form-input-topper"
+                    )
+
+                    @TextInput(
+                        addressForm("locality"),
+                        isReadOnly = false,
+                        Symbol("_id") -> "localityInput",
+                        Symbol("_name") -> "locality",
+                        Symbol("_label") -> "Town or city",
+                        Symbol("_type") -> "text",
+                        Symbol("_class") -> "form-control form-input-middle"
+                    )
+
+                    @TextInput(
+                        addressForm("region"),
+                        isReadOnly = false,
+                        Symbol("_id") -> "regionInput",
+                        Symbol("_name") -> "region",
+                        Symbol("_label") -> "County",
+                        Symbol("_type") -> "text",
+                        Symbol("_class") -> "form-control form-input-middle"
+                    )
+
+                    @TextInput(
+                        addressForm("postalCode"),
+                        isReadOnly = false,
+                        Symbol("_id") -> "postalCodeInput",
+                        Symbol("_name") -> "postalCode",
+                        Symbol("_label") -> "Postcode",
+                        Symbol("_type") -> "text",
+                        Symbol("_class") -> "form-control form-input-middle"
+                    )
+
+                    @TextInput(
+                        addressForm("country"),
+                        isReadOnly = false,
+                        Symbol("_id") -> "countryInput",
+                        Symbol("_name") -> "country",
+                        Symbol("_label") -> "Country",
+                        Symbol("_type") -> "text",
+                        Symbol("_class") -> "form-control form-input-bottom"
+                    )
+
+                    <hr>
+
+                    <a class="btn btn-lg btn-warning btn-block" id="reset-address">Clear address</a>
+                    <button class="btn btn-lg btn-primary btn-block" type="submit">Update address</button>
+                </form>
+            </div>
+        </div>
+
+        <hr>
+
+        <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
     </div>
 
     <script>
         $("#email-update-warning").hide();
 
-        $("#email").focusin(function() {
+        $("#email").focusin(() => {
             $("#email-update-warning").show();
-        }).focusout(function () {
+        }).focusout(() => {
             $("#email-update-warning").hide();
         });
 
@@ -181,8 +250,16 @@
             }
         });
 
-        $("#reset-date").click(function(){
+        $("#reset-date").click(() => {
             $('#birthdayInput').val("").datepicker("update");
+        })
+
+        $("#reset-address").click(() => {
+            $('#streetInput').val("");
+            $('#localityInput').val("");
+            $('#regionInput').val("");
+            $('#postalCodeInput').val("");
+            $('#countryInput').val("");
         })
     </script>
 }

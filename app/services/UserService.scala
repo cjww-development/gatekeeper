@@ -8,7 +8,7 @@ import com.cjwwdev.security.SecurityConfiguration
 import com.cjwwdev.security.deobfuscation.DeObfuscators
 import database.{UserStore, UserStoreUtils}
 import javax.inject.{Inject, Named}
-import models.{AuthorisedClient, Gender, Name, UserInfo}
+import models.{Address, AuthorisedClient, Gender, Name, UserInfo}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mongodb.scala.bson.BsonValue
 import org.mongodb.scala.bson.conversions.Bson
@@ -71,7 +71,8 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
       "authorisedClients",
       "mfaEnabled",
       "accType",
-      "profile"
+      "profile",
+      "address"
     )
     getUserStore(userId).projectValue("id", userId, projections:_*) map { data =>
       if(data.nonEmpty) {
@@ -98,9 +99,17 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
           birthDate = data.get("profile").map(_.asDocument().get("birthDate").asDateTime().getValue).map { dateLong =>
             val date = new Date(dateLong)
             val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
-            val dateStr = dateFormat.format(date)
-            println(dateStr)
-            dateStr
+            dateFormat.format(date)
+          },
+          address = data.get("address").map(_.asDocument()).map { addrDoc =>
+            val formatted = addrDoc.get("formatted").asString().getValue
+            val streetAddress = addrDoc.get("streetAddress").asString().getValue
+            val locality = addrDoc.get("locality").asString().getValue
+            val region = addrDoc.get("region").asString().getValue
+            val postalCode = addrDoc.get("postalCode").asString().getValue
+            val country = addrDoc.get("country").asString().getValue
+
+            Address(formatted, streetAddress, locality, region, postalCode, country)
           },
           authorisedClients = getAuthorisedClientFromBson(data),
           mfaEnabled = data("mfaEnabled").asBoolean().getValue,
@@ -256,6 +265,20 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
         MongoSuccessUpdate
       case MongoFailedUpdate =>
         logger.warn(s"[updateBirthday] - Failed to update birthday for user $userId")
+        MongoFailedUpdate
+    }
+  }
+
+  def updateAddress(userId: String, address: Option[Address])(implicit ec: ExC): Future[MongoUpdatedResponse] = {
+    val collection = getUserStore(userId)
+    val update = address.fold(unset("address"))(adr => set("address", adr))
+
+    collection.updateUser(query(userId), update) map {
+      case MongoSuccessUpdate =>
+        logger.info(s"[updateAddress] - Updated address for user $userId")
+        MongoSuccessUpdate
+      case MongoFailedUpdate =>
+        logger.warn(s"[updateAddress] - Failed to update address for user $userId")
         MongoFailedUpdate
     }
   }

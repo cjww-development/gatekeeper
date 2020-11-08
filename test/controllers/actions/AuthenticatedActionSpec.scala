@@ -49,6 +49,7 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
     email     = "test@email.com",
     emailVerified = true,
     profile = None,
+    address = None,
     accType   = "individual",
     password  = "testPassword",
     salt      = "testSalt",
@@ -64,6 +65,7 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
     email     = "test@email.com",
     emailVerified = true,
     profile = None,
+    address = None,
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",
@@ -94,6 +96,7 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
             selection = "not specified",
             custom = None
           ),
+          address = None,
           birthDate = None,
           accType = testIndUser.accType,
           authorisedClients = List.empty[AuthorisedClient],
@@ -166,6 +169,7 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
             selection = "not specified",
             custom = None
           ),
+          address = None,
           birthDate = None,
           accType = testOrgUser.accType,
           authorisedClients = List.empty[AuthorisedClient],
@@ -204,6 +208,7 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
             selection = "not specified",
             custom = None
           ),
+          address = None,
           birthDate = None,
           accType = testIndUser.accType,
           authorisedClients = List.empty[AuthorisedClient],

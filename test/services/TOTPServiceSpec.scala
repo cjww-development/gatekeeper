@@ -16,8 +16,7 @@
 
 package services
 
-import java.time.Instant
-import java.util.{Date, UUID}
+import java.util.UUID
 
 import com.cjwwdev.mongo.responses.{MongoFailedUpdate, MongoSuccessUpdate}
 import com.cjwwdev.security.Implicits._
@@ -30,9 +29,8 @@ import dev.samstevens.totp.secret.SecretGenerator
 import helpers.Assertions
 import helpers.database.{MockIndividualStore, MockOrganisationStore}
 import helpers.misc.MockJavaTOTP
-import models.{User, UserInfo}
-import org.joda.time.{DateTime, DateTimeZone}
-import org.mongodb.scala.bson
+import models.User
+import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -73,6 +71,7 @@ class TOTPServiceSpec
     email     = "test@email.com".encrypt,
     emailVerified = true,
     profile = None,
+    address = None,
     accType   = "individual",
     password  = "testPassword",
     authorisedClients = List(),

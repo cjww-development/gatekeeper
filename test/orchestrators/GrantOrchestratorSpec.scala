@@ -73,6 +73,7 @@ class GrantOrchestratorSpec
     email     = "test@email.com",
     emailVerified = true,
     profile = None,
+    address = None,
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",
@@ -107,6 +108,7 @@ class GrantOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          address = None,
           birthDate = None,
           accType = "",
           authorisedClients = List.empty[AuthorisedClient],

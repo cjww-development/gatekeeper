@@ -51,6 +51,7 @@ class RegistrationOrchestratorSpec
     email     = "test@email.com".encrypt,
     emailVerified = true,
     profile = None,
+    address = None,
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",

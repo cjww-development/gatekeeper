@@ -83,6 +83,7 @@ class TokenOrchestratorSpec
     email     = "test@email.com",
     emailVerified = true,
     profile = None,
+    address = None,
     accType   = "organisation",
     password  = "testPassword",
     salt      = "testSalt",
@@ -98,6 +99,7 @@ class TokenOrchestratorSpec
     email     = "test@email.com",
     emailVerified = true,
     profile = None,
+    address = None,
     accType   = "individual",
     password  = "testPassword",
     salt      = "testSalt",
@@ -141,6 +143,7 @@ class TokenOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          address = None,
           birthDate = None,
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
@@ -189,6 +192,7 @@ class TokenOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          address = None,
           birthDate = None,
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
@@ -322,6 +326,7 @@ class TokenOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          address = None,
           birthDate = None,
           accType = "",
           authorisedClients = List.empty[AuthorisedClient],
@@ -365,6 +370,7 @@ class TokenOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          address = None,
           birthDate = None,
           accType = "",
           authorisedClients = List.empty[AuthorisedClient],
@@ -398,6 +404,7 @@ class TokenOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          address = None,
           birthDate = None,
           accType = "",
           authorisedClients = List.empty[AuthorisedClient],
@@ -430,6 +437,7 @@ class TokenOrchestratorSpec
             selection = "not specified",
             custom = None
           ),
+          address = None,
           birthDate = None,
           accType = "",
           authorisedClients = List.empty[AuthorisedClient],
