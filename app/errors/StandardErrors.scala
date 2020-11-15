@@ -18,11 +18,11 @@ package errors
 
 import play.api.libs.json.{JsObject, Json}
 
-
 object StandardErrors {
   val INVALID_REQUEST: JsObject = Json.obj("error" -> "invalid_request")
   val INVALID_CLIENT: JsObject = Json.obj("error" -> "invalid_client")
   val INVALID_GRANT: JsObject = Json.obj("error" -> "invalid_grant")
   val UNAUTHORIZED_CLIENT: JsObject = Json.obj("error" -> "unauthorized_client")
   val UNSUPPORTED_TOKEN_TYPE: JsObject = Json.obj("error" -> "unsupported_token_type")
+  val INVALID_TOKEN: JsObject = Json.obj("error" -> "invalid_token")
 }

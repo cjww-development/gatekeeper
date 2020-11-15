@@ -16,19 +16,55 @@
 
 package controllers.actions
 
+import errors.StandardErrors
 import org.slf4j.LoggerFactory
 import pdi.jwt.{Jwt, JwtAlgorithm}
 import play.api.libs.json.Json
-import play.api.mvc.{BaseController, Request, Result}
+import play.api.mvc._
+import services.TokenService
 
-import scala.concurrent.Future
+import scala.concurrent.{Future, ExecutionContext => ExC}
 
 trait OAuthAction {
   self: BaseController =>
 
   val signature: String
 
+  val tokenService: TokenService
+
   private val logger = LoggerFactory.getLogger(this.getClass)
+
+  private type TokenInfo = Request[AnyContent] => String => Seq[String] => Future[Result]
+
+  def authorised(f: TokenInfo)(implicit ec: ExC): Action[AnyContent] = Action.async { req =>
+    req.headers.get("Authorization") match {
+      case Some(header) =>
+        val splitHeader = header.split(" ")
+        (splitHeader.head == "Bearer", Jwt.isValid(splitHeader.last, signature, Seq(JwtAlgorithm.HS512))) match {
+          case (true, true)  =>
+            val (_, payload, _) = Jwt.decodeAll(splitHeader.last, signature, Seq(JwtAlgorithm.HS512)).get
+            val json = Json.parse(payload.toJson)
+            tokenService.lookupTokenRecordSet(json.\("tsid").as[String], json.\("sub").as[String], json.\("aud").as[String]) flatMap {
+              case Some(record) => if(record.accessTokenId == json.\("tid").as[String]) {
+                logger.info(s"[validateAccessToken] - Token deemed valid, returning userId and scopes")
+                f(req)(json.\("sub").as[String])(json.\("scp").as[String].split(","))
+              } else {
+                logger.warn(s"[validateAccessToken] - Token record found the access tid did not match")
+                Future.successful(Unauthorized(StandardErrors.INVALID_TOKEN))
+              }
+              case None =>
+                logger.warn(s"[validateAccessToken] - The tokens tsid was not found on record")
+                Future.successful(Unauthorized(StandardErrors.INVALID_TOKEN))
+            }
+          case (_, _)        =>
+            logger.warn(s"[validateAccessToken] - Auth header was found but was not in the valid format")
+            Future.successful(Unauthorized(StandardErrors.INVALID_TOKEN))
+        }
+      case None =>
+        logger.warn(s"[validateAccessToken] - No authorization header was present in the request")
+        Future.successful(Unauthorized(StandardErrors.INVALID_TOKEN))
+    }
+  }
 
   def validateBearerToken(f: String => Future[Result])(implicit req: Request[_]): Future[Result] = {
     req.headers.get("Authorization").map(_.split(" ")(1)) match {

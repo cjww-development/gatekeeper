@@ -25,11 +25,13 @@ import play.api.Configuration
 import play.api.i18n.Lang
 import play.api.libs.json.Json
 import play.api.mvc._
+import services.TokenService
 
 import scala.concurrent.{ExecutionContext => ExC}
 
 class DefaultAccountController @Inject()(val controllerComponents: ControllerComponents,
                                          val config: Configuration,
+                                         val tokenService: TokenService,
                                          val userOrchestrator: UserOrchestrator) extends AccountController {
   override implicit val ec: ExC = controllerComponents.executionContext
   override val signature: String = config.get[String]("jwt.signature")
