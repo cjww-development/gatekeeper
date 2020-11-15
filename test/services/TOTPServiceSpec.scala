@@ -29,7 +29,7 @@ import dev.samstevens.totp.secret.SecretGenerator
 import helpers.Assertions
 import helpers.database.{MockIndividualStore, MockOrganisationStore}
 import helpers.misc.MockJavaTOTP
-import models.User
+import models.{DigitalContact, Email, User}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 
@@ -58,18 +58,23 @@ class TOTPServiceSpec
     override val mfaPeriod: Int = 30
   }
 
-  val now = DateTime.now()
+  val now: DateTime = DateTime.now()
 
-  val monthInt = now.getMonthOfYear
+  val monthInt: Int = now.getMonthOfYear
   val month = f"$monthInt%02d"
 
-  val nowString = s"${now.getYear}-${month}-${now.getDayOfMonth}"
+  val nowString = s"${now.getYear}-$month-${now.getDayOfMonth}"
 
   val testUser: User = User(
     id        = s"user-${UUID.randomUUID()}",
     userName  = "testUserName".encrypt,
-    email     = "test@email.com".encrypt,
-    emailVerified = true,
+    digitalContact = DigitalContact(
+      email = Email(
+        address = "test@email.com".encrypt,
+        verified = true
+      ),
+      phone = None
+    ),
     profile = None,
     address = None,
     accType   = "individual",

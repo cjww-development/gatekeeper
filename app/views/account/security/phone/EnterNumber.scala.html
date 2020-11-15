@@ -1,0 +1,38 @@
+@import controllers.ui.{routes => uiRoutes}
+@import org.joda.time.DateTime
+@import views.html.Main
+@import views.html.components.forms.TextInput
+@import views.AuthForView
+@import helper._
+
+
+@(phoneForm: Form[String])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
+
+@Main("Enter your phone number", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
+    <form class="form-signin" action="@uiRoutes.PhoneController.submitPhoneNumber()" method="post">
+        <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
+        <h1 class="h3 mb-3 font-weight-normal">Enter your phone number</h1>
+
+        <hr>
+
+        @CSRF.formField
+
+        @TextInput(
+            phoneForm("number"),
+            isReadOnly = false,
+            Symbol("_id") -> "numberInput",
+            Symbol("_name") -> "number",
+            Symbol("_label") -> "Phone number",
+            Symbol("_type") -> "tel",
+            Symbol("_class") -> "form-control"
+        )
+
+        <hr>
+
+        <button class="btn btn-lg btn-primary btn-block" id="registration-submit" type="submit">Confirm</button>
+
+        <hr>
+
+        <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
+    </form>
+}

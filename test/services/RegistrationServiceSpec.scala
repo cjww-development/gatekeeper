@@ -18,13 +18,13 @@ package services
 
 import java.util.UUID
 
+import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
 import com.cjwwdev.security.Implicits._
 import com.cjwwdev.security.obfuscation.Obfuscators
-import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
-import database.{AppStore, IndividualUserStore, OrganisationUserStore, UserStore}
+import database.{AppStore, UserStore}
 import helpers.Assertions
 import helpers.database.{MockAppStore, MockIndividualStore, MockOrganisationStore}
-import models.{RegisteredApplication, User}
+import models.{DigitalContact, Email, RegisteredApplication, User}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import utils.StringUtils
@@ -50,8 +50,13 @@ class RegistrationServiceSpec
   val testIndividualUser: User = User(
     id        = s"user-${UUID.randomUUID()}",
     userName  = "testUserName",
-    email     = "test@email.com",
-    emailVerified = true,
+    digitalContact = DigitalContact(
+      email = Email(
+        address = "test@email.com",
+        verified = true
+      ),
+      phone = None
+    ),
     profile = None,
     address = None,
     accType   = "individual",
@@ -66,8 +71,13 @@ class RegistrationServiceSpec
   val testOrganisationUser: User = User(
     id        = s"org-user-${UUID.randomUUID()}",
     userName  = "testUserName",
-    email     = "test@email.com",
-    emailVerified = true,
+    digitalContact = DigitalContact(
+      email = Email(
+        address = "test@email.com",
+        verified = true
+      ),
+      phone = None
+    ),
     profile = None,
     address = None,
     accType   = "organisation",
@@ -148,7 +158,7 @@ class RegistrationServiceSpec
           userTwo = None
         )
 
-        awaitAndAssert(testService.isIdentifierInUse(testIndividualUser.email, testIndividualUser.userName)) {
+        awaitAndAssert(testService.isIdentifierInUse(testIndividualUser.digitalContact.email.address, testIndividualUser.userName)) {
           res => assert(res)
         }
       }
@@ -164,7 +174,7 @@ class RegistrationServiceSpec
           userTwo = None
         )
 
-        awaitAndAssert(testService.isIdentifierInUse(testIndividualUser.email, testIndividualUser.userName)) {
+        awaitAndAssert(testService.isIdentifierInUse(testIndividualUser.digitalContact.email.address, testIndividualUser.userName)) {
           res => assert(res)
         }
       }
@@ -180,7 +190,7 @@ class RegistrationServiceSpec
           userTwo = None
         )
 
-        awaitAndAssert(testService.isIdentifierInUse(testIndividualUser.email, testIndividualUser.userName)) {
+        awaitAndAssert(testService.isIdentifierInUse(testIndividualUser.digitalContact.email.address, testIndividualUser.userName)) {
           res => assert(res)
         }
       }
@@ -198,7 +208,7 @@ class RegistrationServiceSpec
           userTwo = None
         )
 
-        awaitAndAssert(testService.isIdentifierInUse(testIndividualUser.email, testIndividualUser.userName)) {
+        awaitAndAssert(testService.isIdentifierInUse(testIndividualUser.digitalContact.email.address, testIndividualUser.userName)) {
           res => assert(!res)
         }
       }

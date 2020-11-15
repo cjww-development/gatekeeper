@@ -30,8 +30,7 @@ import scala.reflect.ClassTag
 
 case class User(id: String,
                 userName: String,
-                email: String,
-                emailVerified: Boolean,
+                digitalContact: DigitalContact,
                 profile: Option[Profile],
                 address: Option[Address],
                 accType: String,
@@ -60,23 +59,14 @@ object User extends Obfuscators with DeObfuscators {
     new User(
       id,
       userName.trim.encrypt,
-      email.trim.encrypt,
-      emailVerified = false,
-      profile = Some(Profile(
-        name = None,
-        familyName = None,
-        givenName = None,
-        middleName = None,
-        nickname = None,
-        profile = None,
-        picture = None,
-        website = None,
-        gender = None,
-        birthDate = None,
-        zoneinfo = None,
-        locale = None,
-        updatedAt =None,
-      )),
+      digitalContact = DigitalContact(
+        email = Email(
+          address = email.trim.encrypt,
+          verified = false
+        ),
+        phone = None
+      ),
+      profile = None,
       address = None,
       accType.trim,
       salt = saltStr,
@@ -89,6 +79,6 @@ object User extends Obfuscators with DeObfuscators {
   }
 
   def unapply(arg: User): Option[(String, String, String, String)] = {
-    Some((arg.userName, arg.email, arg.accType, arg.password))
+    Some((arg.userName, arg.digitalContact.email.address, arg.accType, arg.password))
   }
 }

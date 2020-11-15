@@ -18,7 +18,7 @@ package database
 
 import com.cjwwdev.mongo.responses.{MongoSuccessCreate, MongoSuccessUpdate}
 import helpers.{Assertions, IntegrationApp}
-import models.{AuthorisedClient, User}
+import models.{AuthorisedClient, DigitalContact, Email, User}
 import org.joda.time.DateTime
 import org.mongodb.scala.model.Filters.{and => mongoAnd, equal => mongoEqual}
 import org.mongodb.scala.model.Updates.set
@@ -36,8 +36,13 @@ class OrganisationUserStoreISpec extends PlaySpec with IntegrationApp with Asser
   val testUser: User = User(
     id        = "testUserId",
     userName  = "testUserName",
-    email     = "test@email.com",
-    emailVerified = true,
+    digitalContact = DigitalContact(
+      email = Email(
+        address = "test@email.com",
+        verified = true
+      ),
+      phone = None
+    ),
     profile = None,
     address = None,
     accType   = "organisation",
@@ -72,7 +77,7 @@ class OrganisationUserStoreISpec extends PlaySpec with IntegrationApp with Asser
   "findUser" should {
     "return a User" when {
       "a user already exists with a matching email" in {
-        awaitAndAssert(testUserStore.findUser(mongoEqual("email", testUser.email))) {
+        awaitAndAssert(testUserStore.findUser(mongoEqual("digitalContact.email.address", testUser.digitalContact.email.address))) {
           _ mustBe Some(testUser)
         }
       }
@@ -84,7 +89,7 @@ class OrganisationUserStoreISpec extends PlaySpec with IntegrationApp with Asser
       }
 
       "a user matches on more than one field" in {
-        awaitAndAssert(testUserStore.findUser(mongoAnd(mongoEqual("userName", testUser.userName), mongoEqual("email", testUser.email)))) {
+        awaitAndAssert(testUserStore.findUser(mongoAnd(mongoEqual("userName", testUser.userName), mongoEqual("digitalContact.email.address", testUser.digitalContact.email.address)))) {
           _ mustBe Some(testUser)
         }
       }
@@ -92,7 +97,7 @@ class OrganisationUserStoreISpec extends PlaySpec with IntegrationApp with Asser
 
     "return None" when {
       "a user doesn't exist with the given email" in {
-        awaitAndAssert(testUserStore.findUser(mongoEqual("email", "test-user@email.com"))) {
+        awaitAndAssert(testUserStore.findUser(mongoEqual("digitalContact.email.address", "test-user@email.com"))) {
           _ mustBe None
         }
       }
@@ -104,7 +109,7 @@ class OrganisationUserStoreISpec extends PlaySpec with IntegrationApp with Asser
       }
 
       "a user matches on one field" in {
-        awaitAndAssert(testUserStore.findUser(mongoAnd(mongoEqual("userName", testUser.userName), mongoEqual("email", "invalid@email.com")))) {
+        awaitAndAssert(testUserStore.findUser(mongoAnd(mongoEqual("userName", testUser.userName), mongoEqual("digitalContact.email.address", "invalid@email.com")))) {
           _ mustBe None
         }
       }
@@ -114,8 +119,8 @@ class OrganisationUserStoreISpec extends PlaySpec with IntegrationApp with Asser
   "projectValue" should {
     "return an Optional value" when {
       "projecting the email" in {
-        awaitAndAssert(testUserStore.projectValue("userName", testUser.userName, "email")) { map =>
-          map.get("email").map(_.asString().getValue) mustBe Some(testUser.email)
+        awaitAndAssert(testUserStore.projectValue("userName", testUser.userName, "digitalContact")) { map =>
+          map.get("digitalContact").map(_.asDocument().get("email").asDocument().getString("address").asString().getValue) mustBe Some(testUser.digitalContact.email.address)
           map.get("id").map(_.asString().getValue) mustBe Some(testUser.id)
         }
       }

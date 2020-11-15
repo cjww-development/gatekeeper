@@ -22,6 +22,10 @@ GET         /account/security/mfa-setup             controllers.ui.AccountContro
 POST        /account/security/mfa-setup             controllers.ui.AccountController.postTotpSetupVerification()
 GET         /account/security/mfa/confirm-disable   controllers.ui.AccountController.disableMFAConfirm()
 GET         /account/security/mfa/disable           controllers.ui.AccountController.disableMFA()
+GET         /account/security/enter-phone-number    controllers.ui.PhoneController.enterPhoneNumber()
+POST        /account/security/enter-phone-number    controllers.ui.PhoneController.submitPhoneNumber()
+GET         /account/security/enter-verify-code     controllers.ui.PhoneController.enterVerifyCode()
+POST        /account/security/enter-verify-code     controllers.ui.PhoneController.verifyEnteredCode()
 
 GET         /oauth2/authorize                       controllers.ui.OAuthController.authoriseGet(response_type, client_id, scope, state: Option[String] ?= None, code_verifier: Option[String] ?= None, code_challenge: Option[String] ?= None, code_challenge_method: Option[String] ?= None)
 POST        /oauth2/authorize                       controllers.ui.OAuthController.authorisePost(response_type, client_id, scope, state: Option[String] ?= None, code_verifier: Option[String] ?= None, code_challenge: Option[String] ?= None, code_challenge_method: Option[String] ?= None)

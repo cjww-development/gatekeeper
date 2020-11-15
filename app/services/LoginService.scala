@@ -37,11 +37,12 @@ trait LoginService extends UserStoreUtils {
   private val logger = LoggerFactory.getLogger(this.getClass)
 
   def getUserSalt(accountId: String)(implicit ec: ExC): Future[Option[String]] = {
+    val emailKey = "digitalContact.email.address"
     for {
       indUserName <- individualUserStore.projectValue("userName", accountId, "salt")
-      indEmail <- individualUserStore.projectValue("email", accountId, "salt")
+      indEmail <- individualUserStore.projectValue(emailKey, accountId, "salt")
       orgUserName <- organisationUserStore.projectValue("userName", accountId, "salt")
-      orgEmail <- organisationUserStore.projectValue("email", accountId, "salt")
+      orgEmail <- organisationUserStore.projectValue(emailKey, accountId, "salt")
     } yield {
       (indUserName.nonEmpty || indEmail.nonEmpty) -> (orgUserName.nonEmpty || orgEmail.nonEmpty) match {
         case (true, false)  =>
@@ -64,7 +65,7 @@ trait LoginService extends UserStoreUtils {
     val query = and(
       or(
         equal("userName", accountId),
-        equal("email", accountId)
+        equal("digitalContact.email.address", accountId)
       ),
       equal("password", password)
     )

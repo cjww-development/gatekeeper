@@ -23,7 +23,7 @@ import com.cjwwdev.security.obfuscation.Obfuscators
 import controllers.ui.{routes => uiRoutes}
 import helpers.Assertions
 import helpers.orchestrators.MockLoginOrchestrator
-import models.{ServerCookies, User}
+import models.{DigitalContact, Email, ServerCookies, User}
 import orchestrators.LoginOrchestrator
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
@@ -51,8 +51,13 @@ class LoginControllerSpec
   val testIndividualUser: User = User(
     id        = s"user-${UUID.randomUUID()}",
     userName  = "testUserName",
-    email     = "test@email.com",
-    emailVerified = true,
+    digitalContact = DigitalContact(
+      email = Email(
+        address = "test@email.com",
+        verified = true
+      ),
+      phone = None
+    ),
     profile = None,
     address = None,
     accType   = "individual",

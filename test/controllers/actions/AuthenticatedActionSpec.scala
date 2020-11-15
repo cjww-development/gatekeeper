@@ -20,7 +20,7 @@ import java.util.UUID
 
 import helpers.Assertions
 import helpers.orchestrators.MockUserOrchestrator
-import models.{AuthorisedClient, Gender, Name, ServerCookies, User, UserInfo}
+import models.{AuthorisedClient, DigitalContact, Email, Gender, Name, ServerCookies, User, UserInfo}
 import orchestrators.UserOrchestrator
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
@@ -46,8 +46,13 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
   val testIndUser: User = User(
     id        = s"user-${UUID.randomUUID()}",
     userName  = "testUsername",
-    email     = "test@email.com",
-    emailVerified = true,
+    digitalContact = DigitalContact(
+      email = Email(
+        address = "test@email.com",
+        verified = true
+      ),
+      phone = None
+    ),
     profile = None,
     address = None,
     accType   = "individual",
@@ -62,8 +67,13 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
   val testOrgUser: User = User(
     id        = s"org-user-${UUID.randomUUID()}",
     userName  = "testUsername",
-    email     = "test@email.com",
-    emailVerified = true,
+    digitalContact = DigitalContact(
+      email = Email(
+        address = "test@email.com",
+        verified = true
+      ),
+      phone = None
+    ),
     profile = None,
     address = None,
     accType   = "organisation",
@@ -84,8 +94,10 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
         mockGetUserDetails(details = Option(UserInfo(
           id = testIndUser.id,
           userName = testIndUser.userName,
-          email = testIndUser.email,
-          emailVerified = testIndUser.emailVerified,
+          email = testIndUser.digitalContact.email.address,
+          emailVerified = testIndUser.digitalContact.email.verified,
+          phone = None,
+          phoneVerified = false,
           name = Name(
             firstName = None,
             middleName = None,
@@ -157,8 +169,10 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
         mockGetUserDetails(details = Some(UserInfo(
           id = testOrgUser.id,
           userName = testOrgUser.userName,
-          email = testOrgUser.email,
-          emailVerified = testOrgUser.emailVerified,
+          email = testOrgUser.digitalContact.email.address,
+          emailVerified = testOrgUser.digitalContact.email.verified,
+          phone = None,
+          phoneVerified = false,
           name = Name(
             firstName = None,
             middleName = None,
@@ -196,8 +210,10 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
         mockGetUserDetails(details = Some(UserInfo(
           id = testIndUser.id,
           userName = testIndUser.userName,
-          email = testIndUser.email,
-          emailVerified = testIndUser.emailVerified,
+          email = testIndUser.digitalContact.email.address,
+          emailVerified = testIndUser.digitalContact.email.verified,
+          phone = None,
+          phoneVerified = false,
           name = Name(
             firstName = None,
             middleName = None,

@@ -23,7 +23,7 @@ import com.cjwwdev.mongo.connection.ConnectionSettings
 import com.cjwwdev.mongo.responses._
 import com.typesafe.config.Config
 import javax.inject.Inject
-import models.{EmailVerification, TokenRecord}
+import models.Verification
 import org.bson.codecs.configuration.CodecRegistry
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.{IndexModel, IndexOptions, Indexes}
@@ -33,12 +33,12 @@ import play.api.Configuration
 import scala.concurrent.{Future, ExecutionContext => ExC}
 import scala.reflect.ClassTag
 
-class DefaultEmailVerificationStore @Inject()(val configuration: Configuration) extends EmailVerificationStore with ConnectionSettings {
+class DefaultVerificationStore @Inject()(val configuration: Configuration) extends VerificationStore with ConnectionSettings {
   override val config: Config = configuration.underlying
-  override val expiry: Long = configuration.get[Long]("email-verifications.expire-after")
+  override val expiry: Long = configuration.get[Long]("verifications.expire-after")
 }
 
-trait EmailVerificationStore extends DatabaseRepository with CodecReg {
+trait VerificationStore extends DatabaseRepository with CodecReg {
 
   val expiry: Long
 
@@ -47,42 +47,43 @@ trait EmailVerificationStore extends DatabaseRepository with CodecReg {
   override def indexes: Seq[IndexModel] = Seq(
     IndexModel(Indexes.ascending("verificationId"), IndexOptions().background(false).unique(true)),
     IndexModel(Indexes.ascending("userId"), IndexOptions().background(false).unique(false)),
-    IndexModel(Indexes.ascending("email"), IndexOptions().background(false).unique(false)),
+    IndexModel(Indexes.ascending("contactType"), IndexOptions().background(false).unique(false)),
+    IndexModel(Indexes.ascending("contact"), IndexOptions().background(false).unique(false)),
     IndexModel(Indexes.ascending("accType"), IndexOptions().background(false).unique(false)),
     IndexModel(Indexes.ascending("createdAt"), IndexOptions().background(false).expireAfter(expiry, TimeUnit.HOURS))
   )
 
-  private def emailVerificationStore(implicit ct: ClassTag[EmailVerification], codec: CodecRegistry) = collection[EmailVerification](ct, codec)
+  private def verificationStore(implicit ct: ClassTag[Verification], codec: CodecRegistry) = collection[Verification](ct, codec)
 
-  def createEmailVerificationRecord(record: EmailVerification)(implicit ec: ExC): Future[MongoCreateResponse] = {
-    emailVerificationStore
+  def createVerificationRecord(record: Verification)(implicit ec: ExC): Future[MongoCreateResponse] = {
+    verificationStore
       .insertOne(record)
       .toFuture()
       .map { _ =>
-        logger.info(s"[createEmailVerificationRecord] - Created new email verification record")
+        logger.info(s"[createVerificationRecord] - Created new contact verification record")
         MongoSuccessCreate
       }.recover { e =>
-        logger.error(s"[createEmailVerificationRecord] - There was a problem creating the new email verification record", e)
+        logger.error(s"[createVerificationRecord] - There was a problem creating the new contact verification record", e)
         MongoFailedCreate
       }
   }
 
-  def validateEmailVerificationRecord(query: Bson)(implicit ec: ExC): Future[Option[EmailVerification]] = {
-    emailVerificationStore
+  def validateVerificationRecord(query: Bson)(implicit ec: ExC): Future[Option[Verification]] = {
+    verificationStore
       .find(query)
       .first()
       .toFutureOption()
   }
 
-  def deleteEmailVerificationRecord(query: Bson)(implicit ec: ExC): Future[MongoDeleteResponse] = {
-    emailVerificationStore
+  def deleteVerificationRecord(query: Bson)(implicit ec: ExC): Future[MongoDeleteResponse] = {
+    verificationStore
       .deleteOne(query)
       .toFuture()
       .map { x =>
-        logger.info(s"[deleteEmailVerificationRecord] - Deleted token record")
+        logger.info(s"[deleteVerificationRecord] - Deleted verification record")
         MongoSuccessDelete
       }.recover { e =>
-        logger.error(s"[deleteEmailVerificationRecord] - There was a problem deleting the token record", e)
+        logger.error(s"[deleteVerificationRecord] - There was a problem deleting the verification record", e)
         MongoFailedDelete
       }
   }

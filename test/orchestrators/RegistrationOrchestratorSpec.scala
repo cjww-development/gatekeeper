@@ -19,12 +19,12 @@ package orchestrators
 import com.cjwwdev.security.obfuscation.Obfuscators
 import com.cjwwdev.security.Implicits._
 import helpers.Assertions
-import helpers.services.{MockEmailService, MockRegistrationService, MockUserService}
-import models.{EmailVerification, RegisteredApplication, User}
+import helpers.services.{MockEmailService, MockPhoneService, MockRegistrationService, MockUserService}
+import models.{DigitalContact, Email, RegisteredApplication, User, Verification}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import play.api.test.FakeRequest
-import services.{EmailService, RegistrationService, UserService}
+import services.{EmailService, PhoneService, RegistrationService, UserService}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -33,12 +33,14 @@ class RegistrationOrchestratorSpec
     with Assertions
     with MockRegistrationService
     with MockEmailService
+    with MockPhoneService
     with MockUserService
     with Obfuscators {
 
   override val locale: String = ""
 
   val testOrchestrator: RegistrationOrchestrator = new RegistrationOrchestrator {
+    override protected val phoneService: PhoneService = mockPhoneService
     override protected val userService: UserService = mockUserService
     override val registrationService: RegistrationService = mockRegistrationService
     override protected val emailService: EmailService = mockEmailService
@@ -48,8 +50,13 @@ class RegistrationOrchestratorSpec
   val testUser: User = User(
     id        = "testId",
     userName  = "testUsername",
-    email     = "test@email.com".encrypt,
-    emailVerified = true,
+    digitalContact = DigitalContact(
+      email = Email(
+        address = "test@email.com".encrypt,
+        verified = true
+      ),
+      phone = None
+    ),
     profile = None,
     address = None,
     accType   = "organisation",
@@ -87,10 +94,12 @@ class RegistrationOrchestratorSpec
         mockIsIdentifierInUse(inUse = false)
         mockValidateSalt(salt = "testSalt")
         mockCreateNewUser(success = true)
-        mockSaveVerificationRecord(verificationRecord = EmailVerification(
+        mockSaveVerificationRecord(verificationRecord = Verification(
           verificationId = "testVerifyId",
           userId = "testUserId",
-          email = "test@email.com",
+          contactType = "email",
+          contact = "test@email.com",
+          code = None,
           accType = "individual",
           createdAt = new DateTime()
         ))

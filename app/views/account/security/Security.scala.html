@@ -3,7 +3,7 @@
 @import views.html.Main
 @import views.AuthForView
 
-@(mfaStatus: Boolean, emailVerificationStatus: Boolean, email: String)(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
+@(mfaStatus: Boolean, emailVerificationStatus: Boolean, email: String, phoneVerificationStatus: Boolean, phone: Option[String])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
 
 @Main("Account Security", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <div class="form-signin">
@@ -26,6 +26,20 @@
                     <p class="default-text">to verify</p>
                     <p class="default-text">Use the button below to resend the email</p>
                     <a href="" class="btn btn-success btn-block">Resend verification message</a>
+                }
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Securing your account with your phone number</h5>
+                @if(phoneVerificationStatus) {
+                    <p class="default-text">Your phone number</p>
+                    <p class="default-text">@{phone.get}</p>
+                    <p class="default-text">has been verified</p>
+                } else {
+                    <p class="default-text">Enter your phone to further secure your account</p>
+                    <a href="@uiRoutes.PhoneController.enterPhoneNumber()" class="btn btn-success btn-block">Enter your phone number</a>
                 }
             </div>
         </div>

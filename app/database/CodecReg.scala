@@ -17,7 +17,7 @@
 package database
 
 import database.registries.JodaCodec
-import models.{Address, AuthorisedClient, EmailVerification, Grant, LoginAttempt, Profile, RegisteredApplication, Scope, TokenRecord, User}
+import models._
 import org.bson.codecs.configuration.CodecRegistries.{fromCodecs, fromProviders, fromRegistries}
 import org.bson.codecs.configuration.CodecRegistry
 import org.mongodb.scala.bson.codecs.DEFAULT_CODEC_REGISTRY
@@ -34,9 +34,12 @@ trait CodecReg {
       AuthorisedClient.codec,
       Scope.codec,
       TokenRecord.codec,
-      EmailVerification.codec,
+      Verification.codec,
       Profile.codec,
-      Address.codec
+      Address.codec,
+      DigitalContact.codec,
+      Email.codec,
+      Phone.codec
     ),
     DEFAULT_CODEC_REGISTRY
   )

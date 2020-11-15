@@ -22,9 +22,10 @@ import com.cjwwdev.security.Implicits._
 import com.cjwwdev.security.obfuscation.Obfuscators
 import helpers.Assertions
 import helpers.services._
-import models.{AuthorisedClient, Gender, Grant, Name, RefreshToken, RegisteredApplication, Scope, User, UserInfo}
+import models.{AuthorisedClient, DigitalContact, Email, Gender, Grant, Name, RefreshToken, RegisteredApplication, Scope, User, UserInfo}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
+import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import services.{ClientService, GrantService, ScopeService, TokenService, UserService}
 import utils.BasicAuth
@@ -80,8 +81,13 @@ class TokenOrchestratorSpec
   val testIndUser: User = User(
     id        = s"user-${UUID.randomUUID()}",
     userName  = "testUsername",
-    email     = "test@email.com",
-    emailVerified = true,
+    digitalContact = DigitalContact(
+      email = Email(
+        address = "test@email.com",
+        verified = true
+      ),
+      phone = None
+    ),
     profile = None,
     address = None,
     accType   = "organisation",
@@ -96,8 +102,13 @@ class TokenOrchestratorSpec
   val testOrgUser: User = User(
     id        = s"org-user-${UUID.randomUUID()}",
     userName  = "testUsername",
-    email     = "test@email.com",
-    emailVerified = true,
+    digitalContact = DigitalContact(
+      email = Email(
+        address = "test@email.com",
+        verified = true
+      ),
+      phone = None
+    ),
     profile = None,
     address = None,
     accType   = "individual",
@@ -132,6 +143,8 @@ class TokenOrchestratorSpec
           userName = "test-org",
           email = "",
           emailVerified = false,
+          phone = None,
+          phoneVerified = false,
           accType = "",
           name = Name(
             firstName = None,
@@ -181,6 +194,8 @@ class TokenOrchestratorSpec
           userName = "test-org",
           email = "",
           emailVerified = false,
+          phone = None,
+          phoneVerified = false,
           accType = "",
           name = Name(
             firstName = None,
@@ -252,7 +267,7 @@ class TokenOrchestratorSpec
   "clientCredentialsGrant" should {
     "return issued" when {
       "the client was validated" in {
-        implicit val req = FakeRequest()
+        implicit val req: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
           .withHeaders("Authorization" -> "Basic dGVzdElkOnRlc3RTZWNyZXQ=")
 
         mockGetRegisteredAppByIdAndSecret(app = Some(testApp))
@@ -276,7 +291,7 @@ class TokenOrchestratorSpec
 
     "return InvalidClient" when {
       "the client could not be found" in {
-        implicit val req = FakeRequest()
+        implicit val req: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
           .withHeaders("Authorization" -> "Basic dGVzdElkOnRlc3RTZWNyZXQ=")
 
         mockGetRegisteredAppByIdAndSecret(app = None)
@@ -287,7 +302,7 @@ class TokenOrchestratorSpec
       }
 
       "the basic auth header was invalid" in {
-        implicit val req = FakeRequest()
+        implicit val req: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
 
         awaitAndAssert(testOrchestrator.clientCredentialsGrant("testScope")) {
           _ mustBe InvalidClient
@@ -316,6 +331,8 @@ class TokenOrchestratorSpec
           userName = "test-org",
           email = "",
           emailVerified = false,
+          phone = None,
+          phoneVerified = false,
           name = Name(
             firstName = None,
             middleName = None,
@@ -360,6 +377,8 @@ class TokenOrchestratorSpec
           userName = "test-org",
           email = "",
           emailVerified = false,
+          phone = None,
+          phoneVerified = false,
           name = Name(
             firstName = None,
             middleName = None,
@@ -394,6 +413,8 @@ class TokenOrchestratorSpec
           userName = "test-org",
           email = "",
           emailVerified = false,
+          phone = None,
+          phoneVerified = false,
           name = Name(
             firstName = None,
             middleName = None,
@@ -427,6 +448,8 @@ class TokenOrchestratorSpec
           userName = "test-org",
           email = "",
           emailVerified = false,
+          phone = None,
+          phoneVerified = false,
           name = Name(
             firstName = None,
             middleName = None,

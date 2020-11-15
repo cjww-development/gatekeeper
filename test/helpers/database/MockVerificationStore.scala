@@ -16,9 +16,9 @@
 
 package helpers.database
 
-import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoDeleteResponse, MongoFailedCreate, MongoFailedDelete, MongoSuccessCreate, MongoSuccessDelete}
-import database.{EmailVerificationStore, TokenRecordStore}
-import models.{EmailVerification, TokenRecord}
+import com.cjwwdev.mongo.responses._
+import database.VerificationStore
+import models.Verification
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
 import org.mockito.stubbing.OngoingStubbing
@@ -29,28 +29,28 @@ import org.scalatestplus.play.PlaySpec
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait MockEmailVerificationStore extends MockitoSugar with BeforeAndAfterEach {
+trait MockVerificationStore extends MockitoSugar with BeforeAndAfterEach {
   self: PlaySpec =>
 
-  val mockEmailVerificationStore: EmailVerificationStore = mock[EmailVerificationStore]
+  val mockVerificationStore: VerificationStore = mock[VerificationStore]
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(mockEmailVerificationStore)
+    reset(mockVerificationStore)
   }
 
   def mockCreateEmailVerificationRecord(success: Boolean): OngoingStubbing[Future[MongoCreateResponse]] = {
-    when(mockEmailVerificationStore.createEmailVerificationRecord(ArgumentMatchers.any[EmailVerification]())(ArgumentMatchers.any[ExecutionContext]()))
+    when(mockVerificationStore.createVerificationRecord(ArgumentMatchers.any[Verification]())(ArgumentMatchers.any[ExecutionContext]()))
       .thenReturn(Future.successful(if(success) MongoSuccessCreate else MongoFailedCreate))
   }
 
-  def mockValidateTokenRecord(record: Option[EmailVerification]): OngoingStubbing[Future[Option[EmailVerification]]] = {
-    when(mockEmailVerificationStore.validateEmailVerificationRecord(ArgumentMatchers.any[Bson]())(ArgumentMatchers.any()))
+  def mockValidateTokenRecord(record: Option[Verification]): OngoingStubbing[Future[Option[Verification]]] = {
+    when(mockVerificationStore.validateVerificationRecord(ArgumentMatchers.any[Bson]())(ArgumentMatchers.any()))
       .thenReturn(Future.successful(record))
   }
 
   def mockDeleteEmailVerificationRecord(success: Boolean): OngoingStubbing[Future[MongoDeleteResponse]] = {
-    when(mockEmailVerificationStore.deleteEmailVerificationRecord(ArgumentMatchers.any[Bson]())(ArgumentMatchers.any[ExecutionContext]()))
+    when(mockVerificationStore.deleteVerificationRecord(ArgumentMatchers.any[Bson]())(ArgumentMatchers.any[ExecutionContext]()))
       .thenReturn(Future.successful(if(success) MongoSuccessDelete else MongoFailedDelete))
   }
 }

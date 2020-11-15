@@ -24,9 +24,9 @@ import com.amazonaws.services.simpleemail.model._
 import com.amazonaws.services.simpleemail.{AmazonSimpleEmailService, AmazonSimpleEmailServiceClientBuilder}
 import com.cjwwdev.mongo.responses.MongoDeleteResponse
 import com.cjwwdev.security.Implicits._
-import database.EmailVerificationStore
+import database.VerificationStore
 import javax.inject.Inject
-import models.EmailVerification
+import models.Verification
 import org.joda.time.DateTime
 import org.mongodb.scala.model.Filters.{and, equal}
 import play.api.Configuration
@@ -36,7 +36,7 @@ import views.html.email.VerificationEmail
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultEmailService @Inject()(val config: Configuration,
-                                    val emailVerificationStore: EmailVerificationStore) extends EmailService {
+                                    val verificationStore: VerificationStore) extends EmailService {
   override val emailSenderAddress: String = config.get[String]("email.from")
   override val verificationSubjectLine: String = config.get[String]("email.verification-subject")
   override val emailClient: AmazonSimpleEmailService = AmazonSimpleEmailServiceClientBuilder
@@ -51,9 +51,9 @@ trait EmailService {
 
   val emailClient: AmazonSimpleEmailService
 
-  val emailVerificationStore: EmailVerificationStore
+  val verificationStore: VerificationStore
 
-  def sendEmailVerificationMessage(to: String, record: EmailVerification)(implicit req: Request[_]): SendEmailResult = {
+  def sendEmailVerificationMessage(to: String, record: Verification)(implicit req: Request[_]): SendEmailResult = {
     val queryParam = record.encrypt
 
     val destination: Destination = new Destination()
@@ -82,28 +82,31 @@ trait EmailService {
     emailClient.sendEmail(request)
   }
 
-  def saveVerificationRecord(userId: String, email: String, accType: String)(implicit ec: ExC): Future[EmailVerification] = {
-    val record = EmailVerification(
+  def saveVerificationRecord(userId: String, email: String, accType: String)(implicit ec: ExC): Future[Verification] = {
+    val record = Verification(
       verificationId = s"verify-${UUID.randomUUID().toString}",
       userId,
+      "email",
       email,
+      code = None,
       accType,
       createdAt = new DateTime()
     )
-    emailVerificationStore.createEmailVerificationRecord(record) map(_ => record)
+    verificationStore.createVerificationRecord(record) map(_ => record)
   }
 
-  def validateVerificationRecord(record: EmailVerification)(implicit ec: ExC): Future[Option[EmailVerification]] = {
+  def validateVerificationRecord(record: Verification)(implicit ec: ExC): Future[Option[Verification]] = {
     val query = and(
       equal("verificationId", record.verificationId),
       equal("userId", record.userId),
-      equal("email", record.email),
+      equal("contact", record.contact),
+      equal("contactType", record.contactType),
     )
-    emailVerificationStore.validateEmailVerificationRecord(query)
+    verificationStore.validateVerificationRecord(query)
   }
 
   def removeVerificationRecord(verificationId: String)(implicit ec: ExC): Future[MongoDeleteResponse] = {
     val query = equal("verificationId", verificationId)
-    emailVerificationStore.deleteEmailVerificationRecord(query)
+    verificationStore.deleteVerificationRecord(query)
   }
 }

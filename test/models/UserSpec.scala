@@ -32,7 +32,7 @@ class UserSpec extends PlaySpec with Assertions {
 
       assertOutput(testUser) { res =>
         assert(res.userName != "testUser")
-        assert(res.email != "test@email.com")
+        assert(res.digitalContact.email.address != "test@email.com")
         res.accType mustBe "individual"
         res.salt.length mustBe 32
         assert(res.password != "testing")
@@ -50,7 +50,7 @@ class UserSpec extends PlaySpec with Assertions {
 
       assertOutput(testUser) { res =>
         assert(res.userName != "testUser")
-        assert(res.email != "test@email.com")
+        assert(res.digitalContact.email.address != "test@email.com")
         res.accType mustBe "individual"
         res.salt.length mustBe 32
         assert(res.password != "testing")

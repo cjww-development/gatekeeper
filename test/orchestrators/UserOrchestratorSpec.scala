@@ -20,7 +20,7 @@ import java.util.UUID
 
 import helpers.Assertions
 import helpers.services.{MockAccountService, MockEmailService, MockRegistrationService}
-import models.{AuthorisedClient, Gender, Name, User, UserInfo}
+import models.{AuthorisedClient, DigitalContact, Email, Gender, Name, User, UserInfo}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import services.{EmailService, RegistrationService, UserService}
@@ -50,8 +50,13 @@ class UserOrchestratorSpec
   val testIndUser: User = User(
     id        = s"user-${UUID.randomUUID()}",
     userName  = "testUsername",
-    email     = "test@email.com",
-    emailVerified = true,
+    digitalContact = DigitalContact(
+      email = Email(
+        address = "test@email.com",
+        verified = true
+      ),
+      phone = None
+    ),
     profile = None,
     address = None,
     accType   = "organisation",
@@ -66,8 +71,13 @@ class UserOrchestratorSpec
   val testOrgUser: User = User(
     id        = s"org-user-${UUID.randomUUID()}",
     userName  = "testUsername",
-    email     = "test@email.com",
-    emailVerified = true,
+    digitalContact = DigitalContact(
+      email = Email(
+        address = "test@email.com",
+        verified = true
+      ),
+      phone = None
+    ),
     profile = None,
     address = None,
     accType   = "individual",
@@ -103,8 +113,10 @@ class UserOrchestratorSpec
         mockGetIndividualAccountInfo(value = Some(UserInfo(
           id = testIndUser.id,
           userName = testIndUser.userName,
-          email = testIndUser.email,
+          email = testIndUser.digitalContact.email.address,
           emailVerified = true,
+          phone = None,
+          phoneVerified = false,
           name = Name(
             firstName = None,
             middleName = None,
@@ -127,8 +139,10 @@ class UserOrchestratorSpec
           _ mustBe Some(UserInfo(
             id = testIndUser.id,
             userName = testIndUser.userName,
-            email = testIndUser.email,
+            email = testIndUser.digitalContact.email.address,
             emailVerified = true,
+            phone = None,
+            phoneVerified = false,
             name = Name(
               firstName = None,
               middleName = None,
@@ -153,8 +167,10 @@ class UserOrchestratorSpec
         mockGetOrganisationAccountInfo(value = Some(UserInfo(
           id = testOrgUser.id,
           userName = testOrgUser.userName,
-          email = testOrgUser.email,
+          email = testOrgUser.digitalContact.email.address,
           emailVerified = true,
+          phone = None,
+          phoneVerified = false,
           name = Name(
             firstName = None,
             middleName = None,
@@ -177,8 +193,10 @@ class UserOrchestratorSpec
           _ mustBe Some(UserInfo(
             id = testOrgUser.id,
             userName = testOrgUser.userName,
-            email = testOrgUser.email,
+            email = testOrgUser.digitalContact.email.address,
             emailVerified = true,
+            phone = None,
+            phoneVerified = false,
             name = Name(
               firstName = None,
               middleName = None,

@@ -20,7 +20,7 @@ import java.util.UUID
 
 import helpers.Assertions
 import helpers.services.MockTOTPService
-import models.User
+import models.{DigitalContact, Email, User}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import services._
@@ -39,8 +39,13 @@ class MFAOrchestratorSpec
   val testUser: User = User(
     id        = s"org-user-${UUID.randomUUID().toString}",
     userName  = "testUsername",
-    email     = "test@email.com",
-    emailVerified = true,
+    digitalContact = DigitalContact(
+      email = Email(
+        address = "test@email.com",
+        verified = true
+      ),
+      phone = None
+    ),
     profile = None,
     address = None,
     accType   = "organisation",

@@ -21,7 +21,7 @@ import java.util.UUID
 import database.{IndividualUserStore, LoginAttemptStore, OrganisationUserStore, UserStore}
 import helpers.Assertions
 import helpers.database.{MockAppStore, MockIndividualStore, MockLoginAttemptStore, MockOrganisationStore}
-import models.{LoginAttempt, User}
+import models.{DigitalContact, Email, LoginAttempt, User}
 import org.joda.time.DateTime
 import org.mongodb.scala.bson.BsonString
 import org.scalatestplus.play.PlaySpec
@@ -45,8 +45,13 @@ class LoginServiceSpec
   val testIndividualUser: User = User(
     id        = s"user-${UUID.randomUUID()}",
     userName  = "testUserName",
-    email     = "test@email.com",
-    emailVerified = true,
+    digitalContact = DigitalContact(
+      email = Email(
+        address = "test@email.com",
+        verified = true
+      ),
+      phone = None
+    ),
     profile = None,
     address = None,
     accType   = "individual",
@@ -61,8 +66,13 @@ class LoginServiceSpec
   val testOrganisationUser: User = User(
     id        = s"org-user-${UUID.randomUUID()}",
     userName  = "testUserName",
-    email     = "test@email.com",
-    emailVerified = true,
+    digitalContact = DigitalContact(
+      email = Email(
+        address = "test@email.com",
+        verified = true
+      ),
+      phone = None
+    ),
     profile = None,
     address = None,
     accType   = "organisation",

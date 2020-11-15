@@ -17,7 +17,7 @@
 package helpers.services
 
 import com.amazonaws.services.simpleemail.model.SendEmailResult
-import models.EmailVerification
+import models.Verification
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
 import org.mockito.stubbing.OngoingStubbing
@@ -41,11 +41,11 @@ trait MockEmailService extends MockitoSugar with BeforeAndAfterEach {
 
   def mockSendEmailVerificationMessage(): OngoingStubbing[SendEmailResult] = {
     val result = new SendEmailResult().withMessageId("testMessageId")
-    when(mockEmailService.sendEmailVerificationMessage(ArgumentMatchers.any[String](), ArgumentMatchers.any[EmailVerification]())(ArgumentMatchers.any[Request[_]]()))
+    when(mockEmailService.sendEmailVerificationMessage(ArgumentMatchers.any[String](), ArgumentMatchers.any[Verification]())(ArgumentMatchers.any[Request[_]]()))
       .thenReturn(result)
   }
 
-  def mockSaveVerificationRecord(verificationRecord: EmailVerification): OngoingStubbing[Future[EmailVerification]] = {
+  def mockSaveVerificationRecord(verificationRecord: Verification): OngoingStubbing[Future[Verification]] = {
     when(mockEmailService.saveVerificationRecord(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
       .thenReturn(Future.successful(verificationRecord))
   }

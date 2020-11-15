@@ -52,7 +52,7 @@ class ServiceBindings extends Module {
     bind[GrantStore].to[DefaultGrantStore].eagerly(),
     bind[LoginAttemptStore].to[DefaultLoginAttemptStore].eagerly(),
     bind[TokenRecordStore].to[DefaultTokenRecordStore].eagerly(),
-    bind[EmailVerificationStore].to[DefaultEmailVerificationStore].eagerly()
+    bind[VerificationStore].to[DefaultVerificationStore].eagerly()
   )
 
   private def serviceLayer(): Seq[Binding[_]] = Seq(
@@ -64,7 +64,8 @@ class ServiceBindings extends Module {
     bind[TokenService].to[DefaultTokenService].eagerly(),
     bind[ClientService].to[DefaultClientService].eagerly(),
     bind[TOTPService].to[DefaultTOTPService].eagerly(),
-    bind[EmailService].to[DefaultEmailService].eagerly()
+    bind[EmailService].to[DefaultEmailService].eagerly(),
+    bind[PhoneService].to[DefaultPhoneService].eagerly()
   )
 
   private def orchestrators(): Seq[Binding[_]] = Seq(
@@ -86,7 +87,8 @@ class ServiceBindings extends Module {
     bind[ShutteringController].to[DefaultShutteringController].eagerly(),
     bind[AccountController].to[DefaultAccountController].eagerly(),
     bind[ClientController].to[DefaultClientController].eagerly(),
-    bind[EmailController].to[DefaultEmailController].eagerly()
+    bind[EmailController].to[DefaultEmailController].eagerly(),
+    bind[PhoneController].to[DefaultPhoneController].eagerly()
   )
 
   private def apiControllers(): Seq[Binding[_]] = Seq(

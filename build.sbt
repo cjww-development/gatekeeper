@@ -26,6 +26,7 @@ lazy val microservice = Project(appName, file("."))
       "com.pauldijou"          % "jwt-core_2.13"              % "4.3.0",
       "dev.samstevens.totp"    % "totp"                       % "1.7",
       "com.amazonaws"          % "aws-java-sdk-ses"           % "1.11.881",
+      "com.amazonaws"          % "aws-java-sdk-sns"           % "1.11.881",
       "org.mockito"            % "mockito-core"               % "3.3.3"    % Test,
       "org.scalatestplus"      % "scalatestplus-mockito_2.13" % "1.0.0-M2" % Test,
       "org.scalatestplus.play" % "scalatestplus-play_2.13"    % "5.1.0"    % Test,

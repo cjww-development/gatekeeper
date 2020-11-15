@@ -42,11 +42,13 @@ class TokenServiceSpec
 
   val now: DateTime = DateTime.now()
 
-  val userInfo = UserInfo(
+  val userInfo: UserInfo = UserInfo(
     id = "test-user-id",
     userName = "test-org",
     email = "test@email.com",
     emailVerified = true,
+    phone = None,
+    phoneVerified = false,
     name = Name(
       firstName = None,
       middleName = None,
@@ -65,7 +67,7 @@ class TokenServiceSpec
     createdAt = now
   )
 
-  val tokenRecordSet = TokenRecord(
+  val tokenRecordSet: TokenRecord = TokenRecord(
     tokenSetId = "testTokenSetId",
     userId = "testUserId",
     appId = "testAppId",
@@ -98,10 +100,6 @@ class TokenServiceSpec
   "createIdToken" should {
     "return a signed id token" when {
       "given a clientId, userId, user details and account type" in {
-        val userDetails = Map(
-          "" -> ""
-        )
-
         assertOutput(testService.createIdToken("testClientId", "testUserId", "testSetId", "testTokenId", userInfo.toMap, 900000)) { token =>
           val split = token.split("\\.")
           split.length mustBe 3

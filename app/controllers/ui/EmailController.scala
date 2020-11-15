@@ -18,7 +18,7 @@ package controllers.ui
 
 import errors.StandardErrors
 import javax.inject.Inject
-import models.EmailVerification._
+import models.Verification._
 import orchestrators._
 import org.slf4j.LoggerFactory
 import play.api.i18n.{I18NSupportLowPriorityImplicits, I18nSupport, Lang}

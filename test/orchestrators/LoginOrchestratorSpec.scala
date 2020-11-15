@@ -18,7 +18,7 @@ package orchestrators
 
 import helpers.Assertions
 import helpers.services.{MockLoginService, MockTOTPService}
-import models.{Login, LoginAttempt, User}
+import models.{DigitalContact, Email, Login, LoginAttempt, User}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import services.{FailedGeneration, LoginService, Secret, TOTPService}
@@ -41,8 +41,13 @@ class LoginOrchestratorSpec
   val testUser: User = User(
     id        = "testId",
     userName  = "testUsername",
-    email     = "test@email.com",
-    emailVerified = true,
+    digitalContact = DigitalContact(
+      email = Email(
+        address = "test@email.com",
+        verified = true
+      ),
+      phone = None
+    ),
     profile = None,
     address = None,
     accType   = "organisation",

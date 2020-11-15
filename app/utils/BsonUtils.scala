@@ -8,5 +8,15 @@ object BsonUtils {
       val value = doc.get(key)
       if(value == null) None else Some(value.asString().getValue)
     }
+
+    def getOptionalDocument(key: String): Option[BsonDocument] = {
+      val value = doc.get(key)
+      if(value == null) None else Some(value.asDocument())
+    }
+
+    def getOptionalBoolean(key: String): Option[Boolean] = {
+      val value = doc.get(key)
+      if(value == null) None else Some(value.asBoolean().getValue)
+    }
   }
 }

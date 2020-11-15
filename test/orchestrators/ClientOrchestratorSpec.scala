@@ -23,7 +23,7 @@ import com.cjwwdev.security.Implicits._
 import com.cjwwdev.security.obfuscation.Obfuscators
 import helpers.Assertions
 import helpers.services.{MockAccountService, MockClientService, MockTokenService}
-import models.{AuthorisedClient, Gender, Name, RegisteredApplication, User, UserInfo}
+import models.{AuthorisedClient, DigitalContact, Email, Gender, Name, RegisteredApplication, User, UserInfo}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import services._
@@ -70,8 +70,13 @@ class ClientOrchestratorSpec
   val testUser: User = User(
     id        = s"org-user-${UUID.randomUUID().toString}",
     userName  = "testUsername",
-    email     = "test@email.com",
-    emailVerified = true,
+    digitalContact = DigitalContact(
+      email = Email(
+        address = "test@email.com",
+        verified = true
+      ),
+      phone = None
+    ),
     profile = None,
     address = None,
     accType   = "organisation",
@@ -198,8 +203,10 @@ class ClientOrchestratorSpec
         mockGetOrganisationAccountInfo(value = Some(UserInfo(
           id = testUser.id,
           userName = testUser.userName,
-          email = testUser.email,
-          emailVerified = testUser.emailVerified,
+          email = testUser.digitalContact.email.address,
+          emailVerified = testUser.digitalContact.email.verified,
+          phone = None,
+          phoneVerified = false,
           name = Name(
             firstName = None,
             middleName = None,
@@ -232,8 +239,10 @@ class ClientOrchestratorSpec
         mockGetOrganisationAccountInfo(value = Some(UserInfo(
           id = testUser.id,
           userName = testUser.userName,
-          email = testUser.email,
-          emailVerified = testUser.emailVerified,
+          email = testUser.digitalContact.email.address,
+          emailVerified = testUser.digitalContact.email.verified,
+          phone = None,
+          phoneVerified = false,
           name = Name(
             firstName = None,
             middleName = None,
@@ -273,8 +282,10 @@ class ClientOrchestratorSpec
         mockGetOrganisationAccountInfo(value = Some(UserInfo(
           id = testUser.id,
           userName = testUser.userName,
-          email = testUser.email,
-          emailVerified = testUser.emailVerified,
+          email = testUser.digitalContact.email.address,
+          emailVerified = testUser.digitalContact.email.verified,
+          phone = None,
+          phoneVerified = false,
           name = Name(
             firstName = None,
             middleName = None,
@@ -315,8 +326,10 @@ class ClientOrchestratorSpec
         mockGetOrganisationAccountInfo(value = Some(UserInfo(
           id = testUser.id,
           userName = testUser.userName,
-          email = testUser.email,
-          emailVerified = testUser.emailVerified,
+          email = testUser.digitalContact.email.address,
+          emailVerified = testUser.digitalContact.email.verified,
+          phone = None,
+          phoneVerified = false,
           name = Name(
             firstName = None,
             middleName = None,
@@ -346,8 +359,10 @@ class ClientOrchestratorSpec
         mockGetOrganisationAccountInfo(value = Some(UserInfo(
           id = testUser.id,
           userName = testUser.userName,
-          email = testUser.email,
-          emailVerified = testUser.emailVerified,
+          email = testUser.digitalContact.email.address,
+          emailVerified = testUser.digitalContact.email.verified,
+          phone = None,
+          phoneVerified = false,
           name = Name(
             firstName = None,
             middleName = None,

@@ -23,16 +23,18 @@ import org.joda.time.DateTime
 import org.mongodb.scala.bson.codecs.Macros
 import play.api.libs.json.{Json, OFormat}
 
-case class EmailVerification(verificationId: String,
-                             userId: String,
-                             email: String,
-                             accType: String,
-                             createdAt: DateTime)
+case class Verification(verificationId: String,
+                        userId: String,
+                        contactType: String,
+                        contact: String,
+                        code: Option[String],
+                        accType: String,
+                        createdAt: DateTime)
 
-object EmailVerification extends TimeFormat with Obfuscation with DeObfuscation {
+object Verification extends TimeFormat with Obfuscation with DeObfuscation {
   override val locale: String = ""
-  val codec: CodecProvider = Macros.createCodecProviderIgnoreNone[EmailVerification]()
-  implicit val format: OFormat[EmailVerification] = Json.format[EmailVerification]
-  implicit val obfuscator: Obfuscator[EmailVerification] = (value: EmailVerification) => obfuscate(Json.toJson(value))
-  implicit val deObfuscator: DeObfuscator[EmailVerification] = (value: String) => deObfuscate(value)
+  val codec: CodecProvider = Macros.createCodecProviderIgnoreNone[Verification]()
+  implicit val format: OFormat[Verification] = Json.format[Verification]
+  implicit val obfuscator: Obfuscator[Verification] = (value: Verification) => obfuscate(Json.toJson(value))
+  implicit val deObfuscator: DeObfuscator[Verification] = (value: String) => deObfuscate(value)
 }

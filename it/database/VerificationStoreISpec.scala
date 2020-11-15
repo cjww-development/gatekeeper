@@ -18,7 +18,7 @@ package database
 
 import com.cjwwdev.mongo.responses.{MongoSuccessCreate, MongoSuccessDelete}
 import helpers.{Assertions, IntegrationApp}
-import models.EmailVerification
+import models.Verification
 import org.joda.time.DateTime
 import org.mongodb.scala.model.Filters.{equal => mongoEqual}
 import org.scalatest.BeforeAndAfterAll
@@ -26,34 +26,36 @@ import org.scalatestplus.play.PlaySpec
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class EmailVerificationStoreISpec extends PlaySpec with IntegrationApp with Assertions with BeforeAndAfterAll with CodecReg {
+class VerificationStoreISpec extends PlaySpec with IntegrationApp with Assertions with BeforeAndAfterAll with CodecReg {
 
-  val testEmailVerificationStore: EmailVerificationStore = app.injector.instanceOf[EmailVerificationStore]
+  val testVerificationStore: VerificationStore = app.injector.instanceOf[VerificationStore]
 
   val now: DateTime = DateTime.now()
 
-  val testEmailVerification: EmailVerification = EmailVerification(
+  val testEmailVerification: Verification = Verification(
     verificationId = "testVerificationId",
     userId = "testUserId",
-    email = "test@email.com",
+    contactType = "email",
+    contact = "test@email.com",
+    code = None,
     accType = "organisation",
     createdAt = now
   )
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    await(testEmailVerificationStore.collection[EmailVerification].drop().toFuture())
+    await(testVerificationStore.collection[Verification].drop().toFuture())
   }
 
   override def afterAll(): Unit = {
     super.afterAll()
-    await(testEmailVerificationStore.collection[EmailVerification].drop().toFuture())
+    await(testVerificationStore.collection[Verification].drop().toFuture())
   }
 
   "createEmailVerificationRecord" should {
     "return a MongoSuccessCreate" when {
       "a new email verification record has been created" in {
-        awaitAndAssert(testEmailVerificationStore.createEmailVerificationRecord(testEmailVerification)) {
+        awaitAndAssert(testVerificationStore.createVerificationRecord(testEmailVerification)) {
           _ mustBe MongoSuccessCreate
         }
       }
@@ -65,7 +67,7 @@ class EmailVerificationStoreISpec extends PlaySpec with IntegrationApp with Asse
       "matching the verification id" in {
         val query = mongoEqual("verificationId", testEmailVerification.verificationId)
 
-        awaitAndAssert(testEmailVerificationStore.validateEmailVerificationRecord(query)) {
+        awaitAndAssert(testVerificationStore.validateVerificationRecord(query)) {
           _ mustBe Some(testEmailVerification)
         }
       }
@@ -75,7 +77,7 @@ class EmailVerificationStoreISpec extends PlaySpec with IntegrationApp with Asse
       "the verification id is invalid" in {
         val query = mongoEqual("verificationId", "invalid=-id")
 
-        awaitAndAssert(testEmailVerificationStore.validateEmailVerificationRecord(query)) {
+        awaitAndAssert(testVerificationStore.validateVerificationRecord(query)) {
           _ mustBe None
         }
       }
@@ -85,7 +87,7 @@ class EmailVerificationStoreISpec extends PlaySpec with IntegrationApp with Asse
   "deleteEmailVerificationRecord" should {
     "return MongoSuccessDelete" when {
       "the record has been deleted" in {
-        awaitAndAssert(testEmailVerificationStore.deleteEmailVerificationRecord(mongoEqual("userId", testEmailVerification.userId))) {
+        awaitAndAssert(testVerificationStore.deleteVerificationRecord(mongoEqual("userId", testEmailVerification.userId))) {
           _ mustBe MongoSuccessDelete
         }
       }

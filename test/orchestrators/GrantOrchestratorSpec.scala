@@ -22,7 +22,7 @@ import com.cjwwdev.security.Implicits._
 import com.cjwwdev.security.obfuscation.Obfuscators
 import helpers.Assertions
 import helpers.services.{MockAccountService, MockClientService, MockGrantService, MockScopeService}
-import models.{AuthorisedClient, Gender, Name, RegisteredApplication, Scope, User, UserInfo}
+import models.{AuthorisedClient, DigitalContact, Email, Gender, Name, RegisteredApplication, Scope, User, UserInfo}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import services.{ClientService, GrantService, ScopeService, UserService}
@@ -70,8 +70,13 @@ class GrantOrchestratorSpec
   val testUser: User = User(
     id        = s"org-user-${UUID.randomUUID().toString}",
     userName  = "testUsername",
-    email     = "test@email.com",
-    emailVerified = true,
+    digitalContact = DigitalContact(
+      email = Email(
+        address = "test@email.com",
+        verified = true
+      ),
+      phone = None
+    ),
     profile = None,
     address = None,
     accType   = "organisation",
@@ -98,6 +103,8 @@ class GrantOrchestratorSpec
           userName = "test-org",
           email = "",
           emailVerified = false,
+          phone = None,
+          phoneVerified = false,
           name = Name(
             firstName = None,
             middleName = None,

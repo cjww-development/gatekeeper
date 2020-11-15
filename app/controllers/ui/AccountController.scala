@@ -69,7 +69,7 @@ trait AccountController extends BaseController with I18NSupportLowPriorityImplic
 
   def accountSecurity(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
     userOrchestrator.getUserDetails(userId) map { userInfo =>
-      Ok(Security(userInfo.get.mfaEnabled, userInfo.get.emailVerified, userInfo.get.email))
+      Ok(Security(userInfo.get.mfaEnabled, userInfo.get.emailVerified, userInfo.get.email, userInfo.get.phoneVerified, userInfo.get.phone))
     }
   }
 

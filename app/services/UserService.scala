@@ -65,8 +65,7 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
   def getUserInfo(userId: String)(implicit ec: ExC): Future[Option[UserInfo]] = {
     val projections = List(
       "userName",
-      "email",
-      "emailVerified",
+      "digitalContact",
       "createdAt",
       "authorisedClients",
       "mfaEnabled",
@@ -80,8 +79,12 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
         Some(UserInfo(
           id = data("id").asString().getValue,
           userName = stringDeObfuscate.decrypt(data("userName").asString().getValue).getOrElse("---"),
-          email = stringDeObfuscate.decrypt(data("email").asString().getValue).getOrElse("---"),
-          emailVerified = data("emailVerified").asBoolean().getValue,
+          email = stringDeObfuscate
+            .decrypt(data("digitalContact").asDocument().getDocument("email").getString("address").getValue)
+            .getOrElse("---"),
+          emailVerified = data("digitalContact").asDocument().getDocument("email").getBoolean("verified").getValue,
+          phone = data("digitalContact").asDocument().getOptionalDocument("phone").flatMap(_.getOptionalString("number")),
+          phoneVerified = data("digitalContact").asDocument().getOptionalDocument("phone").flatMap(_.getOptionalBoolean("verified")).getOrElse(false),
           accType = data("accType").asString().getValue,
           name = Name(
             firstName  = data.get("profile").flatMap(_.asDocument().getOptionalString("givenName")),
@@ -272,6 +275,23 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
   def updateAddress(userId: String, address: Option[Address])(implicit ec: ExC): Future[MongoUpdatedResponse] = {
     val collection = getUserStore(userId)
     val update = address.fold(unset("address"))(adr => set("address", adr))
+
+    collection.updateUser(query(userId), update) map {
+      case MongoSuccessUpdate =>
+        logger.info(s"[updateAddress] - Updated address for user $userId")
+        MongoSuccessUpdate
+      case MongoFailedUpdate =>
+        logger.warn(s"[updateAddress] - Failed to update address for user $userId")
+        MongoFailedUpdate
+    }
+  }
+
+  def setVerifiedPhoneNumber(userId: String, phoneNumber: String)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
+    val collection = getUserStore(userId)
+    val update = and(
+      set("digitalContact.phone.number", phoneNumber),
+      set("digitalContact.phone.verified", true)
+    )
 
     collection.updateUser(query(userId), update) map {
       case MongoSuccessUpdate =>

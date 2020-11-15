@@ -16,43 +16,41 @@
 
 package services
 
-import java.util.UUID
-
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService
-import database.{EmailVerificationStore, LoginAttemptStore, UserStore}
+import database.VerificationStore
 import helpers.Assertions
 import helpers.aws.MockSES
-import helpers.database.{MockAppStore, MockEmailVerificationStore, MockIndividualStore, MockLoginAttemptStore, MockOrganisationStore}
-import models.{EmailVerification, LoginAttempt, User}
+import helpers.database.MockVerificationStore
+import models.Verification
 import org.joda.time.DateTime
-import org.mongodb.scala.bson.BsonString
 import org.scalatestplus.play.PlaySpec
+import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class EmailServiceSpec
   extends PlaySpec
     with Assertions
-    with MockEmailVerificationStore
+    with MockVerificationStore
     with MockSES {
 
   private val testService: EmailService = new EmailService {
     override val emailSenderAddress: String = "test@email.com"
     override val verificationSubjectLine: String = "Test subject line"
     override val emailClient: AmazonSimpleEmailService = mockSES
-    override val emailVerificationStore: EmailVerificationStore = mockEmailVerificationStore
+    override val verificationStore: VerificationStore = mockVerificationStore
   }
 
   "sendEmailVerificationMessage" should {
     "return a SendEmailResult" when {
       "the verification email has been sent" in {
-        implicit val fakeRequest = FakeRequest()
+        implicit val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
 
-        val testVerificationRecord = EmailVerification(
+        val testVerificationRecord = Verification(
           verificationId = "test-verify-id",
           userId = "test-user-id",
-          email = "test@email.com",
+          contactType = "email",
+          contact = "test@email.com",
+          code = None,
           accType = "individual",
           createdAt = new DateTime()
         )
