@@ -60,7 +60,7 @@ trait GrantOrchestrator {
               Some(orgUser) <- userService.getUserInfo(app.owner)
               Some(reqUser) <- userService.getUserInfo(requestingUserId)
             } yield if(reqUser.authorisedClients.exists(_.appId == app.appId)) {
-              val requestedScopes = scope.split(",").map(_.trim).toSeq
+              val requestedScopes = scope.split(" ").map(_.trim).toSeq
               val authorisedScopes = reqUser.authorisedClients.find(_.appId == app.appId).get.authorisedScopes
               if(authorisedScopes != requestedScopes) {
                 ScopeDrift(
@@ -75,7 +75,7 @@ trait GrantOrchestrator {
               ValidatedGrantRequest(
                 app = app.copy(owner = orgUser.userName),
                 scopes = {
-                  val splitScopes = scope.split(",").map(_.trim)
+                  val splitScopes = scope.split(" ").map(_.trim)
                   scopeService.getValidScopes.filter(scp => splitScopes.contains(scp.name))
                 }
               )

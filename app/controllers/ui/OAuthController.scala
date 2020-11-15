@@ -98,7 +98,7 @@ trait OAuthController extends BaseController with AuthenticatedAction {
   }
 
   def authorisePost(response_type: String, client_id: String, scope: String, state: Option[String], code_verifier: Option[String], code_challenge: Option[String], code_challenge_method: Option[String]): Action[AnyContent] = authenticatedUser { implicit req => userId =>
-    val scopes = scope.trim.split(",").toSeq
+    val scopes = scope.trim.split(" ").toSeq
 
     grantOrchestrator.saveIncomingGrant(response_type, client_id, userId, scopes, code_verifier, code_challenge, code_challenge_method) map {
       case Some(grant) => Redirect(

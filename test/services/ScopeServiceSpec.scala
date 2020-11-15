@@ -45,7 +45,7 @@ class ScopeServiceSpec
   "validateScopes" should {
     "return true" when {
       "the requested scopes are valid" in {
-        assertOutput(testService.validateScopes(scopes = "read:testRead, write:testWrite")) {
+        assertOutput(testService.validateScopes(scopes = "read:testRead write:testWrite")) {
           res => assert(res)
         }
       }
@@ -53,7 +53,7 @@ class ScopeServiceSpec
 
     "return false" when {
       "the requested scopes aren't valid" in {
-        assertOutput(testService.validateScopes(scopes = "testRead, testWrite")) {
+        assertOutput(testService.validateScopes(scopes = "testRead testWrite")) {
           res => assert(!res)
         }
       }
