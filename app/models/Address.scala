@@ -24,7 +24,9 @@ object Address {
 
   def apply(streetAddress: String, locality: String, region: String, postalCode: String, country: String): Address = {
     new Address(
-      s"$streetAddress $locality $region $postalCode $country",
+      Seq(streetAddress.trim, locality.trim, region.trim, postalCode.trim, country.trim)
+        .filterNot(_.isBlank)
+        .mkString("\n"),
       streetAddress,
       locality,
       region,

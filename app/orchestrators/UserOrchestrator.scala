@@ -26,6 +26,8 @@ import services.{EmailService, RegistrationService, UserService}
 import utils.StringUtils
 import java.text.SimpleDateFormat
 
+import play.api.libs.json.{JsObject, Json}
+
 import scala.concurrent.{Future, ExecutionContext => ExC}
 import scala.util.Try
 
@@ -128,5 +130,20 @@ trait UserOrchestrator extends Obfuscators {
   def updateBirthday(userId: String, birthday: String)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
     val date = Try(new SimpleDateFormat("yyyy-MM-dd").parse(birthday)).fold(e => {e.printStackTrace(); None}, dte => Some(dte))
     userService.updateBirthday(userId, date)
+  }
+
+  def getScopedUserInfo(userId: String, scopes: Seq[String])(implicit ec: ExC): Future[JsObject] = {
+    val scopeMethods: Map[String, UserInfo => JsObject] = Map(
+      "openid"  -> UserInfo.toOpenId,
+      "profile" -> UserInfo.toProfile,
+      "email"   -> UserInfo.toEmail,
+      "address" -> UserInfo.toAddress,
+      "phone"   -> UserInfo.toProfile,
+    )
+
+    userService.getUserInfo(userId) map {
+      case Some(userInfo) => scopes.map(scp => scopeMethods(scp)(userInfo)).fold(Json.obj())((a, b) => a ++ b)
+      case None => Json.obj()
+    }
   }
 }

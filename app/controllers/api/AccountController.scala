@@ -49,11 +49,9 @@ trait AccountController extends BaseController with OAuthAction {
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  def getUserDetails: Action[AnyContent] = Action.async { implicit req =>
-    validateBearerToken { id =>
-      userOrchestrator.getUserDetails(id) map {
-        details => Ok(Json.toJson(details))
-      }
+  def getUserDetails: Action[AnyContent] = authorised { implicit req => userId => scopes =>
+    userOrchestrator.getScopedUserInfo(userId, scopes) map {
+      json => Ok(json)
     }
   }
 }

@@ -65,33 +65,4 @@ trait OAuthAction {
         Future.successful(Unauthorized(StandardErrors.INVALID_TOKEN))
     }
   }
-
-  def validateBearerToken(f: String => Future[Result])(implicit req: Request[_]): Future[Result] = {
-    req.headers.get("Authorization").map(_.split(" ")(1)) match {
-      case Some(token) => if(Jwt.isValid(token, signature, Seq(JwtAlgorithm.HS512))) {
-        val (_, payload, _) = Jwt.decodeAll(token, signature, Seq(JwtAlgorithm.HS512)).get
-        val json = Json.parse(payload.toJson)
-        json.\("sub").asOpt[String] match {
-          case Some(id) =>
-            logger.info("[validateBearerToken] - Bearer token validated, proceeding")
-            f(id)
-          case None =>
-            logger.warn("[validateBearerToken] - Could not find authorised user in token")
-            Future.successful(Unauthorized(Json.obj(
-              "msg" -> "Missing user authorisation"
-            )))
-        }
-      } else {
-        logger.warn("[validateBearerToken] - Bearer token was invalid")
-        Future.successful(Unauthorized(Json.obj(
-          "msg" -> "Invalid bearer token"
-        )))
-      }
-      case None =>
-        logger.warn("[validateBearerToken] - No Auth header provided")
-        Future.successful(Unauthorized(Json.obj(
-          "msg" -> "missing authorisation header"
-        )))
-    }
-  }
 }

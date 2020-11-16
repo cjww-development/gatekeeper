@@ -146,7 +146,7 @@ trait TokenService {
   }
 
   def lookupTokenRecordSet(recordSetId: String, userId: String, appId: String)(implicit ec: ExC): Future[Option[TokenRecord]] = {
-    val query = and(equal("tokenSetId", recordSetId), equal("userId", userId), equal("appId", appId))
+    val query = and(equal("tokenSetId", recordSetId), equal("userId", userId))
     tokenRecordStore.validateTokenRecord(query) map { recordSet =>
       if(recordSet.isDefined) {
         logger.info(s"[lookupTokenRecordSet] - Found token record set matching $recordSet")

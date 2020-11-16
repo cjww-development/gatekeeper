@@ -18,5 +18,10 @@ object BsonUtils {
       val value = doc.get(key)
       if(value == null) None else Some(value.asBoolean().getValue)
     }
+
+    def getOptionalLong(key: String): Option[Long] = {
+      val value = doc.get(key)
+      if(value == null) None else Some(value.asDateTime().getValue)
+    }
   }
 }

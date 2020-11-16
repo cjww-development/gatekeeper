@@ -99,11 +99,11 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
               custom = if(Gender.toList.contains(genderValue)) None else Some(genderValue)
             )
           },
-          birthDate = data.get("profile").map(_.asDocument().get("birthDate").asDateTime().getValue).map { dateLong =>
+          birthDate = data.get("profile").flatMap(_.asDocument().getOptionalLong("birthDate").map { dateLong =>
             val date = new Date(dateLong)
             val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
             dateFormat.format(date)
-          },
+          }),
           address = data.get("address").map(_.asDocument()).map { addrDoc =>
             val formatted = addrDoc.get("formatted").asString().getValue
             val streetAddress = addrDoc.get("streetAddress").asString().getValue

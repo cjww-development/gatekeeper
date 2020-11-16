@@ -1,4 +1,4 @@
-GET         /user-details                         controllers.api.AccountController.getUserDetails
+GET         /userinfo                            controllers.api.AccountController.getUserDetails
 
 GET         /.well-known/openid-configuration     controllers.api.ConfigController.wellKnownConfig()
 
