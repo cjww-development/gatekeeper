@@ -16,30 +16,32 @@
 
 package services
 
-import java.text.SimpleDateFormat
 import java.time.{Clock, Instant}
-import java.util.{Date, Locale, UUID}
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoDeleteResponse, MongoFailedCreate, MongoSuccessCreate, MongoUpdatedResponse}
+import com.cjwwdev.mongo.responses._
+import com.nimbusds.jose.jwk.RSAKey
 import database.TokenRecordStore
 import javax.inject.Inject
 import models.{RefreshToken, TokenExpiry, TokenRecord}
 import org.joda.time.DateTime
-import org.mongodb.scala.model.Filters.{and, equal, exists}
-import org.mongodb.scala.model.Updates.{min, set}
+import org.mongodb.scala.model.Filters.{and, equal}
+import org.mongodb.scala.model.Updates.set
 import org.slf4j.LoggerFactory
-import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}
+import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim, JwtHeader}
 import play.api.Configuration
 import play.api.libs.json.Json
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultTokenService @Inject()(val config: Configuration,
+                                    val jwksService: JwksService,
                                     val tokenRecordStore: TokenRecordStore) extends TokenService {
   override val issuer: String    = config.get[String]("jwt.iss")
   override val expiry: Long      = config.get[Long]("jwt.expiry")
   override val signature: String = config.get[String]("jwt.signature")
+  override val jwks: RSAKey = jwksService.getCurrentJwks
 }
 
 trait TokenService {
@@ -49,6 +51,8 @@ trait TokenService {
   val issuer: String
   val expiry: Long
   val signature: String
+
+  val jwks: RSAKey
 
   private implicit val clock: Clock = Clock.systemUTC
 
@@ -68,7 +72,6 @@ trait TokenService {
         "scp" -> scope,
         "tsid" -> setId,
         "tid" -> tokenId
-
       ).toJson
 
     Jwt.encode(claims, signature, JwtAlgorithm.HS512)
@@ -76,6 +79,10 @@ trait TokenService {
 
   def createIdToken(clientId: String, userId: String, setId: String, tokenId: String, userData: Map[String, String], expiry: Long): String = {
     val now = Instant.now
+
+    val header = JwtHeader(algorithm = JwtAlgorithm.RS256)
+      .withKeyId(jwks.getKeyID)
+      .toJson
 
     val claims = JwtClaim()
       .to(clientId)
@@ -90,7 +97,7 @@ trait TokenService {
       ) ++ userData.toSeq:_*)
       .toJson
 
-    Jwt.encode(claims, signature, JwtAlgorithm.HS512)
+    Jwt.encode(header, claims, jwks.toPrivateKey, JwtAlgorithm.RS256)
   }
 
   def createClientAccessToken(clientId: String, setId: String, tokenId: String, expiry: Long): String = {

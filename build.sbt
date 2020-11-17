@@ -24,6 +24,7 @@ lazy val microservice = Project(appName, file("."))
       "com.cjww-dev.libs"      % "inbound-outbound_2.13"      % "0.5.0",
       "io.github.nremond"      % "pbkdf2-scala_2.13"          % "0.6.5",
       "com.pauldijou"          % "jwt-core_2.13"              % "4.3.0",
+      "com.nimbusds"           % "nimbus-jose-jwt"            % "9.1.2",
       "dev.samstevens.totp"    % "totp"                       % "1.7",
       "com.amazonaws"          % "aws-java-sdk-ses"           % "1.11.881",
       "com.amazonaws"          % "aws-java-sdk-sns"           % "1.11.881",

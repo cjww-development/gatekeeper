@@ -138,7 +138,7 @@ trait UserOrchestrator extends Obfuscators {
       "profile" -> UserInfo.toProfile,
       "email"   -> UserInfo.toEmail,
       "address" -> UserInfo.toAddress,
-      "phone"   -> UserInfo.toProfile,
+      "phone"   -> UserInfo.toPhone,
     )
 
     userService.getUserInfo(userId) map {

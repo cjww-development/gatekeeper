@@ -78,8 +78,8 @@ object UserInfo extends TimeFormat {
 
   val toPhone: UserInfo => JsObject = userInfo => userInfo.phone.fold(Json.obj()) { num =>
     Json.obj(
-      "phone" -> num,
-      "phone_verified" -> userInfo.phoneVerified
+      "phone_number" -> num,
+      "phone_number_verified" -> userInfo.phoneVerified
     )
   }
 

@@ -1,4 +1,5 @@
-GET         /userinfo                            controllers.api.AccountController.getUserDetails
+GET         /oauth2/userinfo                      controllers.api.AccountController.getUserDetails
+GET         /oauth2/jwks                          controllers.api.JwksController.getCurrentJwks()
 
 GET         /.well-known/openid-configuration     controllers.api.ConfigController.wellKnownConfig()
 

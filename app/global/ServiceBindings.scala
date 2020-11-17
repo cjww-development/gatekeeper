@@ -19,7 +19,7 @@ package global
 import com.cjwwdev.featuremanagement.controllers.FeatureController
 import com.cjwwdev.featuremanagement.models.Features
 import com.cjwwdev.shuttering.controllers.ShutteringController
-import controllers.api.{ConfigController, DefaultConfigController, DefaultRevokationController, RevokationController, AccountController => ApiAccountController, DefaultAccountController => DefaultApiAccountController}
+import controllers.api.{ConfigController, DefaultConfigController, DefaultJwksController, DefaultRevokationController, JwksController, RevokationController, AccountController => ApiAccountController, DefaultAccountController => DefaultApiAccountController}
 import controllers.features.DefaultFeatureController
 import controllers.shuttering.DefaultShutteringController
 import controllers.test.{DefaultEmailViewTestController, EmailViewTestController}
@@ -52,7 +52,8 @@ class ServiceBindings extends Module {
     bind[GrantStore].to[DefaultGrantStore].eagerly(),
     bind[LoginAttemptStore].to[DefaultLoginAttemptStore].eagerly(),
     bind[TokenRecordStore].to[DefaultTokenRecordStore].eagerly(),
-    bind[VerificationStore].to[DefaultVerificationStore].eagerly()
+    bind[VerificationStore].to[DefaultVerificationStore].eagerly(),
+    bind[JwksStore].to[DefaultJwksStore].eagerly()
   )
 
   private def serviceLayer(): Seq[Binding[_]] = Seq(
@@ -65,7 +66,8 @@ class ServiceBindings extends Module {
     bind[ClientService].to[DefaultClientService].eagerly(),
     bind[TOTPService].to[DefaultTOTPService].eagerly(),
     bind[EmailService].to[DefaultEmailService].eagerly(),
-    bind[PhoneService].to[DefaultPhoneService].eagerly()
+    bind[PhoneService].to[DefaultPhoneService].eagerly(),
+    bind[JwksService].to[DefaultJwksService].eagerly()
   )
 
   private def orchestrators(): Seq[Binding[_]] = Seq(
@@ -94,7 +96,8 @@ class ServiceBindings extends Module {
   private def apiControllers(): Seq[Binding[_]] = Seq(
     bind[ApiAccountController].to[DefaultApiAccountController].eagerly(),
     bind[ConfigController].to[DefaultConfigController].eagerly(),
-    bind[RevokationController].to[DefaultRevokationController].eagerly()
+    bind[RevokationController].to[DefaultRevokationController].eagerly(),
+    bind[JwksController].to[DefaultJwksController].eagerly()
   )
 
   private def testController(): Seq[Binding[_]] = Seq(

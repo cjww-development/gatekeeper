@@ -17,6 +17,9 @@
 package services
 
 import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
+import com.nimbusds.jose.Algorithm
+import com.nimbusds.jose.jwk.gen.RSAKeyGenerator
+import com.nimbusds.jose.jwk.{KeyUse, RSAKey}
 import database.TokenRecordStore
 import helpers.Assertions
 import helpers.database.MockTokenRecordStore
@@ -33,7 +36,15 @@ class TokenServiceSpec
     with Assertions
     with MockTokenRecordStore {
 
+  val rsaKeyGenerator: RSAKeyGenerator = new RSAKeyGenerator(2048)
+  val rsaKey = rsaKeyGenerator
+    .keyUse(KeyUse.SIGNATURE)
+    .algorithm(new Algorithm("RS256"))
+    .keyID("testKeyId")
+    .generate()
+
   private val testService: TokenService = new TokenService {
+    override val jwks: RSAKey      = rsaKey
     override val issuer: String    = "testIssuer"
     override val expiry: Long      = 30000
     override val signature: String = "testSignature"
@@ -104,7 +115,7 @@ class TokenServiceSpec
           val split = token.split("\\.")
           split.length mustBe 3
 
-          Base64.decodeBase64(split(0)).map(_.toChar).mkString mustBe """{"typ":"JWT","alg":"HS512"}"""
+          Base64.decodeBase64(split(0)).map(_.toChar).mkString mustBe """{"typ":"JWT","alg":"RS256","kid":"testKeyId"}"""
           val payload = Json.parse(Base64.decodeBase64(split(1)).map(_.toChar).mkString)
           payload.\("aud").as[String] mustBe "testClientId"
           payload.\("iss").as[String] mustBe "testIssuer"

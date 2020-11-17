@@ -39,7 +39,8 @@ trait CodecReg {
       Address.codec,
       DigitalContact.codec,
       Email.codec,
-      Phone.codec
+      Phone.codec,
+      JwksContainer.codec
     ),
     DEFAULT_CODEC_REGISTRY
   )

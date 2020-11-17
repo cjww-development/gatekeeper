@@ -20,6 +20,7 @@ import com.cjwwdev.mongo.indexing.RepositoryIndexer
 import database._
 import javax.inject.Inject
 import models.{Grant, LoginAttempt, RegisteredApplication, TokenRecord, User}
+import services.JwksService
 
 import scala.concurrent.{ExecutionContext => ExC}
 

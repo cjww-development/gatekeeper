@@ -16,6 +16,9 @@
 
 package controllers.actions
 
+import com.nimbusds.jose.Algorithm
+import com.nimbusds.jose.jwk.gen.RSAKeyGenerator
+import com.nimbusds.jose.jwk.{KeyUse, RSAKey}
 import database.TokenRecordStore
 import helpers.Assertions
 import helpers.database.MockTokenRecordStore
@@ -45,7 +48,15 @@ class OAuthActionSpec
     override protected def controllerComponents: ControllerComponents = stubControllerComponents()
   }
 
+  val rsaKeyGenerator: RSAKeyGenerator = new RSAKeyGenerator(2048)
+  val rsaKey = rsaKeyGenerator
+    .keyUse(KeyUse.SIGNATURE)
+    .algorithm(new Algorithm("RS256"))
+    .keyID("testKeyId")
+    .generate()
+
   private val testTokenService = new TokenService {
+    override val jwks: RSAKey = rsaKey
     override val tokenRecordStore: TokenRecordStore = mockTokenRecordStore
     override val issuer: String = "testIssuer"
     override val expiry: Long = 900000L
