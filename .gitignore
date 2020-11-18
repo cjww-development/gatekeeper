@@ -32,3 +32,4 @@ dist
 /.settings
 .idea
 
+.env

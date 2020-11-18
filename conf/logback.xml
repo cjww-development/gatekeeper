@@ -2,8 +2,10 @@
 <configuration debug="false">
   <conversionRule conversionWord="coloredLevel" converterClass="com.cjwwdev.logging.converters.HighlightedLogLevelConverter" />
 
+  <timestamp key="timestamp" datePattern="yyyy-MM-dd"/>
+
   <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-    <file>${application.home:-.}/logs/application-json.log</file>
+    <file>${application.home:-.}/logs/gatekeeper-${timestamp}.log</file>
     <encoder class="com.cjwwdev.logging.encoding.JsonLoggingEncoder" />
   </appender>
 

@@ -176,7 +176,7 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
 
   def setEmailVerifiedStatus(userId: String, verified: Boolean)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
     val collection = getUserStore(userId)
-    val update: Boolean => Bson = verified => set("emailVerified", verified)
+    val update: Boolean => Bson = verified => set("digitalContact.email.verified", verified)
     collection.updateUser(query(userId), update(verified)) map {
       case MongoSuccessUpdate =>
         logger.info(s"[setEmailVerifiedStatus] - Set email verification status to $verified for user $userId")
