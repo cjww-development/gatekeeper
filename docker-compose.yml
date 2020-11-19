@@ -33,7 +33,6 @@ services:
       APP_SECRET: "23817cc7d0e6460e9c1515aa4047b29b"
       ENC_KEY: "23817cc7d0e6460e9c1515aa4047b29b"
       MFA_ISSUER: "Gatekeeper (docker)"
-
+      SMS_SENDER_ID: "SmsVerify"
     networks:
       - hub-platform-net
-

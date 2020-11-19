@@ -25,7 +25,7 @@ import controllers.shuttering.DefaultShutteringController
 import controllers.test.{DefaultEmailViewTestController, DefaultExceptionTestController, EmailViewTestController, ExceptionTestController}
 import controllers.ui._
 import database._
-import filters.DefaultShutteringFilter
+import filters.{DefaultRequestLoggingFilter, DefaultShutteringFilter, RequestLoggingFilter}
 import orchestrators._
 import play.api.inject.{Binding, Module}
 import play.api.{Configuration, Environment}
@@ -42,7 +42,8 @@ class ServiceBindings extends Module {
   )
 
   private def filters(): Seq[Binding[_]] = Seq(
-    bind[DefaultShutteringFilter].toSelf.eagerly()
+    bind[DefaultShutteringFilter].toSelf.eagerly(),
+    bind[RequestLoggingFilter].to[DefaultRequestLoggingFilter].eagerly()
   )
 
   private def dataStores(): Seq[Binding[_]] = Seq(
