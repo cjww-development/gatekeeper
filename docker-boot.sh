@@ -8,3 +8,5 @@ sbt -Dversion=$GIT_VER universal:packageZipTarball
 docker build . -t cjww-development/gatekeeper:latest --build-arg VERSION=$GIT_VER
 
 docker-compose up -d
+
+open http://localhost:5678/gatekeeper/register

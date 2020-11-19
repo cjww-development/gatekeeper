@@ -1,1 +1,2 @@
 GET         /verification-email                          controllers.test.EmailViewTestController.emailVerification()
+GET         /explode                                     controllers.test.ExceptionTestController.throwException()

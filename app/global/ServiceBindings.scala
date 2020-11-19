@@ -22,7 +22,7 @@ import com.cjwwdev.shuttering.controllers.ShutteringController
 import controllers.api.{ConfigController, DefaultConfigController, DefaultJwksController, DefaultRevokationController, JwksController, RevokationController, AccountController => ApiAccountController, DefaultAccountController => DefaultApiAccountController}
 import controllers.features.DefaultFeatureController
 import controllers.shuttering.DefaultShutteringController
-import controllers.test.{DefaultEmailViewTestController, EmailViewTestController}
+import controllers.test.{DefaultEmailViewTestController, DefaultExceptionTestController, EmailViewTestController, ExceptionTestController}
 import controllers.ui._
 import database._
 import filters.DefaultShutteringFilter
@@ -101,6 +101,7 @@ class ServiceBindings extends Module {
   )
 
   private def testController(): Seq[Binding[_]] = Seq(
-    bind[EmailViewTestController].to[DefaultEmailViewTestController].eagerly()
+    bind[EmailViewTestController].to[DefaultEmailViewTestController].eagerly(),
+    bind[ExceptionTestController].to[DefaultExceptionTestController].eagerly()
   )
 }

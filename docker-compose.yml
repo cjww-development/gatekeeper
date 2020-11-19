@@ -30,6 +30,10 @@ services:
       VERSION: $VERSION
       EMAIL_FROM: "test@email.com"
       MONGO_URI: "mongodb://hub-mongo.local"
+      APP_SECRET: "23817cc7d0e6460e9c1515aa4047b29b"
+      ENC_KEY: "23817cc7d0e6460e9c1515aa4047b29b"
+      MFA_ISSUER: "Gatekeeper (docker)"
+
     networks:
       - hub-platform-net
 
