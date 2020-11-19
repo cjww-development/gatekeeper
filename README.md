@@ -65,6 +65,11 @@ sbt compile test it:test
 ```
 To the run the integration tests under `it:test` you will need MongoDB running. Refer to the prerequesites section to understand how to boot MongoDB in docker.
 
+Booting in docker
+=================
+The `docker-boot.sh` file packages gatekeeper into a tgz to be used by the Dockerfile. Docker image is then built from the file and subsequently booted along with MongoDB from the docker-compose file.
+  
+Run `./docker-boot.sh` to run this process.
 
 License
 =======

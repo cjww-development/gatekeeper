@@ -1,0 +1,35 @@
+version: "3.7"
+
+networks:
+  hub-platform-net:
+    name: hub-platform-net
+    driver: bridge
+
+services:
+  mongo:
+    image: mongo:latest
+    container_name: hub-mongo.local
+    hostname: hub-mongo.local
+    ports:
+      - 27017:27017
+    networks:
+      - hub-platform-net
+
+  gatekeeper:
+    image: cjww-development/gatekeeper:latest
+    container_name: gatekeeper.local
+    hostname: gatekeeper.local
+    ports:
+      - 5678:9000
+    expose:
+      - 9000
+    volumes:
+      - ~/logs:/opt/docker/gatekeeper-$VERSION/logs
+      - $HOME/.aws:/root/.aws
+    environment:
+      VERSION: $VERSION
+      EMAIL_FROM: "test@email.com"
+      MONGO_URI: "mongodb://hub-mongo.local"
+    networks:
+      - hub-platform-net
+
