@@ -11,7 +11,7 @@
 
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-      <pattern>%coloredLevel timestamp=[%date{ISO8601}] thread=[%thread] locale=[%logger] %message %replace(exception=[%xException]){'^exception=\[\]$',''}%n</pattern>
+      <pattern>%coloredLevel timestamp=[%date{ISO8601}] requestId=[%X{requestId}] thread=[%thread] locale=[%logger] %message %replace(exception=[%xException]){'^exception=\[\]$',''}%n</pattern>
     </encoder>
   </appender>
 

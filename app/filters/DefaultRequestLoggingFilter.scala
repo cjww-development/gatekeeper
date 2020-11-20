@@ -16,10 +16,12 @@
 
 package filters
 
+import java.util.UUID
+
 import akka.stream.Materializer
 import javax.inject.Inject
 import org.joda.time.DateTimeUtils
-import org.slf4j.{Logger, LoggerFactory}
+import org.slf4j.{Logger, LoggerFactory, MDC}
 import play.api.Configuration
 import play.api.mvc._
 import play.utils.Colors
@@ -42,6 +44,7 @@ trait RequestLoggingFilter extends Filter {
 
   override def apply(f: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = {
     val startTime = DateTimeUtils.currentTimeMillis()
+    MDC.put("requestId", s"requestId-${UUID.randomUUID().toString}")
     val result = f(rh)
     result map { res =>
       logRequest(res.header.status, startTime, rh).foreach(msg => logger.info(msg))
