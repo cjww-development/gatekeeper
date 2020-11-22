@@ -20,6 +20,7 @@ import java.util.UUID
 
 import com.cjwwdev.security.obfuscation.Obfuscators
 import com.cjwwdev.security.Implicits._
+import com.cjwwdev.security.deobfuscation.DeObfuscators
 import org.bson.codecs.configuration.CodecProvider
 import org.joda.time.DateTime
 import org.mongodb.scala.bson.codecs.Macros
@@ -41,12 +42,20 @@ case class RegisteredApplication(appId: String,
                                  idTokenExpiry: Long,
                                  accessTokenExpiry: Long,
                                  refreshTokenExpiry: Long,
-                                 createdAt: DateTime)
+                                 createdAt: DateTime) {
+}
 
-object RegisteredApplication extends Obfuscators with TimeFormat {
+object RegisteredApplication extends Obfuscators with DeObfuscators with TimeFormat {
   override val locale: String = this.getClass.getCanonicalName
 
   val codec: CodecProvider = Macros.createCodecProviderIgnoreNone[RegisteredApplication]()
+
+  def decode(app: RegisteredApplication): RegisteredApplication = {
+    app.copy(
+      clientId = stringDeObfuscate.decrypt(app.clientId).getOrElse(app.clientId),
+      clientSecret = app.clientSecret.map(sec => stringDeObfuscate.decrypt(sec).getOrElse(""))
+    )
+  }
 
   def generateIds(iterations: Int): String = {
     (0 to iterations)

@@ -22,13 +22,12 @@ import com.cjwwdev.security.Implicits._
 import com.cjwwdev.security.obfuscation.Obfuscators
 import helpers.Assertions
 import helpers.services._
-import models.{AuthorisedClient, DigitalContact, Email, Gender, Grant, Name, RefreshToken, RegisteredApplication, Scope, User, UserInfo}
+import models._
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
-import services.{ClientService, GrantService, ScopeService, TokenService, UserService}
-import utils.BasicAuth
+import services._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -50,7 +49,6 @@ class TokenOrchestratorSpec
     override protected val userService: UserService = mockAccountService
     override protected val clientService: ClientService = mockClientService
     override protected val scopeService: ScopeService = mockScopeService
-    override protected val basicAuth: BasicAuth = BasicAuth
   }
 
   val now: DateTime = DateTime.now()
@@ -172,10 +170,9 @@ class TokenOrchestratorSpec
         mockCreateIdToken()
         mockCreateRefreshToken()
         mockCreateTokenRecordSet(success = true)
-        mockGetRegisteredAppById(app = Some(testApp))
         getMockExpiry(expiry = 900000)
 
-        awaitAndAssert(testOrchestrator.authorizationCodeGrant("testAuthCode", "testClientId", "testRedirect", None)) {
+        awaitAndAssert(testOrchestrator.authorizationCodeGrant("testAuthCode", testApp, "testRedirect", None)) {
           _ mustBe Issued(
             tokenType = "Bearer",
             scope = "openid",
@@ -223,10 +220,9 @@ class TokenOrchestratorSpec
         mockCreateIdToken()
         mockCreateRefreshToken()
         mockCreateTokenRecordSet(success = true)
-        mockGetRegisteredAppById(app = Some(testApp))
         getMockExpiry(expiry = 900000)
 
-        awaitAndAssert(testOrchestrator.authorizationCodeGrant("testAuthCode", "testClientId", "testRedirect", None)) {
+        awaitAndAssert(testOrchestrator.authorizationCodeGrant("testAuthCode", testApp, "testRedirect", None)) {
           _ mustBe Issued(
             tokenType = "Bearer",
             scope = "openid",
@@ -247,7 +243,7 @@ class TokenOrchestratorSpec
         mockCreateIdToken()
         getMockExpiry(expiry = 900000)
 
-        awaitAndAssert(testOrchestrator.authorizationCodeGrant("testAuthCode", "testClientId", "testRedirect", None)) {
+        awaitAndAssert(testOrchestrator.authorizationCodeGrant("testAuthCode", testApp, "testRedirect", None)) {
           _ mustBe InvalidUser
         }
       }
@@ -257,7 +253,7 @@ class TokenOrchestratorSpec
       "the grant could not be validated" in {
         mockValidateGrant(grant = None)
 
-        awaitAndAssert(testOrchestrator.authorizationCodeGrant("testAuthCode", "testClientId", "testRedirect", None)) {
+        awaitAndAssert(testOrchestrator.authorizationCodeGrant("testAuthCode", testApp, "testRedirect", None)) {
           _ mustBe InvalidGrant
         }
       }
@@ -267,16 +263,12 @@ class TokenOrchestratorSpec
   "clientCredentialsGrant" should {
     "return issued" when {
       "the client was validated" in {
-        implicit val req: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
-          .withHeaders("Authorization" -> "Basic dGVzdElkOnRlc3RTZWNyZXQ=")
-
-        mockGetRegisteredAppByIdAndSecret(app = Some(testApp))
         getMockExpiry(expiry = 900000)
         mockGenerateTokenRecordSetId()
         mockCreateClientAccessToken()
         mockCreateTokenRecordSet(success = true)
 
-        awaitAndAssert(testOrchestrator.clientCredentialsGrant("testScope")) {
+        awaitAndAssert(testOrchestrator.clientCredentialsGrant(testApp, "testScope")) {
           _ mustBe Issued(
             tokenType = "Bearer",
             scope = "testScope",
@@ -289,23 +281,10 @@ class TokenOrchestratorSpec
       }
     }
 
-    "return InvalidClient" when {
+    "return InvalidOAuthFlow" when {
       "the client could not be found" in {
-        implicit val req: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
-          .withHeaders("Authorization" -> "Basic dGVzdElkOnRlc3RTZWNyZXQ=")
-
-        mockGetRegisteredAppByIdAndSecret(app = None)
-
-        awaitAndAssert(testOrchestrator.clientCredentialsGrant("testScope")) {
-          _ mustBe InvalidClient
-        }
-      }
-
-      "the basic auth header was invalid" in {
-        implicit val req: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
-
-        awaitAndAssert(testOrchestrator.clientCredentialsGrant("testScope")) {
-          _ mustBe InvalidClient
+        awaitAndAssert(testOrchestrator.clientCredentialsGrant(testApp.copy(oauth2Flows = Seq()), "testScope")) {
+          _ mustBe InvalidOAuthFlow
         }
       }
     }
@@ -353,7 +332,7 @@ class TokenOrchestratorSpec
         mockGetRegisteredAppById(app = Some(testApp))
         mockUpdateTokenRecordSet(success = true)
 
-        awaitAndAssert(testOrchestrator.refreshTokenGrant(refreshToken)) {
+        awaitAndAssert(testOrchestrator.refreshTokenGrant(testApp, refreshToken)) {
           case Issued(tokenType, scope, expiresIn, accessToken, idToken, refreshToken) =>
             tokenType mustBe "Bearer"
             scope mustBe "testScope"
@@ -365,7 +344,7 @@ class TokenOrchestratorSpec
 
     "return a TokenError" when {
       "the refresh token could not be decrypted" in {
-        awaitAndAssert(testOrchestrator.refreshTokenGrant("invalid-token")) {
+        awaitAndAssert(testOrchestrator.refreshTokenGrant(testApp, "invalid-token")) {
           _ mustBe TokenError
         }
       }
@@ -399,7 +378,7 @@ class TokenOrchestratorSpec
         mockGetRegisteredAppById(app = Some(testApp))
         mockUpdateTokenRecordSet(success = false)
 
-        awaitAndAssert(testOrchestrator.refreshTokenGrant(refreshToken)) {
+        awaitAndAssert(testOrchestrator.refreshTokenGrant(testApp, refreshToken)) {
           _ mustBe TokenError
         }
       }
@@ -432,45 +411,9 @@ class TokenOrchestratorSpec
           mfaEnabled = false,
           createdAt = now
         )))
-        mockGetRegisteredAppById(app = Some(testApp.copy(oauth2Flows = Seq())))
 
-        awaitAndAssert(testOrchestrator.refreshTokenGrant(refreshToken)) {
+        awaitAndAssert(testOrchestrator.refreshTokenGrant(testApp.copy(oauth2Flows = Seq()), refreshToken)) {
           _ mustBe InvalidOAuthFlow
-        }
-      }
-    }
-
-    "return an InvalidClient" when {
-      "the requesting client doesn't exist" in {
-        mockGetScopeDetails(scopes = Seq(Scope(name = "testScope", readableName = "testScope", desc = "testScope")))
-        mockGetIndividualAccountInfo(value = Some(UserInfo(
-          id = "testUserId",
-          userName = "test-org",
-          email = "",
-          emailVerified = false,
-          phone = None,
-          phoneVerified = false,
-          name = Name(
-            firstName = None,
-            middleName = None,
-            lastName = None,
-            nickName = None
-          ),
-          gender = Gender(
-            selection = "not specified",
-            custom = None
-          ),
-          address = None,
-          birthDate = None,
-          accType = "",
-          authorisedClients = List.empty[AuthorisedClient],
-          mfaEnabled = false,
-          createdAt = now
-        )))
-        mockGetRegisteredAppById(app = None)
-
-        awaitAndAssert(testOrchestrator.refreshTokenGrant(refreshToken)) {
-          _ mustBe InvalidClient
         }
       }
     }
@@ -481,7 +424,7 @@ class TokenOrchestratorSpec
         mockGetIndividualAccountInfo(value = None)
 
 
-        awaitAndAssert(testOrchestrator.refreshTokenGrant(refreshToken)) {
+        awaitAndAssert(testOrchestrator.refreshTokenGrant(testApp, refreshToken)) {
           _ mustBe InvalidUser
         }
       }

@@ -37,38 +37,101 @@ trait BasicAuthAction {
 
   implicit val ec: ExC
 
-  private type ClientAction = Request[AnyContent] => RegisteredApplication => Future[Result]
+  private type ClientAction = Request[AnyContent] => RegisteredApplication => Option[String] => Future[Result]
 
-  private def noAuthHeader = {
-    logger.warn(s"[clientAuthentication] - No auth header found in the request")
-    Future.successful(Unauthorized(StandardErrors.INVALID_REQUEST))
+  def clientAuthenticationOptionalPkce(f: ClientAction)(implicit ec: ExC): Action[AnyContent] = Action.async { implicit req =>
+    val clientCreds = getClientCredFromHeader.fold(getClientCredFromBody)(Some(_))
+    val pkceVerifier = getPkceCodeVerifier
+    clientCreds -> pkceVerifier match {
+      case (None, Some((id, verifier))) =>  clientService.getRegisteredAppById(id) flatMap {
+        case Some(app) =>
+          val decodedApp = RegisteredApplication.decode(app)
+          logger.info(s"[clientAuthentication] - Matched client with clientId $id")
+          f(req)(decodedApp)(Some(verifier))
+        case None =>
+          logger.warn(s"[clientAuthentication] - No client has been found matching clientId $id")
+          Future.successful(Unauthorized(StandardErrors.INVALID_CLIENT))
+      }
+      case (Some((id, sec)), None) => clientService.getRegisteredAppByIdAndSecret(id, sec) flatMap {
+        case Some(app) =>
+          val decodedApp = RegisteredApplication.decode(app)
+          logger.info(s"[clientAuthentication] - Matched client with clientId $id")
+          f(req)(decodedApp)(None)
+        case None =>
+          logger.warn(s"[clientAuthentication] - No client has been found matching clientId $id")
+          Future.successful(Unauthorized(StandardErrors.INVALID_CLIENT))
+      }
+    }
   }
 
-  def clientAuthentication[T](f: ClientAction)(implicit ec: ExC): Action[AnyContent] = Action.async { implicit req =>
-    req.headers.get("Authorization").fold(noAuthHeader) { auth =>
+  def clientAuthentication(f: ClientAction)(implicit ec: ExC): Action[AnyContent] = Action.async { implicit req =>
+    val clientCreds = getClientCredFromHeader.fold(getClientCredFromBody)(x => Some(x))
+    clientCreds match {
+      case Some((id, sec)) => clientService.getRegisteredAppByIdAndSecret(id, sec) flatMap {
+        case Some(app) =>
+          val decodedApp = RegisteredApplication.decode(app)
+          logger.info(s"[clientAuthentication] - Matched client with clientId $id")
+          f(req)(decodedApp)(None)
+        case None =>
+        logger.warn(s"[clientAuthentication] - No client has been found matching clientId $id")
+        Future.successful(Unauthorized(StandardErrors.INVALID_CLIENT))
+      }
+      case None =>
+        Future.successful(Unauthorized(StandardErrors.INVALID_CLIENT))
+    }
+  }
+
+  private def getClientCredFromBody(implicit req: Request[AnyContent]): Option[(String, String)] = {
+    val body = req.body.asFormUrlEncoded.getOrElse(Map())
+    val clientId = body.getOrElse("client_id", Seq()).headOption
+    val clientSec = body.getOrElse("client_secret", Seq()).headOption
+    clientId -> clientSec match {
+      case (Some(id), Some(sec)) =>
+        logger.info(s"[clientAuthentication] - The client id and secret were found in the request body")
+        Some((id, sec))
+      case (_, _) =>
+        logger.warn(s"[clientAuthentication] - Either the client Id or secret was not included in the request body")
+        None
+    }
+  }
+
+  private def getPkceCodeVerifier(implicit req: Request[AnyContent]): Option[(String, String)] = {
+    val body = req.body.asFormUrlEncoded.getOrElse(Map())
+    val clientId = body.getOrElse("client_id", Seq()).headOption
+    val codeVerifier = body.getOrElse("code_verifier", Seq()).headOption
+    clientId -> codeVerifier match {
+      case (Some(id), Some(sec)) =>
+        logger.info(s"[clientAuthentication] - The client id and code verifier were found in the request body")
+        Some((id, sec))
+      case (_, _) =>
+        logger.warn(s"[clientAuthentication] - Either the client Id or code verifier was not included in the request body")
+        None
+    }
+  }
+
+  private def getClientCredFromHeader(implicit req: Request[_]): Option[(String, String)] = {
+    req.headers.get("Authorization").fold[Option[(String, String)]](noAuthHeader) { auth =>
       val splitHeader = auth.split(" ")
       if(splitHeader.head == "Basic") {
-        Try(Base64.getDecoder.decode(splitHeader.last)).fold(
+        Try(Base64.getDecoder.decode(splitHeader.last)).fold[Option[(String, String)]](
           err => {
             logger.warn(s"[clientAuthentication] - Basic auth header was found, but payload was not Base64", err)
-            Future.successful(Unauthorized(StandardErrors.INVALID_REQUEST))
+            None
           },
           basicAuthHeader => {
             val Array(clientId, clientSecret) = new String(basicAuthHeader, StandardCharsets.UTF_8).split(":")
-            clientService.getRegisteredAppByIdAndSecret(clientId, clientSecret) flatMap {
-              case Some(app) =>
-                logger.info(s"[clientAuthentication] - Matched client with clientId $clientId")
-                f(req)(app)
-              case None =>
-                logger.warn(s"[clientAuthentication] - No client has been found matching clientId $clientId")
-                Future.successful(Unauthorized(StandardErrors.INVALID_CLIENT))
-            }
+            Some((clientId, clientSecret))
           }
         )
       } else {
         logger.warn(s"[clientAuthentication] - Auth header wasn't of type Basic")
-        Future.successful(Unauthorized(StandardErrors.INVALID_REQUEST))
+        None
       }
     }
+  }
+
+  private def noAuthHeader = {
+    logger.warn(s"[clientAuthentication] - No auth header found in the request")
+    None
   }
 }

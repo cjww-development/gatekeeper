@@ -16,12 +16,13 @@
 
 package controllers.ui
 
-import controllers.actions.AuthenticatedAction
+import controllers.actions.{AuthenticatedAction, BasicAuthAction}
 import javax.inject.Inject
 import orchestrators._
 import org.slf4j.LoggerFactory
 import play.api.libs.json.{Json, Writes}
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
+import services.ClientService
 import views.html.auth.Grant
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
@@ -29,11 +30,12 @@ import scala.concurrent.{Future, ExecutionContext => ExC}
 class DefaultOAuthController @Inject()(val controllerComponents: ControllerComponents,
                                        val tokenOrchestrator: TokenOrchestrator,
                                        val grantOrchestrator: GrantOrchestrator,
+                                       val clientService: ClientService,
                                        val userOrchestrator: UserOrchestrator) extends OAuthController {
   override implicit val ec: ExC = controllerComponents.executionContext
 }
 
-trait OAuthController extends BaseController with AuthenticatedAction {
+trait OAuthController extends BaseController with AuthenticatedAction with BasicAuthAction {
 
   protected val grantOrchestrator: GrantOrchestrator
   protected val tokenOrchestrator: TokenOrchestrator
@@ -46,7 +48,6 @@ trait OAuthController extends BaseController with AuthenticatedAction {
     val idToken = issued.idToken.fold(Json.obj())(id => Json.obj("id_token" -> id))
     val refreshToken = issued.refreshToken.fold(Json.obj())(refresh => Json.obj("refresh_token" -> refresh))
 
-
     Json.obj(
       "token_type" -> issued.tokenType,
       "scope" -> issued.scope,
@@ -55,7 +56,7 @@ trait OAuthController extends BaseController with AuthenticatedAction {
     ) ++ idToken ++ refreshToken
   }
 
-  def getToken(): Action[AnyContent] = Action.async { implicit req =>
+  def getToken(): Action[AnyContent] = clientAuthenticationOptionalPkce { implicit req => app => codeVerifier =>
     val params = req.body.asFormUrlEncoded.getOrElse(Map())
     val grantType = params("grant_type").headOption.getOrElse("")
 
@@ -63,22 +64,20 @@ trait OAuthController extends BaseController with AuthenticatedAction {
     grantType match {
       case "authorization_code" =>
         val authCode = params("code").headOption.getOrElse("")
-        val clientId = params("client_id").headOption.getOrElse("")
         val redirectUri = params("redirect_uri").headOption.getOrElse("")
-        val codeVerifier = params.getOrElse("code_verifier", Seq()).headOption
-        tokenOrchestrator.authorizationCodeGrant(authCode, clientId, redirectUri, codeVerifier) map {
+        tokenOrchestrator.authorizationCodeGrant(authCode, app, redirectUri, codeVerifier) map {
           case iss@Issued(_,_,_,_,_,_) => Ok(Json.toJson(iss))
           case resp => BadRequest(Json.obj("error" -> resp.toString))
         }
       case "client_credentials" =>
         val scope = params("scope").headOption.getOrElse("")
-        tokenOrchestrator.clientCredentialsGrant(scope) map {
+        tokenOrchestrator.clientCredentialsGrant(app, scope) map {
           case iss@Issued(_,_,_,_,_,_) => Ok(Json.toJson(iss))
           case resp => BadRequest(Json.obj("error" -> resp.toString))
         }
       case "refresh_token" =>
         val refreshToken = params("refresh_token").headOption.getOrElse("")
-        tokenOrchestrator.refreshTokenGrant(refreshToken) map {
+        tokenOrchestrator.refreshTokenGrant(app, refreshToken) map {
           case iss@Issued(_,_,_,_,_,_) => Ok(Json.toJson(iss))
           case resp => BadRequest(Json.obj("error" -> resp.toString))
         }

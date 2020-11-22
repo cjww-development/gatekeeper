@@ -73,7 +73,7 @@ class BasicAuthActionSpec extends PlaySpec with MockClientService with Assertion
         mockGetRegisteredAppByIdAndSecret(app = Some(testApp))
 
         val result = testFilter.clientAuthentication {
-          _ => app => okFunction(app)
+          _ => app => _ => okFunction(app)
         }.apply(req)
 
         assertOutput(result) { res =>
@@ -88,12 +88,12 @@ class BasicAuthActionSpec extends PlaySpec with MockClientService with Assertion
         val req = FakeRequest()
 
         val result = testFilter.clientAuthentication {
-          _ => app => okFunction(app)
+          _ => app => _ => okFunction(app)
         }.apply(req)
 
         assertOutput(result) { res =>
           status(res) mustBe UNAUTHORIZED
-          contentAsJson(res).\("error").as[String] mustBe "invalid_request"
+          contentAsJson(res).\("error").as[String] mustBe "invalid_client"
         }
       }
 
@@ -102,12 +102,12 @@ class BasicAuthActionSpec extends PlaySpec with MockClientService with Assertion
           .withHeaders("Authorization" -> "Bearer 1234567890")
 
         val result = testFilter.clientAuthentication {
-          _ => app => okFunction(app)
+          _ => app => _ => okFunction(app)
         }.apply(req)
 
         assertOutput(result) { res =>
           status(res) mustBe UNAUTHORIZED
-          contentAsJson(res).\("error").as[String] mustBe "invalid_request"
+          contentAsJson(res).\("error").as[String] mustBe "invalid_client"
         }
       }
 
@@ -116,12 +116,12 @@ class BasicAuthActionSpec extends PlaySpec with MockClientService with Assertion
           .withHeaders("Authorization" -> "Basic invalid-base64")
 
         val result = testFilter.clientAuthentication {
-          _ => app => okFunction(app)
+          _ => app => _ => okFunction(app)
         }.apply(req)
 
         assertOutput(result) { res =>
           status(res) mustBe UNAUTHORIZED
-          contentAsJson(res).\("error").as[String] mustBe "invalid_request"
+          contentAsJson(res).\("error").as[String] mustBe "invalid_client"
         }
       }
 
@@ -132,7 +132,7 @@ class BasicAuthActionSpec extends PlaySpec with MockClientService with Assertion
         mockGetRegisteredAppByIdAndSecret(app = None)
 
         val result = testFilter.clientAuthentication {
-          _ => app => okFunction(app)
+          _ => app => _ => okFunction(app)
         }.apply(req)
 
         assertOutput(result) { res =>

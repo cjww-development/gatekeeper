@@ -49,7 +49,7 @@ trait GrantService {
   }
 
   def validateGrant(authCode: String, clientId: String, redirectUri: String, codeVerifier: Option[String])(implicit ec: ExC): Future[Option[Grant]] = {
-    def transformVeriferToChallenge(codeVerifier: String): String = {
+    def transformVerifierToChallenge(codeVerifier: String): String = {
       val bytes = codeVerifier.getBytes("US-ASCII")
       val messageDigest = MessageDigest.getInstance("SHA-256")
       messageDigest.update(bytes, 0, bytes.length)
@@ -77,7 +77,7 @@ trait GrantService {
       if(grant.isDefined) {
         logger.info(s"[validateGrant] - Authorisation grant found")
         (codeVerifier, grant.get.codeChallenge) match {
-          case (Some(verifier), Some(challenge)) => if(transformVeriferToChallenge(verifier) == challenge) {
+          case (Some(verifier), Some(challenge)) => if(transformVerifierToChallenge(verifier) == challenge) {
             logger.info(s"[validateGrant] - Validated grant using the PKCE verifier")
             grant
           } else {

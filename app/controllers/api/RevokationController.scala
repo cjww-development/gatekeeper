@@ -35,7 +35,7 @@ trait RevokationController extends BaseController with BasicAuthAction {
 
   val tokenOrchestrator: TokenOrchestrator
 
-  def revokeToken(): Action[AnyContent] = clientAuthentication { implicit req => _ =>
+  def revokeToken(): Action[AnyContent] = clientAuthentication { implicit req => _ => _ =>
     val body = req.body.asFormUrlEncoded.getOrElse(Map())
 
     val token = body.get("token").map(_.head)
