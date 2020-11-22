@@ -24,7 +24,7 @@ class DefaultWellKnownConfigOrchestrator @Inject()(val config: Configuration) ex
   override val issuer: String = config.get[String]("well-known-config.issuer")
 
   override val authEndpoint: String = s"$issuer${controllers.ui.routes.OAuthController.authoriseGet("", "", "").url.split("\\?").head}"
-  override val tokenEndpoint: String = s"$issuer/api${controllers.ui.routes.OAuthController.getToken().url.split("\\?").head}"
+  override val tokenEndpoint: String = s"$issuer${controllers.ui.routes.OAuthController.getToken().url.split("\\?").head}"
   override val revokeEndpoint: String = s"$issuer/api${controllers.api.routes.RevokationController.revokeToken().url.split("\\?").head}"
   override val userDetailsEndpoint: String = s"$issuer/api${controllers.api.routes.AccountController.getUserDetails().url.split("\\?").head}"
   override val jwksEndpoint: String = s"$issuer/api${controllers.api.routes.JwksController.getCurrentJwks().url.split("\\?").head}"

@@ -1,13 +1,22 @@
 import com.typesafe.config.ConfigFactory
 import scala.util.Try
+import scoverage.ScoverageKeys
 
 val appName = "gatekeeper"
 
 val btVersion: String = Try(ConfigFactory.load().getString("version")).getOrElse("0.1.0")
 
+val scoverageSettings = Seq(
+  ScoverageKeys.coverageExcludedPackages  := "<empty>;Reverse.*;models/.data/..*;views.*;models.*;common.*;.*(AuthService|BuildInfo|Routes).*",
+  ScoverageKeys.coverageMinimum           := 80,
+  ScoverageKeys.coverageFailOnMinimum     := false,
+  ScoverageKeys.coverageHighlighting      := true
+)
+
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(PlayScala)
   .configs(IntegrationTest)
+  .settings(scoverageSettings)
   .settings(PlayKeys.playDefaultPort := 5678)
   .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)
   .settings(
