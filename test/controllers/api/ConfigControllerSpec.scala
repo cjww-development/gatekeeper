@@ -40,14 +40,15 @@ class ConfigControllerSpec
     issuer = "testIssuer",
     authorizationEndpoint = "testAuthEndpoint",
     tokenEndpoint = "testTokenEndpoint",
-    userInfoEndpoint = "",
-    jwksUri = "",
+    userInfoEndpoint = "testUserInfoEndpoint",
+    jwksUri = "testJwksEndpoint",
     registrationEndpoint = "",
     scopesSupported = Seq("testScope"),
     responseTypesSupported = Seq("testResponseType"),
     grantTypesSupported = Seq("testGrantType"),
     tokenEndpointAuth = Seq("testAuth"),
-    revokeEndpoint = "testRevokeEndpoint"
+    revokeEndpoint = "testRevokeEndpoint",
+    idTokenSigningAlgs = Seq("testAlg")
   )
 
   "wellKnownConfig" should {
@@ -68,7 +69,11 @@ class ConfigControllerSpec
               | "response_types_supported":["testResponseType"],
               | "token_endpoint_auth_methods_supported":["testAuth"],
               | "revocation_endpoint":"testRevokeEndpoint",
-              | "revocation_endpoint_auth_methods_supported":["testAuth"]
+              | "revocation_endpoint_auth_methods_supported":["testAuth"],
+              | "id_token_signing_alg_values_supported":["testAlg"],
+              | "token_endpoint_auth_methods_supported":["testAuth"],
+              | "jwks_endpoint":"testJwksEndpoint",
+              | "userinfo_endpoint":"testUserInfoEndpoint"
               |}
             """.stripMargin
           )

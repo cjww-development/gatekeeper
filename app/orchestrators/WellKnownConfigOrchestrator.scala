@@ -22,40 +22,52 @@ import play.api.Configuration
 
 class DefaultWellKnownConfigOrchestrator @Inject()(val config: Configuration) extends WellKnownConfigOrchestrator {
   override val issuer: String = config.get[String]("well-known-config.issuer")
-  override val authEndpoint: String = s"$issuer/api${controllers.ui.routes.OAuthController.authoriseGet("", "", "").url.split("\\?").head}"
+
+  override val authEndpoint: String = s"$issuer${controllers.ui.routes.OAuthController.authoriseGet("", "", "").url.split("\\?").head}"
   override val tokenEndpoint: String = s"$issuer/api${controllers.ui.routes.OAuthController.getToken().url.split("\\?").head}"
   override val revokeEndpoint: String = s"$issuer/api${controllers.api.routes.RevokationController.revokeToken().url.split("\\?").head}"
+  override val userDetailsEndpoint: String = s"$issuer/api${controllers.api.routes.AccountController.getUserDetails().url.split("\\?").head}"
+  override val jwksEndpoint: String = s"$issuer/api${controllers.api.routes.JwksController.getCurrentJwks().url.split("\\?").head}"
+
   override val grantTypes: Seq[String] = config.get[Seq[String]]("well-known-config.grant-types")
   override val supportedScopes: Seq[String] = config.get[Seq[String]]("well-known-config.scopes")
   override val responseTypes: Seq[String] = config.get[Seq[String]]("well-known-config.response-types")
   override val tokenEndpointAuth: Seq[String] = config.get[Seq[String]]("well-known-config.token-auth-method")
 
+  override val idTokenAlgs: Seq[String] = config.get[Seq[String]]("well-known-config.id-token-algs")
 }
 
 trait WellKnownConfigOrchestrator {
 
   val issuer: String
+
   val authEndpoint: String
   val tokenEndpoint: String
   val revokeEndpoint: String
+  val userDetailsEndpoint: String
+  val jwksEndpoint: String
+
   val grantTypes: Seq[String]
   val supportedScopes: Seq[String]
   val responseTypes: Seq[String]
   val tokenEndpointAuth: Seq[String]
+
+  val idTokenAlgs: Seq[String]
 
   def getConfig: WellKnownConfig = {
     WellKnownConfig(
       issuer,
       authorizationEndpoint = authEndpoint,
       tokenEndpoint = tokenEndpoint,
-      userInfoEndpoint = "",
-      jwksUri = "",
+      userInfoEndpoint = userDetailsEndpoint,
+      jwksUri = jwksEndpoint,
       registrationEndpoint = "",
       scopesSupported = supportedScopes,
       responseTypesSupported = responseTypes,
       grantTypesSupported = grantTypes,
       tokenEndpointAuth = tokenEndpointAuth,
-      revokeEndpoint = revokeEndpoint
+      revokeEndpoint = revokeEndpoint,
+      idTokenSigningAlgs = idTokenAlgs
     )
   }
 }
