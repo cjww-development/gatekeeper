@@ -45,6 +45,7 @@ trait RequestLoggingFilter extends Filter {
   override def apply(f: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = {
     val startTime = DateTimeUtils.currentTimeMillis()
     MDC.put("requestId", s"requestId-${UUID.randomUUID().toString}")
+    MDC.put("sourceIP", rh.headers.get("X-Forwarded-For").getOrElse("-"))
     val result = f(rh)
     result map { res =>
       logRequest(res.header.status, startTime, rh).foreach(msg => logger.info(msg))

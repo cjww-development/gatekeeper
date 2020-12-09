@@ -10,4 +10,4 @@ RUN echo $VERSION
 COPY ./target/universal/gatekeeper-${VERSION}.tgz /opt/docker/
 RUN tar zxvf gatekeeper-${VERSION}.tgz -C /opt/docker/
 
-ENTRYPOINT /opt/docker/gatekeeper-${VERSION}/bin/gatekeeper
+ENTRYPOINT /opt/docker/gatekeeper-${VERSION}/bin/gatekeeper -Dhttp.port=80 -Dversion=${VERSION} -Dlogger.resource=logback-prod.xml -Dlogging.coloured=false

@@ -4,35 +4,37 @@ networks:
   hub-platform-net:
     name: hub-platform-net
     driver: bridge
+  db-net:
+    name: db-net
+    driver: bridge
 
 services:
   mongo:
     image: mongo:latest
-    container_name: hub-mongo.local
-    hostname: hub-mongo.local
+    container_name: mongo.local
+    hostname: mongo.local
     ports:
       - 27017:27017
     networks:
-      - hub-platform-net
+      - db-net
 
   gatekeeper:
     image: cjww-development/gatekeeper:latest
     container_name: gatekeeper.local
     hostname: gatekeeper.local
     ports:
-      - 5678:9000
-    expose:
-      - 9000
+      - 5678:80
     volumes:
       - ~/logs:/opt/docker/gatekeeper-$VERSION/logs
       - $HOME/.aws:/root/.aws
     environment:
       VERSION: $VERSION
       EMAIL_FROM: "test@email.com"
-      MONGO_URI: "mongodb://hub-mongo.local"
+      MONGO_URI: "mongodb://mongo.local"
       APP_SECRET: "23817cc7d0e6460e9c1515aa4047b29b"
       ENC_KEY: "23817cc7d0e6460e9c1515aa4047b29b"
       MFA_ISSUER: "Gatekeeper (docker)"
       SMS_SENDER_ID: "SmsVerify"
     networks:
       - hub-platform-net
+      - db-net
