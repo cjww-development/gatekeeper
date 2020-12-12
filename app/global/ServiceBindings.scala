@@ -22,6 +22,7 @@ import com.cjwwdev.shuttering.controllers.ShutteringController
 import controllers.api.{ConfigController, DefaultConfigController, DefaultJwksController, DefaultRevokationController, JwksController, RevokationController, AccountController => ApiAccountController, DefaultAccountController => DefaultApiAccountController}
 import controllers.features.DefaultFeatureController
 import controllers.shuttering.DefaultShutteringController
+import controllers.system.{DefaultHealthController, HealthController}
 import controllers.test.{DefaultEmailViewTestController, DefaultExceptionTestController, EmailViewTestController, ExceptionTestController}
 import controllers.ui._
 import database._
@@ -33,7 +34,15 @@ import services._
 
 class ServiceBindings extends Module {
   override def bindings(environment: Environment, configuration: Configuration): collection.Seq[Binding[_]] = {
-    globals() ++ filters() ++ dataStores() ++ serviceLayer() ++ orchestrators() ++ controllers() ++ apiControllers() ++ testController()
+    globals() ++
+    filters() ++
+    dataStores() ++
+    serviceLayer() ++
+    orchestrators() ++
+    controllers() ++
+    apiControllers() ++
+    testControllers() ++
+    systemControllers()
   }
 
   private def globals(): Seq[Binding[_]] = Seq(
@@ -101,7 +110,11 @@ class ServiceBindings extends Module {
     bind[JwksController].to[DefaultJwksController].eagerly()
   )
 
-  private def testController(): Seq[Binding[_]] = Seq(
+  private def systemControllers(): Seq[Binding[_]] = Seq(
+    bind[HealthController].to[DefaultHealthController].eagerly()
+  )
+
+  private def testControllers(): Seq[Binding[_]] = Seq(
     bind[EmailViewTestController].to[DefaultEmailViewTestController].eagerly(),
     bind[ExceptionTestController].to[DefaultExceptionTestController].eagerly()
   )
