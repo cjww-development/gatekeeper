@@ -12,222 +12,216 @@
     <script src="https://cdn.jsdelivr.net/npm/jdenticon@@3.0.1" async></script>
     <link rel="stylesheet" href="@routes.Assets.at("stylesheets/checkbox.css")">
 
-    <div class="form-signin">
-        <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
-        <h1 class="h3 mb-3 font-weight-normal">Account details</h1>
-        <hr>
+    <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
+    <h1 class="h3 mb-3 font-weight-normal">Account details</h1>
+    <hr>
 
-        <div class="card card-blue">
-            <div class="card-body">
-                <svg data-jdenticon-value="@{user.email}" width="100" height="100"/>
-                <h4 class="card-title">@{user.userName}</h4>
-            </div>
+    <div class="card card-blue">
+        <div class="card-body">
+            <svg data-jdenticon-value="@{user.email}" width="100" height="100"/>
+            <h4 class="card-title">@{user.userName}</h4>
         </div>
+    </div>
 
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title default-text">Basic details</h4>
-                <p class="default-text"><strong>User name</strong></p>
-                <p class="default-text">@{user.userName}</p>
-                <hr>
-                <p class="default-text"><strong>Email address</strong></p>
-                <p class="default-text">@{user.email}</p>
-                <hr>
-                <p class="default-text"><strong>Account type</strong></p>
-                <p class="default-text">@{user.accType.capitalize}</p>
-                <hr>
-                <p class="default-text"><strong>Member since</strong></p>
-                <p class="default-text">@{user.createdAt.toLocalDate}</p>
-            </div>
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title default-text">Basic details</h4>
+            <p class="default-text"><strong>User name</strong></p>
+            <p class="default-text">@{user.userName}</p>
+            <hr>
+            <p class="default-text"><strong>Email address</strong></p>
+            <p class="default-text">@{user.email}</p>
+            <hr>
+            <p class="default-text"><strong>Account type</strong></p>
+            <p class="default-text">@{user.accType.capitalize}</p>
+            <hr>
+            <p class="default-text"><strong>Member since</strong></p>
+            <p class="default-text">@{user.createdAt.toLocalDate}</p>
         </div>
+    </div>
 
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title default-text">Update email</h4>
-                <form action="@uiRoutes.AccountController.updateUserEmail()" method="post">
-                    @CSRF.formField
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title default-text">Update email</h4>
+            <form action="@uiRoutes.AccountController.updateUserEmail()" method="post">
+                @CSRF.formField
 
-                    @if(emailInUse) {
-                        <label for="email" class="sr-only">Email</label>
-                        <input type="text" name="email" id="email" class="form-control form-input-topper is-invalid" placeholder="Email" value="@{user.email}">
+                @if(emailInUse) {
+                    <label for="email" class="sr-only">Email</label>
+                    <input type="text" name="email" id="email" class="form-control form-input-topper is-invalid" placeholder="Email" value="@{user.email}">
 
-                        <div class="alert alert-danger form-input-bottom alert-error-border" role="alert">
-                            This email address is already in use
-                        </div>
-                    } else {
-                        <label for="email" class="sr-only">Email</label>
-                        <input type="text" name="email" id="email" class="form-control" placeholder="Email" value="@{user.email}">
-                    }
-
-                    <div id="email-update-warning">
-                        <br>
-                        <div class="alert alert-warning" role="alert">
-                            Updating your email address will mean that it needs to be re-verified. An email will be sent to your new email address containing a verification link.
-                        </div>
+                    <div class="alert alert-danger form-input-bottom alert-error-border" role="alert">
+                        This email address is already in use
                     </div>
+                } else {
+                    <label for="email" class="sr-only">Email</label>
+                    <input type="text" name="email" id="email" class="form-control" placeholder="Email" value="@{user.email}">
+                }
 
-                    <hr>
-
-                    <button class="btn btn-lg btn-primary btn-block" type="submit">Update email</button>
-                </form>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title default-text">Update name</h4>
-                <form action="@uiRoutes.AccountController.updateName()" method="post">
-                    @CSRF.formField
-
-                    @namesForm(nameForm)
-
-                    <hr>
-
-                    <button class="btn btn-lg btn-primary btn-block" type="submit">Update name</button>
-                </form>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title default-text">Update password</h4>
-                <form action="@uiRoutes.AccountController.updatePassword()" method="post">
-                    @CSRF.formField
-
-                    @changePasswordForm(passwordForm)
-
-                    <hr>
-
-                    <button class="btn btn-lg btn-primary btn-block" type="submit">Update password</button>
-                </form>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title default-text">Select gender</h4>
-                <form action="@uiRoutes.AccountController.updateGender()" method="post">
-                    @CSRF.formField
-
-                    <div class="form-group">
-                        <label for="selection">Select your gender</label>
-                        <select class="form-control" id="selection" name="selection">
-                            @for(gender <- Gender.toList) {
-                                <option value="@gender" @if(genderForm("selection").value.contains(gender)) { selected }>
-                                    @{gender.capitalize}
-                                </option>
-                            }
-                        </select>
+                <div id="email-update-warning">
+                    <br>
+                    <div class="alert alert-warning" role="alert">
+                        Updating your email address will mean that it needs to be re-verified. An email will be sent to your new email address containing a verification link.
                     </div>
+                </div>
 
-                    @TextInput(
-                        genderForm("custom"),
-                        isReadOnly = !genderForm("selection").value.contains("other"),
-                        Symbol("_id") -> "customGenderInput",
-                        Symbol("_name") -> "custom",
-                        Symbol("_label") -> "Other",
-                        Symbol("_type") -> "text",
-                        Symbol("_class") -> "form-control"
-                    )
+                <hr>
 
-                    <hr>
-
-                    <button class="btn btn-lg btn-primary btn-block" type="submit">Update gender</button>
-                </form>
-            </div>
+                <button class="btn btn-lg btn-primary btn-block" type="submit">Update email</button>
+            </form>
         </div>
+    </div>
 
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title default-text">Your birthday</h4>
-                <form action="@uiRoutes.AccountController.updateBirthday()" method="post">
-                    @CSRF.formField
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title default-text">Update name</h4>
+            <form action="@uiRoutes.AccountController.updateName()" method="post">
+                @CSRF.formField
 
-                    @TextInput(
-                        birthdayForm("birthday"),
-                        isReadOnly = false,
-                        Symbol("_id") -> "birthdayInput",
-                        Symbol("_name") -> "birthday",
-                        Symbol("_label") -> "Birthday",
-                        Symbol("_type") -> "date",
-                        Symbol("_class") -> "form-control"
-                    )
+                @namesForm(nameForm)
 
-                    <hr>
+                <hr>
 
-                    <a class="btn btn-lg btn-warning btn-block" id="reset-date">Clear date</a>
-                    <button class="btn btn-lg btn-primary btn-block" type="submit">Update birthday</button>
-                </form>
-            </div>
+                <button class="btn btn-lg btn-primary btn-block" type="submit">Update name</button>
+            </form>
         </div>
+    </div>
 
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title default-text">Your address</h4>
-                <form action="@uiRoutes.AccountController.updateAddress()" method="post">
-                    @CSRF.formField
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title default-text">Update password</h4>
+            <form action="@uiRoutes.AccountController.updatePassword()" method="post">
+                @CSRF.formField
 
-                    @TextInput(
-                        addressForm("streetAddress"),
-                        isReadOnly = false,
-                        Symbol("_id") -> "streetInput",
-                        Symbol("_name") -> "streetAddress",
-                        Symbol("_label") -> "Flat/House and street",
-                        Symbol("_type") -> "text",
-                        Symbol("_class") -> "form-control form-input-topper"
-                    )
+                @changePasswordForm(passwordForm)
 
-                    @TextInput(
-                        addressForm("locality"),
-                        isReadOnly = false,
-                        Symbol("_id") -> "localityInput",
-                        Symbol("_name") -> "locality",
-                        Symbol("_label") -> "Town or city",
-                        Symbol("_type") -> "text",
-                        Symbol("_class") -> "form-control form-input-middle"
-                    )
+                <hr>
 
-                    @TextInput(
-                        addressForm("region"),
-                        isReadOnly = false,
-                        Symbol("_id") -> "regionInput",
-                        Symbol("_name") -> "region",
-                        Symbol("_label") -> "County",
-                        Symbol("_type") -> "text",
-                        Symbol("_class") -> "form-control form-input-middle"
-                    )
-
-                    @TextInput(
-                        addressForm("postalCode"),
-                        isReadOnly = false,
-                        Symbol("_id") -> "postalCodeInput",
-                        Symbol("_name") -> "postalCode",
-                        Symbol("_label") -> "Postcode",
-                        Symbol("_type") -> "text",
-                        Symbol("_class") -> "form-control form-input-middle"
-                    )
-
-                    @TextInput(
-                        addressForm("country"),
-                        isReadOnly = false,
-                        Symbol("_id") -> "countryInput",
-                        Symbol("_name") -> "country",
-                        Symbol("_label") -> "Country",
-                        Symbol("_type") -> "text",
-                        Symbol("_class") -> "form-control form-input-bottom"
-                    )
-
-                    <hr>
-
-                    <a class="btn btn-lg btn-warning btn-block" id="reset-address">Clear address</a>
-                    <button class="btn btn-lg btn-primary btn-block" type="submit">Update address</button>
-                </form>
-            </div>
+                <button class="btn btn-lg btn-primary btn-block" type="submit">Update password</button>
+            </form>
         </div>
+    </div>
 
-        <hr>
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title default-text">Select gender</h4>
+            <form action="@uiRoutes.AccountController.updateGender()" method="post">
+                @CSRF.formField
 
-        <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
+                <div class="form-group">
+                    <label for="selection">Select your gender</label>
+                    <select class="form-control" id="selection" name="selection">
+                        @for(gender <- Gender.toList) {
+                            <option value="@gender" @if(genderForm("selection").value.contains(gender)) { selected }>
+                                @{gender.capitalize}
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                @TextInput(
+                    genderForm("custom"),
+                    isReadOnly = !genderForm("selection").value.contains("other"),
+                    Symbol("_id") -> "customGenderInput",
+                    Symbol("_name") -> "custom",
+                    Symbol("_label") -> "Other",
+                    Symbol("_type") -> "text",
+                    Symbol("_class") -> "form-control"
+                )
+
+                <hr>
+
+                <button class="btn btn-lg btn-primary btn-block" type="submit">Update gender</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title default-text">Your birthday</h4>
+            <form action="@uiRoutes.AccountController.updateBirthday()" method="post">
+                @CSRF.formField
+
+                @TextInput(
+                    birthdayForm("birthday"),
+                    isReadOnly = false,
+                    Symbol("_id") -> "birthdayInput",
+                    Symbol("_name") -> "birthday",
+                    Symbol("_label") -> "Birthday",
+                    Symbol("_type") -> "date",
+                    Symbol("_class") -> "form-control"
+                )
+
+                <hr>
+
+                <a class="btn btn-lg btn-warning btn-block" id="reset-date">Clear date</a>
+                <button class="btn btn-lg btn-primary btn-block" type="submit">Update birthday</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title default-text">Your address</h4>
+            <form action="@uiRoutes.AccountController.updateAddress()" method="post">
+                @CSRF.formField
+
+                @TextInput(
+                    addressForm("streetAddress"),
+                    isReadOnly = false,
+                    Symbol("_id") -> "streetInput",
+                    Symbol("_name") -> "streetAddress",
+                    Symbol("_label") -> "Flat/House and street",
+                    Symbol("_type") -> "text",
+                    Symbol("_class") -> "form-control form-input-topper"
+                )
+
+                @TextInput(
+                    addressForm("locality"),
+                    isReadOnly = false,
+                    Symbol("_id") -> "localityInput",
+                    Symbol("_name") -> "locality",
+                    Symbol("_label") -> "Town or city",
+                    Symbol("_type") -> "text",
+                    Symbol("_class") -> "form-control form-input-middle"
+                )
+
+                @TextInput(
+                    addressForm("region"),
+                    isReadOnly = false,
+                    Symbol("_id") -> "regionInput",
+                    Symbol("_name") -> "region",
+                    Symbol("_label") -> "County",
+                    Symbol("_type") -> "text",
+                    Symbol("_class") -> "form-control form-input-middle"
+                )
+
+                @TextInput(
+                    addressForm("postalCode"),
+                    isReadOnly = false,
+                    Symbol("_id") -> "postalCodeInput",
+                    Symbol("_name") -> "postalCode",
+                    Symbol("_label") -> "Postcode",
+                    Symbol("_type") -> "text",
+                    Symbol("_class") -> "form-control form-input-middle"
+                )
+
+                @TextInput(
+                    addressForm("country"),
+                    isReadOnly = false,
+                    Symbol("_id") -> "countryInput",
+                    Symbol("_name") -> "country",
+                    Symbol("_label") -> "Country",
+                    Symbol("_type") -> "text",
+                    Symbol("_class") -> "form-control form-input-bottom"
+                )
+
+                <hr>
+
+                <a class="btn btn-lg btn-warning btn-block" id="reset-address">Clear address</a>
+                <button class="btn btn-lg btn-primary btn-block" type="submit">Update address</button>
+            </form>
+        </div>
     </div>
 
     <script>

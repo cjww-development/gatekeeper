@@ -1,22 +1,17 @@
-@import org.joda.time.DateTime
 @import views.html.EmailMain
 @import controllers.ui.routes
 
 @(queryParam: String)(implicit rh: RequestHeader)
 
 @EmailMain() {
-  <div class="form-signin">
-    <img class="mb-4" src="https://cjww-dev-public-assets.s3.eu-west-2.amazonaws.com/logo.png" alt="" height="72">
-    <h1 class="h3 mb-3 font-weight-normal">Welcome</h1>
+  <img class="mb-4" src="https://cjww-dev-public-assets.s3.eu-west-2.amazonaws.com/logo.png" alt="" height="72">
+  <h1 class="h3 mb-3 font-weight-normal">Welcome</h1>
 
-    <hr>
+  <hr>
 
-    <p class="default-text">Thank you for registering an account</p>
-    <p class="default-text">Please click below to verify your email address</p>
+  <p class="default-text">Thank you for registering an account</p>
+  <p class="default-text">Please click below to verify your email address</p>
 
-    <hr>
-    <a class="btn btn-lg btn-primary btn-block white-text" href="@routes.EmailController.verifyUserEmailAddress(queryParam).absoluteURL()">Verify your email</a>
-    <hr>
-    <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
-  </div>
+  <hr>
+  <a class="btn btn-lg btn-primary btn-block white-text" href="@routes.EmailController.verifyUserEmailAddress(queryParam).absoluteURL()">Verify your email</a>
 }

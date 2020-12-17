@@ -10,82 +10,66 @@
 @Main("A service would like to access your account", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <script src="https://cdn.jsdelivr.net/npm/jdenticon@@3.0.1" async></script>
 
-    <div class="form-signin">
-        <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
-        <h1 class="h3 mb-3 font-weight-normal">Allow access</h1>
-        <hr>
+    <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
+    <h1 class="h3 mb-3 font-weight-normal">Allow access</h1>
+    <hr>
 
-        <div class="card card-blue">
-            <div class="card-body">
-                <svg data-jdenticon-value="@{app.name}" width="100" height="100"/>
-                <h4 class="card-title">@{app.name}</h4>
-                <h4 class="card-title">by @{app.owner}</h4>
-                <p>@{app.desc}</p>
-            </div>
+    <div class="card card-blue">
+        <div class="card-body">
+            <svg data-jdenticon-value="@{app.name}" width="100" height="100"/>
+            <h4 class="card-title">@{app.name}</h4>
+            <h4 class="card-title">by @{app.owner}</h4>
+            <p>@{app.desc}</p>
         </div>
+    </div>
 
-        @if(authorisedScopes.nonEmpty && requestedScopes.nonEmpty) {
-            @if(requestedScopes.length > authorisedScopes.length) {
-                <div class="card">
-                    <div class="card-body">
-                        <div class="default-text">You've previously allowed this application to access these parts of your account</div>
-                        <br>
-                        @for(scope <- authorisedScopes){
-                            <div class="alert alert-success" role="alert">
-                                <h5>@{scope.readableName}</h5>
-                                <div class="default-text">@{scope.desc}</div>
-                            </div>
-                        }
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-body">
-                        <div class="default-text">The app would now like additional access to your account</div>
-                        <br>
-                        @for(scope <- requestedScopes.diff(authorisedScopes)){
-                            <div class="alert alert-warning" role="alert">
-                                <h5>@{scope.readableName}</h5>
-                                <div class="default-text">@{scope.desc}</div>
-                            </div>
-                        }
-                    </div>
-                </div>
-            } else if(authorisedScopes.length > requestedScopes.length) {
-                <div class="card">
-                    <div class="card-body">
-                        <div class="default-text">You've previously allowed this application to access these parts of your account</div>
-                        <br>
-                        @for(scope <- authorisedScopes){
-                            <div class="alert alert-success" role="alert">
-                                <h5>@{scope.readableName}</h5>
-                                <div class="default-text">@{scope.desc}</div>
-                            </div>
-                        }
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-body">
-                        <div class="default-text">The app has removed a need for the following parts of your account</div>
-                        <br>
-                        @for(scope <- authorisedScopes.diff(requestedScopes)){
-                            <div class="alert alert-danger" role="alert">
-                                <h5>@{scope.readableName}</h5>
-                                <div class="default-text">@{scope.desc}</div>
-                            </div>
-                        }
-                    </div>
-                </div>
-            }
-
-        } else {
+    @if(authorisedScopes.nonEmpty && requestedScopes.nonEmpty) {
+        @if(requestedScopes.length > authorisedScopes.length) {
             <div class="card">
                 <div class="card-body">
-                    <div class="default-text">The app would like to access these parts of your account</div>
+                    <div class="default-text">You've previously allowed this application to access these parts of your account</div>
                     <br>
-                    @for(scope <- requestedScopes){
-                        <div class="alert alert-info" role="alert">
+                    @for(scope <- authorisedScopes){
+                        <div class="alert alert-success" role="alert">
+                            <h5>@{scope.readableName}</h5>
+                            <div class="default-text">@{scope.desc}</div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="default-text">The app would now like additional access to your account</div>
+                    <br>
+                    @for(scope <- requestedScopes.diff(authorisedScopes)){
+                        <div class="alert alert-warning" role="alert">
+                            <h5>@{scope.readableName}</h5>
+                            <div class="default-text">@{scope.desc}</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        } else if(authorisedScopes.length > requestedScopes.length) {
+            <div class="card">
+                <div class="card-body">
+                    <div class="default-text">You've previously allowed this application to access these parts of your account</div>
+                    <br>
+                    @for(scope <- authorisedScopes){
+                        <div class="alert alert-success" role="alert">
+                            <h5>@{scope.readableName}</h5>
+                            <div class="default-text">@{scope.desc}</div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="default-text">The app has removed a need for the following parts of your account</div>
+                    <br>
+                    @for(scope <- authorisedScopes.diff(requestedScopes)){
+                        <div class="alert alert-danger" role="alert">
                             <h5>@{scope.readableName}</h5>
                             <div class="default-text">@{scope.desc}</div>
                         </div>
@@ -94,14 +78,26 @@
             </div>
         }
 
-        <hr>
-        <form class="form-signin" action="@uiRoutes.OAuthController.authorisePost(responseType, clientId, scope, state, codeVerifier, codeChallenge, codeChallengeMethod)" method="post">
-            @CSRF.formField
-            <button class="btn btn-lg btn-primary btn-block" id="registration-submit" type="submit">Allow access</button>
-        </form>
-        <hr>
-        <a class="btn btn-lg btn-danger btn-block" href="@uiRoutes.ClientController.revokeAppAccess(app.appId)">Revoke access</a>
-        <hr>
-        <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
-    </div>
+    } else {
+        <div class="card">
+            <div class="card-body">
+                <div class="default-text">The app would like to access these parts of your account</div>
+                <br>
+                @for(scope <- requestedScopes){
+                    <div class="alert alert-info" role="alert">
+                        <h5>@{scope.readableName}</h5>
+                        <div class="default-text">@{scope.desc}</div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <hr>
+    <form class="form-signin" action="@uiRoutes.OAuthController.authorisePost(responseType, clientId, scope, state, codeVerifier, codeChallenge, codeChallengeMethod)" method="post">
+        @CSRF.formField
+        <button class="btn btn-lg btn-primary btn-block" id="registration-submit" type="submit">Allow access</button>
+    </form>
+    <hr>
+    <a class="btn btn-lg btn-danger btn-block" href="@uiRoutes.ClientController.revokeAppAccess(app.appId)">Revoke access</a>
 }

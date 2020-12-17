@@ -7,29 +7,25 @@
 @(apps: Seq[RegisteredApplication])(implicit rh: RequestHeader)
 
 @Main("View all your authorised apps", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
-    <div class="form-signin">
-        <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
-        <h1 class="h3 mb-3 font-weight-normal">Authorised apps</h1>
-        <hr>
+    <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
+    <h1 class="h3 mb-3 font-weight-normal">Authorised apps</h1>
+    <hr>
 
-        @if(apps.isEmpty) {
-            <p class="default-text">You have no authorised apps</p>
-        } else {
-            <p class="default-text">These are the apps you have given permission to, to access your data</p>
+    @if(apps.isEmpty) {
+        <p class="default-text">You have no authorised apps</p>
+    } else {
+        <p class="default-text">These are the apps you have given permission to, to access your data</p>
 
-            @for(app <- apps) {
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">@{app.name}</h5>
-                        <p class="default-text">@{app.desc}</p>
-                        <a href="@uiRoutes.ClientController.getAuthorisedApp(app.appId)" class="btn btn-primary btn-block">View</a>
-                    </div>
+        @for(app <- apps) {
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">@{app.name}</h5>
+                    <p class="default-text">@{app.desc}</p>
+                    <a href="@uiRoutes.ClientController.getAuthorisedApp(app.appId)" class="btn btn-primary btn-block">View</a>
                 </div>
-            }
+            </div>
         }
-        <hr>
-        <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
-    </div>
+    }
 
     <script>
         let pageState = 0;

@@ -14,66 +14,6 @@
  * limitations under the License.
  */
 
-html,
-body {
-  height: 100%;
-  background: #F2F2F2;
-}
-
-.main-body {
-  display: -ms-flexbox;
-  display: flex;
-  -ms-flex-align: center;
-  align-items: center;
-  padding-top: 40px;
-  padding-bottom: 40px;
-}
-
-.form-signin {
-  width: 100%;
-  max-width: 330px;
-  padding: 15px;
-  margin: auto;
-}
-.form-signin .checkbox {
-  font-weight: 400;
-}
-.form-signin .form-control {
-  position: relative;
-  box-sizing: border-box;
-  height: auto;
-  padding: 10px;
-  font-size: 16px;
-}
-.form-signin .form-control:focus {
-  z-index: 2;
-}
-
-.form-input-topper {
-  margin-bottom: -1px;
-  border-bottom-right-radius: 0;
-  border-bottom-left-radius: 0;
-}
-
-.form-input-bottom {
-  margin-bottom: -1px;
-  border-top-right-radius: 0;
-  border-top-left-radius: 0;
-}
-
-.form-input-middle {
-  margin-bottom: -1px;
-  border-radius: 0;
-}
-
-.alert-error-border {
-  border: 1px solid #dc3545;
-}
-
-
-
-
-
 .value-picker {
   margin-top: 15px;
   background: #28A745;
@@ -124,32 +64,3 @@ input:checked~.labels p:first-child {
 input:checked~.labels p:last-child {
   color: #28A745;
 }
-
-.default-text {
-  color: #000000;
-}
-
-.white-text {
-  color: #FFFFFF;
-}
-
-
-
-.btn-wide {
-  width: 100%;
-}
-.left-align {
-  text-align: left;
-}
-.card {
-  margin-top: 5px;
-  margin-bottom: 5px;
-}
-
-.card-blue {
-  background-color: #0F4C81;
-  color: #FFFFFF;
-}
-
-
-

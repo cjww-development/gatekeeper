@@ -1,15 +1,14 @@
 @import controllers.ui.{routes => uiRoutes}
-@import org.joda.time.DateTime
+@import helper._
+@import views.AuthForView
 @import views.html.Main
 @import views.html.components.forms.TextInput
-@import views.AuthForView
-@import helper._
 
 
 @(codeForm: Form[String])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
 
 @Main("Enter your verification code", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
-    <form class="form-signin" action="@uiRoutes.PhoneController.verifyEnteredCode()" method="post">
+    <form action="@uiRoutes.PhoneController.verifyEnteredCode()" method="post">
         <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
         <h1 class="h3 mb-3 font-weight-normal">Enter your verification code</h1>
 
@@ -30,9 +29,5 @@
         <hr>
 
         <button class="btn btn-lg btn-primary btn-block" id="registration-submit" type="submit">Verify code</button>
-
-        <hr>
-
-        <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
     </form>
 }

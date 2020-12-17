@@ -1,16 +1,14 @@
 @import controllers.ui.{routes => uiRoutes}
+@import forms.MFACode
 @import helper._
-@import models.{Login => LoginModel}
-@import org.joda.time.DateTime
+@import views.AuthForView
 @import views.html.Main
 @import views.html.components.forms.TextInput
-@import views.AuthForView
-@import forms.MFACode
 
 @(form: Form[MFACode])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
 
 @Main("Login challenge", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
-    <form class="form-signin" action="@uiRoutes.LoginController.mfaSubmit()" method="post">
+    <form action="@uiRoutes.LoginController.mfaSubmit()" method="post">
         <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
         <h1 class="h3 mb-3 font-weight-normal">Login challenge</h1>
 
@@ -31,9 +29,6 @@
         <hr>
 
         <button class="btn btn-lg btn-primary btn-block" id="registration-submit" type="submit">Verify code</button>
-        <hr>
-
-        <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
     </form>
 }
 

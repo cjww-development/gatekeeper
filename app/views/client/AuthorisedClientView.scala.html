@@ -10,66 +10,61 @@
 @Main("View an authorised app", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <script src="https://cdn.jsdelivr.net/npm/jdenticon@@3.0.1" async></script>
 
-    <div class="form-signin">
-        <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
-        <h1 class="h3 mb-3 font-weight-normal">Authorised app</h1>
-        <hr>
+    <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
+    <h1 class="h3 mb-3 font-weight-normal">Authorised app</h1>
+    <hr>
 
-        <div class="card card-blue">
-            <div class="card-body">
-                <svg data-jdenticon-value="@{app.name}" width="100" height="100"/>
-                <h4 class="card-title">@{app.name}</h4>
-                <p>@{app.desc}</p>
-            </div>
+    <div class="card card-blue">
+        <div class="card-body">
+            <svg data-jdenticon-value="@{app.name}" width="100" height="100"/>
+            <h4 class="card-title">@{app.name}</h4>
+            <p>@{app.desc}</p>
         </div>
-
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title default-text">App details</h4>
-                <p class="default-text"><strong>Managed by</strong></p>
-                <p class="default-text">@{app.owner}</p>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title default-text">Is able to access</h4>
-                @for(scope <- authorisedData.authorisedScopes.flatMap(scp => validScopes.find(_.name == scp))) {
-                    <div class="alert alert-info" role="alert">
-                        <h5>@{scope.readableName}</h5>
-                        <div class="default-text">@{scope.desc}</div>
-                    </div>
-                }
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Active sessions</h5>
-
-                <p class="default-text display-3">@{sessions.length}</p>
-
-                @for(session <- sessions) {
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Session created at</h5>
-                            <p class="default-text">@{session.issuedAt.toLocalDate} at @{session.issuedAt.toLocalTime.toString.dropRight(7)}</p>
-                            <a href="@uiRoutes.ClientController.revokeSession(session.tokenSetId, session.appId)" class="btn btn-danger">Revoke session</a>
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
-
-        <hr>
-
-        <a class="btn btn-lg btn-danger btn-block" href="@uiRoutes.ClientController.revokeAppAccess(app.appId)">Revoke access</a>
-
-        <hr>
-
-        <a class="btn btn-lg btn-primary btn-block" href="@uiRoutes.ClientController.getAuthorisedAppsForUser()">Show all authorised apps</a>
-
-        <hr>
-        <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
     </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title default-text">App details</h4>
+            <p class="default-text"><strong>Managed by</strong></p>
+            <p class="default-text">@{app.owner}</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title default-text">Is able to access</h4>
+            @for(scope <- authorisedData.authorisedScopes.flatMap(scp => validScopes.find(_.name == scp))) {
+                <div class="alert alert-info" role="alert">
+                    <h5>@{scope.readableName}</h5>
+                    <div class="default-text">@{scope.desc}</div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Active sessions</h5>
+
+            <p class="default-text display-3">@{sessions.length}</p>
+
+            @for(session <- sessions) {
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Session created at</h5>
+                        <p class="default-text">@{session.issuedAt.toLocalDate} at @{session.issuedAt.toLocalTime.toString.dropRight(7)}</p>
+                        <a href="@uiRoutes.ClientController.revokeSession(session.tokenSetId, session.appId)" class="btn btn-danger">Revoke session</a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <hr>
+
+    <a class="btn btn-lg btn-danger btn-block" href="@uiRoutes.ClientController.revokeAppAccess(app.appId)">Revoke access</a>
+
+    <hr>
+
+    <a class="btn btn-lg btn-primary btn-block" href="@uiRoutes.ClientController.getAuthorisedAppsForUser()">Show all authorised apps</a>
 }

@@ -8,7 +8,7 @@
 @(app: RegisteredApplication)(implicit rh: RequestHeader)
 
 @Main("Regenerate client", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
-    <form class="form-signin" action="@uiRoutes.ClientController.regenerateIdAndSecretSubmit(app.appId)" method="post">
+    <form action="@uiRoutes.ClientController.regenerateIdAndSecretSubmit(app.appId)" method="post">
         <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
         <h1 class="h3 mb-3 font-weight-normal">Registered client</h1>
         <hr>
@@ -30,8 +30,5 @@
         } else {
             <button class="btn btn-lg btn-warning btn-block" type="submit">Regenerate client id</button>
         }
-
-        <hr>
-        <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
     </form>
 }

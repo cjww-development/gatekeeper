@@ -1,6 +1,5 @@
 @import controllers.ui.{routes => uiRoutes}
 @import helper._
-@import org.joda.time.DateTime
 @import views.html.Main
 @import views.html.components.forms.{SlidingCheckbox, TextInput}
 @import views.AuthForView
@@ -8,7 +7,7 @@
 @(form: Form[User])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
 
 @Main("Register for an account", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
-    <form class="form-signin" action="@uiRoutes.RegistrationController.submitUserReg()" method="post">
+    <form action="@uiRoutes.RegistrationController.submitUserReg()" method="post">
         <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
         <h1 class="h3 mb-3 font-weight-normal">Sign up</h1>
 
@@ -41,8 +40,6 @@
         <hr>
 
         <a href="@uiRoutes.LoginController.loginShow()">Sign in</a>
-
-        <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
     </form>
 
     <div class="modal fade" id="accountTypeExplanation" tabindex="-1" role="dialog" aria-labelledby="accountTypeExplanationTitle" aria-hidden="true">
@@ -80,6 +77,7 @@
     </div>
 
     <script src="@routes.Assets.at("javascript/registration-validation.js")"></script>
+    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/sliding-checkbox.css")">
 }
 
 @emptyForm(form: Form[User]) = {

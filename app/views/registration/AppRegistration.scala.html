@@ -8,7 +8,7 @@
 @(form: Form[RegisteredApplication])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
 
 @Main("Register an OAuth Client", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
-    <form class="form-signin" action="@{uiRoutes.ClientController.submitAppReg()}" method="post">
+    <form action="@{uiRoutes.ClientController.submitAppReg()}" method="post">
         <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
         <h1 class="h3 mb-3 font-weight-normal">Register a Client</h1>
 
@@ -29,8 +29,8 @@
         <hr>
 
         <button class="btn btn-lg btn-primary btn-block" id="registration-submit" type="submit">Create client</button>
-        <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
     </form>
+    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/sliding-checkbox.css")">
 }
 
 @emptyForm(form: Form[RegisteredApplication]) = {

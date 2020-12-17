@@ -8,7 +8,7 @@
 @(app: RegisteredApplication)(implicit rh: RequestHeader)
 
 @Main("Delete client", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
-    <form class="form-signin" action="@uiRoutes.ClientController.deleteClientSubmit(app.appId)" method="post">
+    <form action="@uiRoutes.ClientController.deleteClientSubmit(app.appId)" method="post">
         <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
         <h1 class="h3 mb-3 font-weight-normal">Delete client</h1>
         <hr>
@@ -26,8 +26,5 @@
         <hr>
 
         <button class="btn btn-lg btn-danger btn-block" type="submit">Delete @{app.name}</button>
-
-        <hr>
-        <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
     </form>
 }

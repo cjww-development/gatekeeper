@@ -1,25 +1,19 @@
-@import org.joda.time.DateTime
-@import views.html.Main
 @import controllers.ui.{routes => uiRoutes}
 @import views.AuthForView
+@import views.html.Main
 
 @()(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
 
 @Main("Email verified", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
-    <div class="form-signin">
-        <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
-        <h1 class="h3 mb-3 font-weight-normal">Email verified</h1>
+    <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
+    <h1 class="h3 mb-3 font-weight-normal">Email verified</h1>
 
-        <hr>
+    <hr>
 
-        <p class="default-text">You have successfully verified your email address</p>
-        <p class="default-text">Click the button below to sign into your account</p>
+    <p class="default-text">You have successfully verified your email address</p>
+    <p class="default-text">Click the button below to sign into your account</p>
 
-        <hr>
+    <hr>
 
-        <a class="btn btn-lg btn-primary btn-block" href="@uiRoutes.LoginController.loginShow()">Sign in</a>
-
-        <hr>
-        <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
-    </div>
+    <a class="btn btn-lg btn-primary btn-block" href="@uiRoutes.LoginController.loginShow()">Sign in</a>
 }

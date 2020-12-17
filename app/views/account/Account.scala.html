@@ -8,77 +8,71 @@
 @Main("Your account", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <script src="https://cdn.jsdelivr.net/npm/jdenticon@@3.0.1" async></script>
 
-    <div class="form-signin">
-        <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
-        <h1 class="h3 mb-3 font-weight-normal">Your account</h1>
+    <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
+    <h1 class="h3 mb-3 font-weight-normal">Your account</h1>
 
-        <hr>
+    <hr>
 
-        <div class="card card-blue">
-            <div class="card-body">
-                <svg data-jdenticon-value="@{userDetails.email}" width="100" height="100"/>
-                <h4 class="card-title">@{userDetails.userName}</h4>
-            </div>
+    <div class="card card-blue">
+        <div class="card-body">
+            <svg data-jdenticon-value="@{userDetails.email}" width="100" height="100"/>
+            <h4 class="card-title">@{userDetails.userName}</h4>
         </div>
-
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Your details</h5>
-                <p class="default-text">@{userDetails.email}</p>
-                <p class="default-text">Member since @{userDetails.createdAt.toString("yyyy-MM-dd")}</p>
-                <a href="@uiRoutes.AccountController.accountDetails()" class="btn btn-primary btn-block">Update your details</a>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Account security</h5>
-                @if(userDetails.emailVerified) {
-                    <p class="default-text">Your email address is verified</p>
-                } else {
-                    <p class="default-text">You need to verify your email address</p>
-                }
-
-                @if(userDetails.mfaEnabled) {
-                    <p class="default-text">Two factor authentication is enabled</p>
-                } else {
-                    <p class="default-text">Enable two factor authentication</p>
-                }
-
-                <a href="@uiRoutes.AccountController.accountSecurity()" class="btn btn-primary btn-block">Review account security</a>
-            </div>
-        </div>
-
-        @if(AuthForView.isOrgUser(rh)) {
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Registered clients</h5>
-                    <p class="default-text">You have</p>
-                    <p class="default-text display-3">@{registeredClients.length}</p>
-                    <p class="default-text">registered client@if(registeredClients.length != 1) {s}</p>
-                    <a href="@uiRoutes.ClientController.getAllClients()" class="btn btn-primary btn-block">View clients</a>
-                </div>
-            </div>
-        }
-
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Authorised apps</h5>
-                <p class="default-text">You have authorised</p>
-                <p class="default-text display-3">@{userDetails.authorisedClients.length}</p>
-                <p class="default-text">app@if(userDetails.authorisedClients.length != 1) {s}, to access your data</p>
-                <a href="@uiRoutes.ClientController.getAuthorisedAppsForUser()" class="btn btn-primary btn-block">View authorised apps</a>
-            </div>
-        </div>
-
-        <hr>
-
-        <form action="@{uiRoutes.LoginController.logout()}" method="get">
-            <button class="btn btn-lg btn-primary btn-block" id="registration-submit" type="submit">Logout</button>
-        </form>
-
-        <hr>
-
-        <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
     </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Your details</h5>
+            <p class="default-text">@{userDetails.email}</p>
+            <p class="default-text">Member since @{userDetails.createdAt.toString("yyyy-MM-dd")}</p>
+            <a href="@uiRoutes.AccountController.accountDetails()" class="btn btn-primary btn-block">Update your details</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Account security</h5>
+            @if(userDetails.emailVerified) {
+                <p class="default-text">Your email address is verified</p>
+            } else {
+                <p class="default-text">You need to verify your email address</p>
+            }
+
+            @if(userDetails.mfaEnabled) {
+                <p class="default-text">Two factor authentication is enabled</p>
+            } else {
+                <p class="default-text">Enable two factor authentication</p>
+            }
+
+            <a href="@uiRoutes.AccountController.accountSecurity()" class="btn btn-primary btn-block">Review account security</a>
+        </div>
+    </div>
+
+    @if(AuthForView.isOrgUser(rh)) {
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Registered clients</h5>
+                <p class="default-text">You have</p>
+                <p class="default-text display-3">@{registeredClients.length}</p>
+                <p class="default-text">registered client@if(registeredClients.length != 1) {s}</p>
+                <a href="@uiRoutes.ClientController.getAllClients()" class="btn btn-primary btn-block">View clients</a>
+            </div>
+        </div>
+    }
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Authorised apps</h5>
+            <p class="default-text">You have authorised</p>
+            <p class="default-text display-3">@{userDetails.authorisedClients.length}</p>
+            <p class="default-text">app@if(userDetails.authorisedClients.length != 1) {s}, to access your data</p>
+            <a href="@uiRoutes.ClientController.getAuthorisedAppsForUser()" class="btn btn-primary btn-block">View authorised apps</a>
+        </div>
+    </div>
+
+    <hr>
+
+    <form action="@{uiRoutes.LoginController.logout()}" method="get">
+        <button class="btn btn-lg btn-primary btn-block" id="registration-submit" type="submit">Logout</button>
+    </form>
 }

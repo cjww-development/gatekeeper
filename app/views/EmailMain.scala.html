@@ -1,3 +1,4 @@
+@import org.joda.time.DateTime
 @()(mainContent: Html)
 
 <!DOCTYPE html>
@@ -11,7 +12,10 @@
 
     <body>
         <div class="main-body text-center">
-        @mainContent
+            <div class="main-container">
+                @mainContent
+                <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
+            </div>
         </div>
     </body>
 </html>

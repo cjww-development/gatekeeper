@@ -1,27 +1,21 @@
-@import org.joda.time.DateTime
-@import views.html.Main
 @import controllers.ui.{routes => uiRoutes}
 @import views.AuthForView
+@import views.html.Main
 
 @()(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
 
 @Main("Disable two factor authentication", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
-    <div class="form-signin">
-        <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
-        <h1 class="h3 mb-3 font-weight-normal">Disable two factor authentication</h1>
+    <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
+    <h1 class="h3 mb-3 font-weight-normal">Disable two factor authentication</h1>
 
-        <hr>
+    <hr>
 
-        <div class="alert alert-danger" role="alert">
-            You're about to disable two factor authentication. This is will reduce your accounts level of security. We recommend you only disable two factor
-            authentication if you're planning to re-enable two factor authentication afterwards.
-        </div>
-
-        <hr>
-
-        <a class="btn btn-lg btn-danger btn-block" href="@uiRoutes.AccountController.disableMFA()">Disable two factor authentication</a>
-
-        <hr>
-        <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
+    <div class="alert alert-danger" role="alert">
+        You're about to disable two factor authentication. This is will reduce your accounts level of security. We recommend you only disable two factor
+        authentication if you're planning to re-enable two factor authentication afterwards.
     </div>
+
+    <hr>
+
+    <a class="btn btn-lg btn-danger btn-block" href="@uiRoutes.AccountController.disableMFA()">Disable two factor authentication</a>
 }
