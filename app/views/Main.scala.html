@@ -1,11 +1,12 @@
 @import controllers.ui.{routes => uiRoutes}
-
 @import org.joda.time.DateTime
+
+@import com.typesafe.config.ConfigFactory
+@import scala.util.Try
 @(title: String, isAuthenticated: Boolean, isOrgUser: Boolean)(mainContent: Html)
 
 <!DOCTYPE html>
 <html lang="en">
-
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -64,7 +65,7 @@
         <div class="main-body text-center">
             <div class="main-container">
                 @mainContent
-                <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)</p>
+                <p class="mt-5 mb-3 text-muted">© CJWW Development 2016-@(DateTime.now().getYear)<br>@{ConfigFactory.load().getString("appName").capitalize} version @{Try(ConfigFactory.load().getString("version")).getOrElse("dev")}</p>
             </div>
         </div>
     </body>
