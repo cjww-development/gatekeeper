@@ -1,9 +1,7 @@
 @import controllers.routes
 @import controllers.ui.{routes => uiRoutes}
-@import org.joda.time.DateTime
-@import views.html.Main
-@import views.html.helper.CSRF
 @import views.AuthForView
+@import views.html.Main
 
 @(app: RegisteredApplication, authorisedData: AuthorisedClient, validScopes: Seq[Scope], sessions: Seq[TokenRecord])(implicit rh: RequestHeader)
 

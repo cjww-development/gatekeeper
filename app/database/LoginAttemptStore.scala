@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,18 @@
 
 package database
 
-import java.util.concurrent.TimeUnit
-
-import com.cjwwdev.mongo.DatabaseRepository
-import com.cjwwdev.mongo.connection.ConnectionSettings
-import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
 import com.typesafe.config.Config
-import javax.inject.Inject
-import models.{Grant, LoginAttempt}
+import dev.cjww.mongo.DatabaseRepository
+import dev.cjww.mongo.connection.ConnectionSettings
+import dev.cjww.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
+import models.LoginAttempt
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.{IndexModel, IndexOptions, Indexes}
 import org.slf4j.{Logger, LoggerFactory}
 import play.api.Configuration
 
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultLoginAttemptStore @Inject()(val configuration: Configuration) extends LoginAttemptStore with ConnectionSettings {
@@ -59,7 +58,7 @@ trait LoginAttemptStore extends DatabaseRepository with CodecReg {
       }
   }
 
-  def validateLoginAttempt(query: Bson)(implicit ec: ExC): Future[Option[LoginAttempt]] = {
+  def validateLoginAttempt(query: Bson): Future[Option[LoginAttempt]] = {
     collection[LoginAttempt]
       .find(query)
       .first()

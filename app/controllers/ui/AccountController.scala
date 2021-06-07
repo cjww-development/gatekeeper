@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,20 @@
 package controllers.ui
 
 import controllers.actions.AuthenticatedAction
+import forms.AddressForm.{form => addressForm}
+import forms.BirthdayForm.{form => birthdayForm}
+import forms.ChangeOfPasswordForm.{form => changeOfPasswordForm, _}
+import forms.GenderForm.{form => genderForm}
+import forms.NameForm.{form => nameForm}
 import forms.TOTPSetupCodeVerificationForm
-import javax.inject.Inject
-import orchestrators.{ClientOrchestrator, EmailInUse, InvalidOldPassword, MFAOrchestrator, MFATOTPQR, PasswordMismatch, UserOrchestrator}
-import org.slf4j.LoggerFactory
+import orchestrators._
 import play.api.i18n.{I18NSupportLowPriorityImplicits, I18nSupport, Lang}
 import play.api.mvc._
-import views.html.account.{Account, AccountDetails}
 import views.html.account.security.{MFADisableConfirm, Security, TOTP}
-import views.html.misc.{NotFound => NotFoundView}
-import forms.ChangeOfPasswordForm.{form => changeOfPasswordForm}
-import forms.ChangeOfPasswordForm._
-import forms.NameForm.{form => nameForm}
-import forms.GenderForm.{form => genderForm}
-import forms.BirthdayForm.{form => birthdayForm}
-import forms.AddressForm.{form => addressForm}
+import views.html.account.{Account, AccountDetails}
+import views.html.misc.{NotFound => NotFoundView, INS}
 
+import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultAccountController @Inject()(val controllerComponents: ControllerComponents,
@@ -51,8 +49,6 @@ trait AccountController extends BaseController with I18NSupportLowPriorityImplic
   implicit val ec: ExC
 
   implicit def langs(implicit rh: RequestHeader): Lang = messagesApi.preferred(rh).lang
-
-  private val logger = LoggerFactory.getLogger(this.getClass)
 
   def show(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
     userOrchestrator.getUserDetails(userId) flatMap {
@@ -92,6 +88,7 @@ trait AccountController extends BaseController with I18NSupportLowPriorityImplic
         TOTPSetupCodeVerificationForm.form.bindFromRequest().fold(
           err => mfaOrchestrator.setupTOTPMFA(userId) map {
             case MFATOTPQR(qrCodeData) => BadRequest(TOTP(err, qrCodeData))
+            case _ => InternalServerError(INS())
           },
           codes => mfaOrchestrator.postTOTPSetupCodeVerification(userId, codes.codeOne, codes.codeTwo) map {
             _ => Redirect(routes.AccountController.accountSecurity())
@@ -113,7 +110,7 @@ trait AccountController extends BaseController with I18NSupportLowPriorityImplic
     }
   }
 
-  def disableMFA(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+  def disableMFA(): Action[AnyContent] = authenticatedUser { _ => userId =>
     mfaOrchestrator.isMFAEnabled(userId) flatMap { enabled =>
       if(enabled) {
         mfaOrchestrator.disableMFA(userId) map { _ =>

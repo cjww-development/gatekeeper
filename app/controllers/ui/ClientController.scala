@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,19 @@
 
 package controllers.ui
 
-import com.cjwwdev.mongo.responses.{MongoFailedDelete, MongoSuccessDelete}
 import controllers.actions.AuthenticatedAction
+import dev.cjww.mongo.responses.{MongoFailedDelete, MongoSuccessDelete}
 import forms.AppRegistrationForm.{form => appRegForm}
-import javax.inject.Inject
 import models.TokenExpiry
 import orchestrators._
-import org.slf4j.LoggerFactory
 import play.api.i18n.{I18NSupportLowPriorityImplicits, I18nSupport, Lang}
 import play.api.mvc._
 import services.ScopeService
+import views.html.client._
+import views.html.misc.{NotFound => NotFoundView, INS}
 import views.html.registration.AppRegistration
-import views.html.client.{AuthorisedClientView, AuthorisedClientsView, ClientView, ClientsView, DeleteClientView, RegenerateClientIdView}
-import views.html.misc.{NotFound => NotFoundView}
 
+import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
 import scala.util.Try
 
@@ -52,8 +51,6 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
   implicit val ec: ExC
 
   implicit def langs(implicit rh: RequestHeader): Lang = messagesApi.preferred(rh).lang
-
-  private val logger = LoggerFactory.getLogger(this.getClass)
 
   def showAppReg(): Action[AnyContent] = authenticatedOrgUser { implicit req => userId =>
     Future.successful(Ok(AppRegistration(appRegForm(userId))))
@@ -97,6 +94,7 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
     clientOrchestrator.regenerateClientIdAndSecret(orgUserId, appId) map {
       case SecretsUpdated => Redirect(routes.ClientController.getClientDetails(appId))
       case NoAppFound => NotFound(NotFoundView())
+      case _ => InternalServerError(INS())
     }
   }
 
@@ -127,13 +125,13 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
     }
   }
 
-  def revokeAppAccess(appId: String): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+  def revokeAppAccess(appId: String): Action[AnyContent] = authenticatedUser { _ => userId =>
     clientOrchestrator.unlinkAppFromUser(appId, userId) map {
       _ => Redirect(routes.ClientController.getAuthorisedAppsForUser())
     }
   }
 
-  def revokeSession(tokenSetId: String, appId: String): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+  def revokeSession(tokenSetId: String, appId: String): Action[AnyContent] = authenticatedUser { _ => userId =>
     tokenOrchestrator.revokeTokens(tokenSetId, userId, appId) map {
       _ => Redirect(routes.ClientController.getAuthorisedApp(appId))
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,14 @@
 
 package controllers.actions
 
-import java.nio.charset.StandardCharsets
-import java.util.Base64
-
 import errors.StandardErrors
 import models.RegisteredApplication
 import org.slf4j.LoggerFactory
-import play.api.mvc.{Action, AnyContent, BaseController, Request, Result}
+import play.api.mvc._
 import services.ClientService
 
+import java.nio.charset.StandardCharsets
+import java.util.Base64
 import scala.concurrent.{Future, ExecutionContext => ExC}
 import scala.util.Try
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package forms
 
-import forms.LoginForm.logger
-import models.Login
 import org.slf4j.LoggerFactory
 import play.api.data.Form
 import play.api.data.Forms._

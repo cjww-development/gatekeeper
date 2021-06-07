@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,15 @@
 
 package services
 
-import java.security.MessageDigest
-import java.util.Base64
-
-import com.cjwwdev.mongo.responses.MongoCreateResponse
 import database.{AppStore, GrantStore}
-import javax.inject.Inject
+import dev.cjww.mongo.responses.MongoCreateResponse
 import models.Grant
 import org.mongodb.scala.model.Filters.{and, equal}
 import org.slf4j.LoggerFactory
 
+import java.security.MessageDigest
+import java.util.Base64
+import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultGrantService @Inject()(val appStore: AppStore,

@@ -18,7 +18,7 @@
 //
 //import java.util.UUID
 //
-//import com.cjwwdev.security.obfuscation.Obfuscators
+//import dev.cjww.security.obfuscation.Obfuscators
 //import controllers.ui.{routes => uiRoutes}
 //import helpers.Assertions
 //import helpers.orchestrators.{MockClientOrchestrator, MockUserOrchestrator}

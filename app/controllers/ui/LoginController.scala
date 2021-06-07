@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,14 @@ package controllers.ui
 
 import forms.LoginForm.{form => loginForm, _}
 import forms.MFAForm._
-import javax.inject.Inject
 import models.ServerCookies
 import models.ServerCookies.CookieOps
 import orchestrators._
-import org.slf4j.LoggerFactory
 import play.api.i18n.{I18NSupportLowPriorityImplicits, I18nSupport, Lang}
 import play.api.mvc._
 import views.html.login.{Login, MFACode}
 
+import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultLoginController @Inject()(val controllerComponents: ControllerComponents,
@@ -42,8 +41,6 @@ trait LoginController extends BaseController with I18NSupportLowPriorityImplicit
 
   implicit def langs(implicit rh: RequestHeader): Lang = messagesApi.preferred(rh).lang
 
-  private val logger = LoggerFactory.getLogger(this.getClass)
-
   def loginShow(): Action[AnyContent] = Action { implicit req =>
     checkCookies(
       block    = Redirect(routes.AccountController.show()),
@@ -54,7 +51,7 @@ trait LoginController extends BaseController with I18NSupportLowPriorityImplicit
   def loginSubmit(): Action[AnyContent] = Action.async { implicit req =>
     val redirect = req.body.asFormUrlEncoded.flatMap(_.get("redirect").map(_.head))
     loginForm.bindFromRequest().fold(
-      err   => Future.successful(BadRequest(Login(loginForm.renderErrors))),
+      _     => Future.successful(BadRequest(Login(loginForm.renderErrors))),
       login => loginOrchestrator.authenticateUser(login) map {
         case Some(attId) => mfaRedirect(attId, redirect)
         case None        => BadRequest(Login(loginForm.renderErrors))
@@ -108,7 +105,7 @@ trait LoginController extends BaseController with I18NSupportLowPriorityImplicit
       .discardingCookies(DiscardingCookie("att"))
   }
 
-  def logout(): Action[AnyContent] = Action { implicit req =>
+  def logout(): Action[AnyContent] = Action { _ =>
     Redirect(routes.LoginController.loginShow())
       .discardingCookies(DiscardingCookie("aas"))
       .discardingCookies(DiscardingCookie("att"))

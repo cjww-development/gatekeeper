@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,6 @@
 
 package global
 
-import com.cjwwdev.featuremanagement.controllers.FeatureController
-import com.cjwwdev.featuremanagement.models.Features
-import com.cjwwdev.shuttering.controllers.ShutteringController
 import controllers.api.{ConfigController, DefaultConfigController, DefaultJwksController, DefaultRevokationController, JwksController, RevokationController, AccountController => ApiAccountController, DefaultAccountController => DefaultApiAccountController}
 import controllers.features.DefaultFeatureController
 import controllers.shuttering.DefaultShutteringController
@@ -26,6 +23,9 @@ import controllers.system.{DefaultHealthController, HealthController}
 import controllers.test.{DefaultEmailViewTestController, DefaultExceptionTestController, EmailViewTestController, ExceptionTestController}
 import controllers.ui._
 import database._
+import dev.cjww.featuremanagement.controllers.FeatureController
+import dev.cjww.featuremanagement.models.Features
+import dev.cjww.shuttering.controllers.ShutteringController
 import filters.{DefaultRequestLoggingFilter, DefaultShutteringFilter, RequestLoggingFilter}
 import orchestrators._
 import play.api.inject.{Binding, Module}

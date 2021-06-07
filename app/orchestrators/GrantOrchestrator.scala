@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,15 @@
 
 package orchestrators
 
-import java.util.UUID
-
-import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
-import javax.inject.Inject
+import dev.cjww.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
 import models.{Grant, RegisteredApplication, Scope}
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 import services.{ClientService, GrantService, ScopeService, UserService}
 
-import scala.concurrent.{Future, blocking, ExecutionContext => ExC}
+import java.util.UUID
+import javax.inject.Inject
+import scala.concurrent.{Future, ExecutionContext => ExC}
 
 sealed trait GrantInitiateResponse
 case object InvalidApplication extends GrantInitiateResponse

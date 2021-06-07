@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,16 @@
 
 package services
 
-import com.cjwwdev.mongo.responses.{MongoDeleteResponse, MongoFailedUpdate, MongoSuccessUpdate, MongoUpdatedResponse}
-import com.cjwwdev.security.obfuscation.Obfuscators
-import com.cjwwdev.security.Implicits._
 import database.AppStore
-import javax.inject.Inject
+import dev.cjww.mongo.responses.{MongoDeleteResponse, MongoFailedUpdate, MongoSuccessUpdate, MongoUpdatedResponse}
+import dev.cjww.security.Implicits._
+import dev.cjww.security.obfuscation.Obfuscators
 import models.RegisteredApplication
-import org.slf4j.LoggerFactory
 import org.mongodb.scala.model.Filters.{and, equal}
 import org.mongodb.scala.model.Updates.set
+import org.slf4j.LoggerFactory
 
+import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
 sealed trait RegenerationResponse

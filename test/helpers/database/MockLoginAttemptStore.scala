@@ -16,7 +16,7 @@
 
 package helpers.database
 
-import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
+import dev.cjww.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
 import database.{GrantStore, LoginAttemptStore}
 import models.{Grant, LoginAttempt}
 import org.mockito.ArgumentMatchers
@@ -45,7 +45,7 @@ trait MockLoginAttemptStore extends MockitoSugar with BeforeAndAfterEach {
   }
 
   def mockValidateLoginAttempt(attempt: Option[LoginAttempt]): OngoingStubbing[Future[Option[LoginAttempt]]] = {
-    when(mockLoginAttemptStore.validateLoginAttempt(ArgumentMatchers.any[Bson]())(ArgumentMatchers.any()))
+    when(mockLoginAttemptStore.validateLoginAttempt(ArgumentMatchers.any[Bson]()))
       .thenReturn(Future.successful(attempt))
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,17 @@
 
 package orchestrators
 
-import com.cjwwdev.mongo.responses.MongoUpdatedResponse
-import com.cjwwdev.security.obfuscation.Obfuscators
-import javax.inject.Inject
-import models.{Address, ChangeOfPassword, Gender, Name, UserInfo}
+import dev.cjww.mongo.responses.MongoUpdatedResponse
+import dev.cjww.security.obfuscation.Obfuscators
+import models._
 import org.slf4j.LoggerFactory
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Request
 import services.{EmailService, RegistrationService, UserService}
 import utils.StringUtils
+
 import java.text.SimpleDateFormat
-
-import play.api.libs.json.{JsObject, Json}
-
+import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
 import scala.util.Try
 

@@ -18,10 +18,10 @@ package services
 
 import java.util.UUID
 
-import com.cjwwdev.mongo.responses.{MongoFailedUpdate, MongoSuccessUpdate}
-import com.cjwwdev.security.Implicits._
-import com.cjwwdev.security.SecurityConfiguration
-import com.cjwwdev.security.obfuscation.Obfuscators
+import dev.cjww.mongo.responses.{MongoFailedUpdate, MongoSuccessUpdate}
+import dev.cjww.security.Implicits._
+import dev.cjww.security.SecurityConfiguration
+import dev.cjww.security.obfuscation.Obfuscators
 import database.{IndividualUserStore, OrganisationUserStore}
 import dev.samstevens.totp.code.{CodeVerifier, HashingAlgorithm}
 import dev.samstevens.totp.qr.ZxingPngQrGenerator

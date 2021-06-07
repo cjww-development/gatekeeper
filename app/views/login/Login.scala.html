@@ -1,9 +1,9 @@
 @import controllers.ui.{routes => uiRoutes}
 @import helper._
 @import models.{Login => LoginModel}
+@import views.AuthForView
 @import views.html.Main
 @import views.html.components.forms.TextInput
-@import views.AuthForView
 
 @(form: Form[LoginModel])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
 

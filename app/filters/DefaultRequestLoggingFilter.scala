@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,15 @@
 
 package filters
 
-import java.util.UUID
-
 import akka.stream.Materializer
-import javax.inject.Inject
 import org.joda.time.DateTimeUtils
 import org.slf4j.{Logger, LoggerFactory, MDC}
 import play.api.Configuration
 import play.api.mvc._
 import play.utils.Colors
 
+import java.util.UUID
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class DefaultRequestLoggingFilter @Inject()(val config: Configuration,

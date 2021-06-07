@@ -1,14 +1,15 @@
 import com.typesafe.config.ConfigFactory
+
 import scala.util.Try
 import scoverage.ScoverageKeys
 
 val appName = "gatekeeper"
 
-val btVersion: String = Try(ConfigFactory.load().getString("version")).getOrElse("0.1.0")
+val btVersion: String = Try(ConfigFactory.load.getString("version")).getOrElse("0.1.0-local")
 
 val scoverageSettings = Seq(
   ScoverageKeys.coverageExcludedPackages  := "<empty>;Reverse.*;models/.data/..*;views.*;models.*;common.*;.*(AuthService|BuildInfo|Routes).*",
-  ScoverageKeys.coverageMinimum           := 80,
+  ScoverageKeys.coverageMinimumStmtTotal  := 80,
   ScoverageKeys.coverageFailOnMinimum     := false,
   ScoverageKeys.coverageHighlighting      := true
 )
@@ -20,34 +21,49 @@ lazy val microservice = Project(appName, file("."))
   .settings(PlayKeys.playDefaultPort := 5678)
   .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)
   .settings(
-    version                                       :=  btVersion,
-    scalaVersion                                  :=  "2.13.3",
-    organization                                  :=  "com.cjww-dev.apps",
-    resolvers                                     +=  "cjww-dev" at "https://dl.bintray.com/cjww-development/releases",
-    resolvers                                     +=  "mvn" at "https://repo1.maven.org/maven2",
-    libraryDependencies                           ++= Seq(
-      "com.cjww-dev.libs"      % "mongo-connector_2.13"       % "0.2.0",
-      "com.cjww-dev.libs"      % "data-defender_2.13"         % "0.5.0",
-      "com.cjww-dev.libs"      % "log-encoding_2.13"          % "0.3.0",
-      "com.cjww-dev.libs"      % "feature-management_2.13"    % "2.0.1",
-      "com.cjww-dev.libs"      % "inbound-outbound_2.13"      % "0.5.0",
-      "io.github.nremond"      % "pbkdf2-scala_2.13"          % "0.6.5",
-      "com.pauldijou"          % "jwt-core_2.13"              % "4.3.0",
-      "com.nimbusds"           % "nimbus-jose-jwt"            % "9.1.2",
-      "dev.samstevens.totp"    % "totp"                       % "1.7",
-      "com.amazonaws"          % "aws-java-sdk-ses"           % "1.11.881",
-      "com.amazonaws"          % "aws-java-sdk-sns"           % "1.11.881",
-      "org.mockito"            % "mockito-core"               % "3.3.3"    % Test,
-      "org.scalatestplus"      % "scalatestplus-mockito_2.13" % "1.0.0-M2" % Test,
-      "org.scalatestplus.play" % "scalatestplus-play_2.13"    % "5.1.0"    % Test,
-      "org.scalatestplus.play" % "scalatestplus-play_2.13"    % "5.1.0"    % IntegrationTest
+    version :=  btVersion,
+    scalaVersion :=  "2.13.6",
+    routesImport := Seq.empty,
+    semanticdbEnabled :=  true,
+    semanticdbVersion :=  scalafixSemanticdb.revision,
+    organization :=  "dev.cjww.apps",
+    githubTokenSource := (if (Try(ConfigFactory.load.getBoolean("local")).getOrElse(true)) {
+      TokenSource.GitConfig("github.token")
+    } else {
+      TokenSource.Environment("GITHUB_TOKEN")
+    }),
+    githubOwner :=  "cjww-development",
+    githubRepository :=  appName,
+    resolvers +=  Resolver.githubPackages("cjww-development"),
+    libraryDependencies ++= Seq(
+      "dev.cjww.libs"                %  "mongo-connector_2.13"       % "1.0.0",
+      "dev.cjww.libs"                %  "data-defender_2.13"         % "1.0.0",
+      "dev.cjww.libs"                %  "log-encoding_2.13"          % "1.0.0",
+      "dev.cjww.libs"                %  "feature-management_2.13"    % "3.0.0",
+      "dev.cjww.libs"                %  "inbound-outbound_2.13"      % "1.0.0",
+      "io.github.nremond"            %  "pbkdf2-scala_2.13"          % "0.6.5",
+      "com.pauldijou"                %  "jwt-core_2.13"              % "5.0.0",
+      "com.nimbusds"                 %  "nimbus-jose-jwt"            % "9.10",
+      "dev.samstevens.totp"          %  "totp"                       % "1.7.1",
+      "com.amazonaws"                %  "aws-java-sdk-ses"           % "1.11.1034",
+      "com.amazonaws"                %  "aws-java-sdk-sns"           % "1.11.1034",
+      "com.fasterxml.jackson.module" %% "jackson-module-scala"       % "2.12.3",
+      "org.mockito"                  %  "mockito-core"               % "3.11.0"      % Test,
+      "org.scalatestplus"            %  "scalatestplus-mockito_2.13" % "1.0.0-M2"    % Test,
+      "org.scalatestplus.play"       %  "scalatestplus-play_2.13"    % "5.1.0"       % Test,
+      "org.scalatestplus.play"       %  "scalatestplus-play_2.13"    % "5.1.0"       % IntegrationTest
     ),
-    fork                       in IntegrationTest :=  false,
-    unmanagedSourceDirectories in IntegrationTest :=  (baseDirectory in IntegrationTest)(base => Seq(base / "it")).value,
-    parallelExecution          in IntegrationTest :=  false,
-    fork                       in Test            :=  true,
-    testForkedParallel         in Test            :=  true,
-    parallelExecution          in Test            :=  true,
-    logBuffered                in Test            :=  false
+    scalacOptions ++= Seq(
+      "-unchecked",
+      "-deprecation",
+    ),
+    Test / testOptions +=  Tests.Argument("-oF"),
+    IntegrationTest / fork :=  false,
+    IntegrationTest /  unmanagedSourceDirectories :=  (IntegrationTest / baseDirectory)(base => Seq(base / "it")).value,
+    IntegrationTest /  parallelExecution :=  false,
+    Test / fork :=  true,
+    Test / testForkedParallel :=  true,
+    Test / parallelExecution :=  true,
+    Test / logBuffered :=  false
   )
       

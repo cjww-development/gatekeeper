@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,15 @@
 
 package services
 
-import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
-import database.{AppStore, IndividualUserStore, OrganisationUserStore, UserStore, UserStoreUtils}
-import javax.inject.{Inject, Named}
+import database.{AppStore, UserStore, UserStoreUtils}
+import dev.cjww.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
 import models.{RegisteredApplication, User}
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters._
 import org.slf4j.LoggerFactory
 import utils.StringUtils
 
+import javax.inject.{Inject, Named}
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultRegistrationService @Inject()(@Named("individualUserStore") val individualUserStore: UserStore,

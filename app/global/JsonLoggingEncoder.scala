@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,18 @@
 
 package global
 
+import ch.qos.logback.classic.spi.{ILoggingEvent, ThrowableProxyUtil}
+import ch.qos.logback.core.encoder.EncoderBase
+import com.fasterxml.jackson.core.json.JsonWriteFeature.ESCAPE_NON_ASCII
+import com.fasterxml.jackson.databind.ObjectMapper
+import org.apache.commons.lang3.time.FastDateFormat
+
 import java.net.InetAddress
 import java.nio.charset.StandardCharsets
 
-import ch.qos.logback.classic.spi.{ILoggingEvent, ThrowableProxyUtil}
-import ch.qos.logback.core.encoder.EncoderBase
-import com.fasterxml.jackson.core.JsonGenerator.Feature
-import org.apache.commons.io.IOUtils.LINE_SEPARATOR
-import org.apache.commons.lang3.time.FastDateFormat
-import com.fasterxml.jackson.databind.ObjectMapper
-
 class JsonLoggingEncoder extends EncoderBase[ILoggingEvent] with EncoderConfig with EncodingUtils {
 
-  private val mapper = new ObjectMapper().configure(Feature.ESCAPE_NON_ASCII, true)
+  private val mapper = new ObjectMapper().configure(ESCAPE_NON_ASCII.mappedFeature(), true)
 
   override def encode(event: ILoggingEvent): Array[Byte] = {
     val eventNode = mapper.createObjectNode()
@@ -68,9 +67,9 @@ class JsonLoggingEncoder extends EncoderBase[ILoggingEvent] with EncoderConfig w
 
     loggingContent.foreach { case (key, content) => eventNode.put(key, content) }
 
-    s"${mapper.writeValueAsString(eventNode)}$LINE_SEPARATOR".getBytes(StandardCharsets.UTF_8)
+    s"${mapper.writeValueAsString(eventNode)}${System.lineSeparator}".getBytes(StandardCharsets.UTF_8)
   }
 
-  override def headerBytes(): Array[Byte] = LINE_SEPARATOR.getBytes(StandardCharsets.UTF_8)
-  override def footerBytes(): Array[Byte] = LINE_SEPARATOR.getBytes(StandardCharsets.UTF_8)
+  override def headerBytes(): Array[Byte] = System.lineSeparator.getBytes(StandardCharsets.UTF_8)
+  override def footerBytes(): Array[Byte] = System.lineSeparator.getBytes(StandardCharsets.UTF_8)
 }

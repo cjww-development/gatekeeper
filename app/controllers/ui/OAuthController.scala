@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package controllers.ui
 
 import controllers.actions.{AuthenticatedAction, BasicAuthAction}
-import javax.inject.Inject
 import orchestrators._
 import org.slf4j.LoggerFactory
 import play.api.libs.json.{Json, Writes}
@@ -25,6 +24,7 @@ import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import services.ClientService
 import views.html.auth.Grant
 
+import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultOAuthController @Inject()(val controllerComponents: ControllerComponents,
@@ -96,7 +96,7 @@ trait OAuthController extends BaseController with AuthenticatedAction with Basic
     }
   }
 
-  def authorisePost(response_type: String, client_id: String, scope: String, state: Option[String], code_verifier: Option[String], code_challenge: Option[String], code_challenge_method: Option[String]): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+  def authorisePost(response_type: String, client_id: String, scope: String, state: Option[String], code_verifier: Option[String], code_challenge: Option[String], code_challenge_method: Option[String]): Action[AnyContent] = authenticatedUser { _ => userId =>
     val scopes = scope.trim.split(" ").toSeq
 
     grantOrchestrator.saveIncomingGrant(response_type, client_id, userId, scopes, code_verifier, code_challenge, code_challenge_method) map {

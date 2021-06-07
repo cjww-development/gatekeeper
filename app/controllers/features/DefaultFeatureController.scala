@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,14 @@
 
 package controllers.features
 
-import com.cjwwdev.featuremanagement.controllers.FeatureController
-import com.cjwwdev.featuremanagement.models.Features
-import com.cjwwdev.featuremanagement.services.FeatureService
-import com.cjwwdev.http.responses.ApiResponse
-import javax.inject.Inject
+import dev.cjww.featuremanagement.controllers.FeatureController
+import dev.cjww.featuremanagement.models.Features
+import dev.cjww.featuremanagement.services.FeatureService
+import dev.cjww.http.responses.ApiResponse
 import play.api.libs.json.JsValue
-import play.api.mvc.{Action, AnyContent, ControllerComponents, RequestHeader, Result}
+import play.api.mvc._
+
+import javax.inject.Inject
 
 class DefaultFeatureController @Inject()(val features: Features,
                                          val controllerComponents: ControllerComponents,

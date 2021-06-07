@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,11 @@
 package services
 
 import com.typesafe.config.Config
-import javax.inject.Inject
 import models.Scope
 import org.slf4j.LoggerFactory
 import play.api.Configuration
+
+import javax.inject.Inject
 
 class DefaultScopeService @Inject()(val config: Configuration) extends ScopeService {
   override protected val approvedScopes: Seq[Scope] = config.get[Seq[Config]]("valid-scopes").map { conf =>

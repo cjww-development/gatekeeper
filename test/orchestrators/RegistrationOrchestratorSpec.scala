@@ -16,8 +16,8 @@
 
 package orchestrators
 
-import com.cjwwdev.security.obfuscation.Obfuscators
-import com.cjwwdev.security.Implicits._
+import dev.cjww.security.obfuscation.Obfuscators
+import dev.cjww.security.Implicits._
 import helpers.Assertions
 import helpers.services.{MockEmailService, MockPhoneService, MockRegistrationService, MockUserService}
 import models.{DigitalContact, Email, RegisteredApplication, User, Verification}

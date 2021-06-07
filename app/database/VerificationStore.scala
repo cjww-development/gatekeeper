@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,10 @@
 
 package database
 
-import java.util.concurrent.TimeUnit
-
-import com.cjwwdev.mongo.DatabaseRepository
-import com.cjwwdev.mongo.connection.ConnectionSettings
-import com.cjwwdev.mongo.responses._
 import com.typesafe.config.Config
-import javax.inject.Inject
+import dev.cjww.mongo.DatabaseRepository
+import dev.cjww.mongo.connection.ConnectionSettings
+import dev.cjww.mongo.responses._
 import models.Verification
 import org.bson.codecs.configuration.CodecRegistry
 import org.mongodb.scala.bson.conversions.Bson
@@ -30,6 +27,8 @@ import org.mongodb.scala.model.{IndexModel, IndexOptions, Indexes}
 import org.slf4j.{Logger, LoggerFactory}
 import play.api.Configuration
 
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
 import scala.reflect.ClassTag
 
@@ -68,7 +67,7 @@ trait VerificationStore extends DatabaseRepository with CodecReg {
       }
   }
 
-  def validateVerificationRecord(query: Bson)(implicit ec: ExC): Future[Option[Verification]] = {
+  def validateVerificationRecord(query: Bson): Future[Option[Verification]] = {
     verificationStore
       .find(query)
       .first()
@@ -79,7 +78,7 @@ trait VerificationStore extends DatabaseRepository with CodecReg {
     verificationStore
       .deleteOne(query)
       .toFuture()
-      .map { x =>
+      .map { _ =>
         logger.info(s"[deleteVerificationRecord] - Deleted verification record")
         MongoSuccessDelete
       }.recover { e =>

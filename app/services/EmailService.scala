@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,12 @@
 
 package services
 
-import java.nio.charset.StandardCharsets
-import java.util.UUID
-
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.simpleemail.model._
 import com.amazonaws.services.simpleemail.{AmazonSimpleEmailService, AmazonSimpleEmailServiceClientBuilder}
-import com.cjwwdev.mongo.responses.MongoDeleteResponse
-import com.cjwwdev.security.Implicits._
 import database.VerificationStore
-import javax.inject.Inject
+import dev.cjww.mongo.responses.MongoDeleteResponse
+import dev.cjww.security.Implicits._
 import models.Verification
 import org.joda.time.DateTime
 import org.mongodb.scala.model.Filters.{and, equal}
@@ -33,6 +29,9 @@ import play.api.Configuration
 import play.api.mvc.Request
 import views.html.email.VerificationEmail
 
+import java.nio.charset.StandardCharsets
+import java.util.UUID
+import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultEmailService @Inject()(val config: Configuration,
@@ -95,7 +94,7 @@ trait EmailService {
     verificationStore.createVerificationRecord(record) map(_ => record)
   }
 
-  def validateVerificationRecord(record: Verification)(implicit ec: ExC): Future[Option[Verification]] = {
+  def validateVerificationRecord(record: Verification): Future[Option[Verification]] = {
     val query = and(
       equal("verificationId", record.verificationId),
       equal("userId", record.userId),

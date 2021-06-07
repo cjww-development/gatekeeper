@@ -18,8 +18,8 @@ package controllers.ui
 
 import java.util.UUID
 
-import com.cjwwdev.security.Implicits.ImplicitObfuscator
-import com.cjwwdev.security.obfuscation.Obfuscators
+import dev.cjww.security.Implicits.ImplicitObfuscator
+import dev.cjww.security.obfuscation.Obfuscators
 import controllers.ui.{routes => uiRoutes}
 import helpers.Assertions
 import helpers.orchestrators.MockLoginOrchestrator

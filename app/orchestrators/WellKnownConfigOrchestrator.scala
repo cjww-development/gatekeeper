@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package orchestrators
 
-import javax.inject.Inject
 import models.WellKnownConfig
 import play.api.Configuration
+
+import javax.inject.Inject
 
 class DefaultWellKnownConfigOrchestrator @Inject()(val config: Configuration) extends WellKnownConfigOrchestrator {
   override val issuer: String = config.get[String]("well-known-config.issuer")
@@ -26,7 +27,7 @@ class DefaultWellKnownConfigOrchestrator @Inject()(val config: Configuration) ex
   override val authEndpoint: String = s"$issuer${controllers.ui.routes.OAuthController.authoriseGet("", "", "").url.split("\\?").head}"
   override val tokenEndpoint: String = s"$issuer${controllers.ui.routes.OAuthController.getToken().url.split("\\?").head}"
   override val revokeEndpoint: String = s"$issuer/api${controllers.api.routes.RevokationController.revokeToken().url.split("\\?").head}"
-  override val userDetailsEndpoint: String = s"$issuer/api${controllers.api.routes.AccountController.getUserDetails().url.split("\\?").head}"
+  override val userDetailsEndpoint: String = s"$issuer/api${controllers.api.routes.AccountController.getUserDetails.url.split("\\?").head}"
   override val jwksEndpoint: String = s"$issuer/api${controllers.api.routes.JwksController.getCurrentJwks().url.split("\\?").head}"
 
   override val grantTypes: Seq[String] = config.get[Seq[String]]("well-known-config.grant-types")

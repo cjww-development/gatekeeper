@@ -16,7 +16,7 @@
 
 package helpers.services
 
-import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
+import dev.cjww.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
 import models.{RegisteredApplication, User}
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}

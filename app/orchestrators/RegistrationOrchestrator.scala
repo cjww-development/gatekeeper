@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,14 @@
 
 package orchestrators
 
-import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoFailedUpdate, MongoSuccessCreate, MongoSuccessUpdate}
-import com.cjwwdev.security.deobfuscation.DeObfuscators
-import javax.inject.Inject
+import dev.cjww.mongo.responses.{MongoFailedCreate, MongoFailedUpdate, MongoSuccessCreate, MongoSuccessUpdate}
+import dev.cjww.security.deobfuscation.DeObfuscators
 import models.{RegisteredApplication, User, Verification}
 import org.slf4j.LoggerFactory
 import play.api.mvc.Request
 import services.{EmailService, PhoneService, RegistrationService, UserService}
 
+import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
 sealed trait UserRegistrationResponse

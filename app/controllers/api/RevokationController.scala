@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,11 @@ package controllers.api
 
 import controllers.actions.BasicAuthAction
 import errors.StandardErrors
-import javax.inject.Inject
 import orchestrators.TokenOrchestrator
-import play.api.mvc.{Action, BaseController, ControllerComponents, AnyContent}
+import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import services.ClientService
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class DefaultRevokationController @Inject()(val controllerComponents: ControllerComponents,

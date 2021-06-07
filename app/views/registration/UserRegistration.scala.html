@@ -1,8 +1,8 @@
 @import controllers.ui.{routes => uiRoutes}
 @import helper._
+@import views.AuthForView
 @import views.html.Main
 @import views.html.components.forms.{SlidingCheckbox, TextInput}
-@import views.AuthForView
 
 @(form: Form[User])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
 

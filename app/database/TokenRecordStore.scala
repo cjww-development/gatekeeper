@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,19 @@
 
 package database
 
-import java.util.concurrent.TimeUnit
-
-import com.cjwwdev.mongo.DatabaseRepository
-import com.cjwwdev.mongo.connection.ConnectionSettings
-import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoDeleteResponse, MongoFailedCreate, MongoFailedDelete, MongoFailedUpdate, MongoSuccessCreate, MongoSuccessDelete, MongoSuccessUpdate, MongoUpdatedResponse}
 import com.typesafe.config.Config
-import javax.inject.Inject
-import models.{Grant, TokenRecord, User}
+import dev.cjww.mongo.DatabaseRepository
+import dev.cjww.mongo.connection.ConnectionSettings
+import dev.cjww.mongo.responses._
+import models.TokenRecord
 import org.bson.codecs.configuration.CodecRegistry
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.{IndexModel, IndexOptions, Indexes}
 import org.slf4j.{Logger, LoggerFactory}
 import play.api.Configuration
 
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
 import scala.reflect.ClassTag
 
@@ -69,14 +68,14 @@ trait TokenRecordStore extends DatabaseRepository with CodecReg {
       }
   }
 
-  def validateTokenRecord(query: Bson)(implicit ec: ExC): Future[Option[TokenRecord]] = {
+  def validateTokenRecord(query: Bson): Future[Option[TokenRecord]] = {
     tokenRecordBasedCollection
       .find(query)
       .first()
       .toFutureOption()
   }
 
-  def getActiveRecords(query: Bson)(implicit ec: ExC): Future[Seq[TokenRecord]] = {
+  def getActiveRecords(query: Bson): Future[Seq[TokenRecord]] = {
     tokenRecordBasedCollection
       .find(query)
       .toFuture()
@@ -100,7 +99,7 @@ trait TokenRecordStore extends DatabaseRepository with CodecReg {
     tokenRecordBasedCollection
       .deleteOne(query)
       .toFuture()
-      .map { x =>
+      .map { _ =>
         logger.info(s"[deleteTokenRecord] - Deleted token record")
         MongoSuccessDelete
       }.recover { e =>

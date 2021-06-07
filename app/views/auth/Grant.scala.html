@@ -1,9 +1,8 @@
 @import controllers.routes
 @import controllers.ui.{routes => uiRoutes}
-@import org.joda.time.DateTime
+@import views.AuthForView
 @import views.html.Main
 @import views.html.helper.CSRF
-@import views.AuthForView
 
 @(responseType: String, clientId: String, authorisedScopes: Seq[Scope], requestedScopes: Seq[Scope], scope: String, app: RegisteredApplication, state: Option[String], codeVerifier: Option[String], codeChallenge: Option[String], codeChallengeMethod: Option[String])(implicit rh: RequestHeader)
 

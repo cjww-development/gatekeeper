@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,17 +19,16 @@ package services
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.sns.model.{MessageAttributeValue, PublishRequest, PublishResult}
 import com.amazonaws.services.sns.{AmazonSNS, AmazonSNSClientBuilder}
-import javax.inject.Inject
-import play.api.Configuration
-import java.util
-import java.util.{Random, UUID}
-
-import com.cjwwdev.mongo.responses.MongoDeleteResponse
 import database.VerificationStore
+import dev.cjww.mongo.responses.MongoDeleteResponse
 import models.Verification
 import org.joda.time.DateTime
 import org.mongodb.scala.model.Filters.{and, equal}
+import play.api.Configuration
 
+import java.util
+import java.util.{Random, UUID}
+import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultPhoneService @Inject()(val config: Configuration,
@@ -80,7 +79,7 @@ trait PhoneService {
     verificationStore.createVerificationRecord(record) map(_ => record)
   }
 
-  def validateVerificationRecord(userId: String, code: String)(implicit ec: ExC): Future[Option[Verification]] = {
+  def validateVerificationRecord(userId: String, code: String): Future[Option[Verification]] = {
     val query = and(
       equal("userId", userId),
       equal("code", code),

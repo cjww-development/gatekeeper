@@ -18,9 +18,9 @@ package services
 
 import java.util.UUID
 
-import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
-import com.cjwwdev.security.Implicits._
-import com.cjwwdev.security.obfuscation.Obfuscators
+import dev.cjww.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
+import dev.cjww.security.Implicits._
+import dev.cjww.security.obfuscation.Obfuscators
 import database.{AppStore, UserStore}
 import helpers.Assertions
 import helpers.database.{MockAppStore, MockIndividualStore, MockOrganisationStore}

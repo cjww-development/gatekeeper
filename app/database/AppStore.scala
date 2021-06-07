@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,18 @@
 
 package database
 
-import com.cjwwdev.mongo.DatabaseRepository
-import com.cjwwdev.mongo.connection.ConnectionSettings
-import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoDeleteResponse, MongoFailedCreate, MongoFailedDelete, MongoFailedUpdate, MongoSuccessCreate, MongoSuccessDelete, MongoSuccessUpdate, MongoUpdatedResponse}
 import com.typesafe.config.Config
-import javax.inject.Inject
-import models.{RegisteredApplication, User}
+import dev.cjww.mongo.DatabaseRepository
+import dev.cjww.mongo.connection.ConnectionSettings
+import dev.cjww.mongo.responses._
+import models.RegisteredApplication
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.{IndexModel, IndexOptions, Indexes}
 import org.slf4j.{Logger, LoggerFactory}
 import play.api.Configuration
 
+import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultAppStore @Inject()(val configuration: Configuration) extends AppStore with ConnectionSettings {

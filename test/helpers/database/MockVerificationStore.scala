@@ -16,7 +16,7 @@
 
 package helpers.database
 
-import com.cjwwdev.mongo.responses._
+import dev.cjww.mongo.responses._
 import database.VerificationStore
 import models.Verification
 import org.mockito.ArgumentMatchers
@@ -45,7 +45,7 @@ trait MockVerificationStore extends MockitoSugar with BeforeAndAfterEach {
   }
 
   def mockValidateTokenRecord(record: Option[Verification]): OngoingStubbing[Future[Option[Verification]]] = {
-    when(mockVerificationStore.validateVerificationRecord(ArgumentMatchers.any[Bson]())(ArgumentMatchers.any()))
+    when(mockVerificationStore.validateVerificationRecord(ArgumentMatchers.any[Bson]()))
       .thenReturn(Future.successful(record))
   }
 

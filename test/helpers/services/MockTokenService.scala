@@ -16,7 +16,7 @@
 
 package helpers.services
 
-import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoFailedUpdate, MongoSuccessCreate, MongoSuccessUpdate, MongoUpdatedResponse}
+import dev.cjww.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoFailedUpdate, MongoSuccessCreate, MongoSuccessUpdate, MongoUpdatedResponse}
 import models.TokenRecord
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
@@ -84,7 +84,7 @@ trait MockTokenService extends MockitoSugar with BeforeAndAfterEach {
   }
 
   def mockGetActiveSessionsFor(sessions: Seq[TokenRecord]): OngoingStubbing[Future[Seq[TokenRecord]]] = {
-    when(mockTokenService.getActiveSessionsFor(ArgumentMatchers.any[String](), ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
+    when(mockTokenService.getActiveSessionsFor(ArgumentMatchers.any[String](), ArgumentMatchers.any[String]()))
       .thenReturn(Future.successful(sessions))
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,15 @@
 
 package models
 
-import java.util.UUID
-
-import com.cjwwdev.security.Implicits._
-import com.cjwwdev.security.deobfuscation.DeObfuscators
-import com.cjwwdev.security.obfuscation.Obfuscators
+import dev.cjww.security.Implicits._
+import dev.cjww.security.deobfuscation.DeObfuscators
+import dev.cjww.security.obfuscation.Obfuscators
 import org.bson.codecs.configuration.CodecProvider
 import org.joda.time.DateTime
-import utils.StringUtils
 import org.mongodb.scala.bson.codecs.Macros
+import utils.StringUtils
 
+import java.util.UUID
 import scala.reflect.ClassTag
 
 case class User(id: String,

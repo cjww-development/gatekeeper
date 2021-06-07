@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package models
 
-import com.cjwwdev.security.deobfuscation.{DeObfuscation, DeObfuscator}
-import com.cjwwdev.security.obfuscation.{Obfuscation, Obfuscator}
+import dev.cjww.security.deobfuscation.{DeObfuscation, DeObfuscator}
+import dev.cjww.security.obfuscation.{Obfuscation, Obfuscator}
 import org.bson.codecs.configuration.CodecProvider
 import org.joda.time.DateTime
 import org.mongodb.scala.bson.codecs.Macros

@@ -31,5 +31,5 @@ dist
 /RUNNING_PID
 /.settings
 .idea
-
+.bsp
 .env

@@ -16,7 +16,7 @@
 
 package helpers.database
 
-import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
+import dev.cjww.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
 import database.GrantStore
 import models.Grant
 import org.mockito.ArgumentMatchers
@@ -45,7 +45,7 @@ trait MockGrantStore extends MockitoSugar with BeforeAndAfterEach {
   }
 
   def mockValidateGrant(app: Option[Grant]): OngoingStubbing[Future[Option[Grant]]] = {
-    when(mockGrantStore.validateGrant(ArgumentMatchers.any[Bson]())(ArgumentMatchers.any()))
+    when(mockGrantStore.validateGrant(ArgumentMatchers.any[Bson]()))
       .thenReturn(Future.successful(app))
   }
 }

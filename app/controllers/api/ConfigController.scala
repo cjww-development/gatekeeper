@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,12 @@
 
 package controllers.api
 
-import javax.inject.Inject
 import models.WellKnownConfig
 import orchestrators.WellKnownConfigOrchestrator
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
+
+import javax.inject.Inject
 
 class DefaultConfigController @Inject()(val controllerComponents: ControllerComponents,
                                         val wellKnownConfigOrchestrator: WellKnownConfigOrchestrator) extends ConfigController
@@ -29,7 +30,7 @@ trait ConfigController extends BaseController {
 
   val wellKnownConfigOrchestrator: WellKnownConfigOrchestrator
 
-  def wellKnownConfig(): Action[AnyContent] = Action { implicit req =>
+  def wellKnownConfig(): Action[AnyContent] = Action { _ =>
     val config = wellKnownConfigOrchestrator.getConfig
     Ok(Json.toJson(config)(WellKnownConfig.writer))
   }

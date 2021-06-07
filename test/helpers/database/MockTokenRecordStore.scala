@@ -16,7 +16,7 @@
 
 package helpers.database
 
-import com.cjwwdev.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
+import dev.cjww.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
 import database.{GrantStore, TokenRecordStore}
 import models.{Grant, TokenRecord}
 import org.mockito.ArgumentMatchers
@@ -45,7 +45,7 @@ trait MockTokenRecordStore extends MockitoSugar with BeforeAndAfterEach {
   }
 
   def mockValidateTokenRecord(record: Option[TokenRecord]): OngoingStubbing[Future[Option[TokenRecord]]] = {
-    when(mockTokenRecordStore.validateTokenRecord(ArgumentMatchers.any[Bson]())(ArgumentMatchers.any()))
+    when(mockTokenRecordStore.validateTokenRecord(ArgumentMatchers.any[Bson]()))
       .thenReturn(Future.successful(record))
   }
 }

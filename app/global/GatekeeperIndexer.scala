@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,10 @@
 
 package global
 
-import com.cjwwdev.mongo.indexing.RepositoryIndexer
 import database._
-import javax.inject.Inject
-import models.{Grant, LoginAttempt, RegisteredApplication, TokenRecord, User}
-import services.JwksService
+import dev.cjww.mongo.indexing.RepositoryIndexer
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext => ExC}
 
 class GatekeeperIndexer @Inject()(val userStore: IndividualUserStore,
@@ -32,11 +30,11 @@ class GatekeeperIndexer @Inject()(val userStore: IndividualUserStore,
                                   val tokenRecordStore: TokenRecordStore,
                                   implicit val ec: ExC) extends RepositoryIndexer with CodecReg {
   for {
-    _ <- ensureMultipleIndexes[User](userStore)
-    _ <- ensureMultipleIndexes[User](orgUserStore)
-    _ <- ensureMultipleIndexes[RegisteredApplication](appStore)
-    _ <- ensureMultipleIndexes[Grant](grantStore)
-    _ <- ensureMultipleIndexes[LoginAttempt](loginAttemptStore)
-    _ <- ensureMultipleIndexes[TokenRecord](tokenRecordStore)
+    _ <- ensureMultipleIndexes(userStore)
+    _ <- ensureMultipleIndexes(orgUserStore)
+    _ <- ensureMultipleIndexes(appStore)
+    _ <- ensureMultipleIndexes(grantStore)
+    _ <- ensureMultipleIndexes(loginAttemptStore)
+    _ <- ensureMultipleIndexes(tokenRecordStore)
   } yield true
 }

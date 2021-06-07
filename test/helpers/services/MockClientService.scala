@@ -16,7 +16,7 @@
 
 package helpers.services
 
-import com.cjwwdev.mongo.responses.MongoDeleteResponse
+import dev.cjww.mongo.responses.MongoDeleteResponse
 import models.RegisteredApplication
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}

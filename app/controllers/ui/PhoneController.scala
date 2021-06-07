@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,15 @@
 package controllers.ui
 
 import controllers.actions.AuthenticatedAction
-import javax.inject.Inject
+import forms.CodeForm.{form => codeForm}
+import forms.PhoneForm.{form => phoneForm}
 import orchestrators._
-import org.slf4j.LoggerFactory
 import play.api.i18n.{I18NSupportLowPriorityImplicits, I18nSupport, Lang}
 import play.api.mvc._
-import forms.PhoneForm.{form => phoneForm}
-import forms.CodeForm.{form => codeForm}
-import views.html.account.security.phone.{EnterNumber, EnterCode}
-import views.html.misc.{NotFound => NotFoundView}
+import views.html.account.security.phone.{EnterCode, EnterNumber}
+import views.html.misc.{NotFound => NotFoundView, INS}
 
+import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultPhoneController @Inject()(val controllerComponents: ControllerComponents,
@@ -43,9 +42,7 @@ trait PhoneController extends BaseController with I18NSupportLowPriorityImplicit
 
   implicit def langs(implicit rh: RequestHeader): Lang = messagesApi.preferred(rh).lang
 
-  private val logger = LoggerFactory.getLogger(this.getClass)
-
-  def enterPhoneNumber(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+  def enterPhoneNumber(): Action[AnyContent] = authenticatedUser { implicit req => _ =>
     Future.successful(Ok(EnterNumber(phoneForm)))
   }
 
@@ -55,6 +52,7 @@ trait PhoneController extends BaseController with I18NSupportLowPriorityImplicit
       num => registrationOrchestrator.sendPhoneVerificationMessage(userId, num) map {
         case VerificationSent => Redirect(routes.PhoneController.enterVerifyCode())
         case NoUserFound => NotFound(NotFoundView())
+        case _  => InternalServerError(INS())
       }
     )
   }

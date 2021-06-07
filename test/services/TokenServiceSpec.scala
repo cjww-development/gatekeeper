@@ -16,7 +16,7 @@
 
 package services
 
-import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
+import dev.cjww.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
 import com.nimbusds.jose.Algorithm
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator
 import com.nimbusds.jose.jwk.{KeyUse, RSAKey}

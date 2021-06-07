@@ -1,10 +1,9 @@
 @import controllers.routes
 @import controllers.ui.{routes => uiRoutes}
-@import org.joda.time.DateTime
-@import views.html.Main
-@import views.html.helper.CSRF
 @import views.AuthForView
+@import views.html.Main
 @import views.html.components.forms.TextInput
+@import views.html.helper.CSRF
 
 @(user: UserInfo, emailInUse: Boolean, passwordForm: Form[ChangeOfPassword], nameForm: Form[Name], genderForm: Form[Gender], birthdayForm: Form[String], addressForm: Form[Address])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
 

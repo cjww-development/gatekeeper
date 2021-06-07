@@ -1,6 +1,6 @@
 @import controllers.ui.{routes => uiRoutes}
-@import views.html.Main
 @import views.AuthForView
+@import views.html.Main
 
 @(mfaStatus: Boolean, emailVerificationStatus: Boolean, email: String, phoneVerificationStatus: Boolean, phone: Option[String])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,9 @@
 
 package utils
 
-import java.nio.charset.StandardCharsets
-
 import io.github.nremond.PBKDF2
 
+import java.nio.charset.StandardCharsets
 import scala.util.Random
 
 object StringUtils {

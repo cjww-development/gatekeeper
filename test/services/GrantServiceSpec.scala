@@ -16,9 +16,9 @@
 
 package services
 
-import com.cjwwdev.security.Implicits._
-import com.cjwwdev.security.obfuscation.Obfuscators
-import com.cjwwdev.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
+import dev.cjww.security.Implicits._
+import dev.cjww.security.obfuscation.Obfuscators
+import dev.cjww.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
 import database.{AppStore, GrantStore}
 import helpers.Assertions
 import helpers.database.{MockAppStore, MockGrantStore}

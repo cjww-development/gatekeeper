@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,9 @@
 
 package services
 
-import java.time.{Clock, Instant}
-import java.util.UUID
-import java.util.concurrent.TimeUnit
-
-import com.cjwwdev.mongo.responses._
 import com.nimbusds.jose.jwk.RSAKey
 import database.TokenRecordStore
-import javax.inject.Inject
+import dev.cjww.mongo.responses._
 import models.{RefreshToken, TokenExpiry, TokenRecord}
 import org.joda.time.DateTime
 import org.mongodb.scala.model.Filters.{and, equal}
@@ -33,6 +28,10 @@ import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim, JwtHeader}
 import play.api.Configuration
 import play.api.libs.json.Json
 
+import java.time.Instant
+import java.util.UUID
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultTokenService @Inject()(val config: Configuration,
@@ -53,8 +52,6 @@ trait TokenService {
   val signature: String
 
   val jwks: RSAKey
-
-  private implicit val clock: Clock = Clock.systemUTC
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
@@ -153,7 +150,11 @@ trait TokenService {
   }
 
   def lookupTokenRecordSet(recordSetId: String, userId: String, appId: String)(implicit ec: ExC): Future[Option[TokenRecord]] = {
-    val query = and(equal("tokenSetId", recordSetId), equal("userId", userId))
+    val query = and(
+      equal("tokenSetId", recordSetId),
+      equal("userId", userId),
+      equal("appId", appId)
+    )
     tokenRecordStore.validateTokenRecord(query) map { recordSet =>
       if(recordSet.isDefined) {
         logger.info(s"[lookupTokenRecordSet] - Found token record set matching $recordSet")
@@ -175,7 +176,7 @@ trait TokenService {
     tokenRecordStore.updateTokenRecord(query, update)
   }
 
-  def getActiveSessionsFor(userId: String, appId: String)(implicit ec: ExC): Future[Seq[TokenRecord]] = {
+  def getActiveSessionsFor(userId: String, appId: String): Future[Seq[TokenRecord]] = {
     val query = and(equal("userId", userId), equal("appId", appId))
     tokenRecordStore.getActiveRecords(query)
   }
