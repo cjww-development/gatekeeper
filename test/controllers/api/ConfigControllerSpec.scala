@@ -72,7 +72,7 @@ class ConfigControllerSpec
               | "revocation_endpoint_auth_methods_supported":["testAuth"],
               | "id_token_signing_alg_values_supported":["testAlg"],
               | "token_endpoint_auth_methods_supported":["testAuth"],
-              | "jwks_endpoint":"testJwksEndpoint",
+              | "jwks_uri":"testJwksEndpoint",
               | "userinfo_endpoint":"testUserInfoEndpoint"
               |}
             """.stripMargin

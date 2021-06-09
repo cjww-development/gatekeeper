@@ -213,7 +213,7 @@ class TokenServiceSpec
       "the set has been found" in {
         mockValidateTokenRecord(record = Some(tokenRecordSet))
 
-        awaitAndAssert(testService.lookupTokenRecordSet(tokenRecordSet.tokenSetId, tokenRecordSet.userId, tokenRecordSet.appId)) {
+        awaitAndAssert(testService.lookupTokenRecordSet(tokenRecordSet.tokenSetId, tokenRecordSet.userId)) {
           _ mustBe Some(tokenRecordSet)
         }
       }
@@ -223,7 +223,7 @@ class TokenServiceSpec
       "there was a problem creating the set" in {
         mockValidateTokenRecord(record = None)
 
-        awaitAndAssert(testService.lookupTokenRecordSet(tokenRecordSet.tokenSetId, tokenRecordSet.userId, tokenRecordSet.appId)) {
+        awaitAndAssert(testService.lookupTokenRecordSet(tokenRecordSet.tokenSetId, tokenRecordSet.userId)) {
           _ mustBe None
         }
       }

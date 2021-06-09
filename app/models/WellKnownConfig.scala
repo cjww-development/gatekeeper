@@ -37,7 +37,7 @@ object WellKnownConfig {
     "authorization_endpoint"                     -> wkc.authorizationEndpoint,
     "token_endpoint"                             -> wkc.tokenEndpoint,
     "userinfo_endpoint"                          -> wkc.userInfoEndpoint,
-    "jwks_endpoint"                              -> wkc.jwksUri,
+    "jwks_uri"                                   -> wkc.jwksUri,
     "scopes_supported"                           -> wkc.scopesSupported,
     "response_types_supported"                   -> wkc.responseTypesSupported,
     "grant_types_supported"                      -> wkc.grantTypesSupported,
