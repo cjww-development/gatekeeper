@@ -44,7 +44,7 @@ trait OAuthAction {
           case (true, true)  =>
             val (_, payload, _) = Jwt.decodeAll(splitHeader.last, signature, Seq(JwtAlgorithm.HS512)).get
             val json = Json.parse(payload.toJson)
-            tokenService.lookupTokenRecordSet(json.\("tsid").as[String], json.\("sub").as[String], json.\("aud").as[String]) flatMap {
+            tokenService.lookupTokenRecordSet(json.\("tsid").as[String], json.\("sub").as[String]) flatMap {
               case Some(record) => if(record.accessTokenId == json.\("tid").as[String]) {
                 logger.info(s"[validateAccessToken] - Token deemed valid, returning userId and scopes")
                 f(req)(json.\("sub").as[String])(json.\("scp").as[String].split(","))

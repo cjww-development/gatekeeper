@@ -149,11 +149,10 @@ trait TokenService {
     }
   }
 
-  def lookupTokenRecordSet(recordSetId: String, userId: String, appId: String)(implicit ec: ExC): Future[Option[TokenRecord]] = {
+  def lookupTokenRecordSet(recordSetId: String, userId: String)(implicit ec: ExC): Future[Option[TokenRecord]] = {
     val query = and(
       equal("tokenSetId", recordSetId),
-      equal("userId", userId),
-      equal("appId", appId)
+      equal("userId", userId)
     )
     tokenRecordStore.validateTokenRecord(query) map { recordSet =>
       if(recordSet.isDefined) {

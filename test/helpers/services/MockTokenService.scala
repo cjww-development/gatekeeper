@@ -79,7 +79,7 @@ trait MockTokenService extends MockitoSugar with BeforeAndAfterEach {
   }
 
   def mockLookupTokenRecordSet(recordSet: Option[TokenRecord]): OngoingStubbing[Future[Option[TokenRecord]]] = {
-    when(mockTokenService.lookupTokenRecordSet(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
+    when(mockTokenService.lookupTokenRecordSet(ArgumentMatchers.any[String](), ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
       .thenReturn(Future.successful(recordSet))
   }
 
