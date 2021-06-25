@@ -132,7 +132,7 @@ trait AccountController extends BaseController with I18NSupportLowPriorityImplic
     val body = req.body.asFormUrlEncoded.getOrElse(Map())
     val emailAddress = body.getOrElse("email", Seq("")).head
 
-    userOrchestrator.updateEmailAndReverify(userId, emailAddress) flatMap {
+    userOrchestrator.updateEmailAndReVerify(userId, emailAddress) flatMap {
       case EmailInUse => userOrchestrator.getUserDetails(userId) map {
         _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = true, changeOfPasswordForm, nameForm.fill(user.name), genderForm.fill(user.gender), birthdayForm.fill(user.birthDate.getOrElse("")), user.address.fold(addressForm)(adr => addressForm.fill(adr)))))
       }

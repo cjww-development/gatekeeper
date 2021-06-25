@@ -26,6 +26,7 @@ import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
+import services.comms.EmailService
 
 class EmailServiceSpec
   extends PlaySpec

@@ -21,7 +21,7 @@ import orchestrators._
 import org.slf4j.LoggerFactory
 import play.api.libs.json.{Json, Writes}
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
-import services.ClientService
+import services.oauth2.ClientService
 import views.html.auth.Grant
 
 import javax.inject.Inject

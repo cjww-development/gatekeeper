@@ -19,9 +19,7 @@ package models
 import helpers.Assertions
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import play.api.libs.json.{JsArray, JsError, JsNumber, JsPath, JsString, Json}
-
-import scala.collection.Seq
+import play.api.libs.json._
 
 class RegisteredApplicationSpec extends PlaySpec with Assertions {
 

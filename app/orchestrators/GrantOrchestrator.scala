@@ -20,7 +20,8 @@ import dev.cjww.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
 import models.{Grant, RegisteredApplication, Scope}
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
-import services.{ClientService, GrantService, ScopeService, UserService}
+import services.oauth2.{ClientService, GrantService, ScopeService}
+import services.users.UserService
 
 import java.util.UUID
 import javax.inject.Inject
@@ -49,7 +50,8 @@ trait GrantOrchestrator {
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  def validateIncomingGrant(responseType: String, clientId: String, scope: String, requestingUserId: String)(implicit ec: ExC): Future[GrantInitiateResponse] = {
+  def validateIncomingGrant(responseType: String, clientId: String, scope: String, requestingUserId: String)
+                           (implicit ec: ExC): Future[GrantInitiateResponse] = {
     if(responseType == "code") {
       clientService.getRegisteredAppById(clientId) flatMap {
         case Some(app) => if(app.oauth2Flows.contains("authorization_code")) {
@@ -97,7 +99,9 @@ trait GrantOrchestrator {
     }
   }
 
-  def saveIncomingGrant(responseType: String, clientId: String, userId: String, scope: Seq[String], codeVerifier: Option[String], codeChallenge: Option[String], codeChallengeMethod: Option[String])(implicit ec: ExC): Future[Option[Grant]] = {
+  def saveIncomingGrant(responseType: String, clientId: String, userId: String, scope: Seq[String],
+                        codeVerifier: Option[String], codeChallenge: Option[String], codeChallengeMethod: Option[String])
+                       (implicit ec: ExC): Future[Option[Grant]] = {
     userService.getUserInfo(userId) flatMap {
       case Some(user) => clientService.getRegisteredAppById(clientId) flatMap {
         case Some(app) =>
@@ -121,7 +125,7 @@ trait GrantOrchestrator {
                 _ => Some(grant)
               }
             case MongoFailedCreate  =>
-              logger.error(s"[savLIncomingGrant] - There was a problem saving the grant for userId $userId")
+              logger.error(s"[saveIncomingGrant] - There was a problem saving the grant for userId $userId")
               Future.successful(None)
           }
         case None =>

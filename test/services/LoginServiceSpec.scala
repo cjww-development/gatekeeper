@@ -16,16 +16,16 @@
 
 package services
 
-import java.util.UUID
-
-import database.{IndividualUserStore, LoginAttemptStore, OrganisationUserStore, UserStore}
+import database.{LoginAttemptStore, UserStore}
 import helpers.Assertions
 import helpers.database.{MockAppStore, MockIndividualStore, MockLoginAttemptStore, MockOrganisationStore}
 import models.{DigitalContact, Email, LoginAttempt, User}
 import org.joda.time.DateTime
 import org.mongodb.scala.bson.BsonString
 import org.scalatestplus.play.PlaySpec
+import services.users.LoginService
 
+import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class LoginServiceSpec

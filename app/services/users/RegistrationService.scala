@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services
+package services.users
 
 import database.{AppStore, UserStore, UserStoreUtils}
 import dev.cjww.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}

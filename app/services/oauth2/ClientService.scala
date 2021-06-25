@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package services
+package services.oauth2
 
 import database.AppStore
 import dev.cjww.mongo.responses.{MongoDeleteResponse, MongoFailedUpdate, MongoSuccessUpdate, MongoUpdatedResponse}
-import dev.cjww.security.Implicits._
-import dev.cjww.security.obfuscation.Obfuscators
 import models.RegisteredApplication
 import org.mongodb.scala.model.Filters.{and, equal}
 import org.mongodb.scala.model.Updates.set
-import org.slf4j.LoggerFactory
+import org.slf4j.{Logger, LoggerFactory}
+import utils.StringUtils._
 
 import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
@@ -35,12 +34,10 @@ case object RegenerationFailed extends RegenerationResponse
 
 class DefaultClientService @Inject()(val appStore: AppStore) extends ClientService
 
-trait ClientService extends Obfuscators {
-  override val locale: String = ""
-
+trait ClientService {
   val appStore: AppStore
 
-  override val logger = LoggerFactory.getLogger(this.getClass)
+  private val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   def getRegisteredApp(orgUserId: String, appId: String)(implicit ec: ExC): Future[Option[RegisteredApplication]] = {
     val query = and(
@@ -50,9 +47,9 @@ trait ClientService extends Obfuscators {
 
     appStore.validateAppOn(query) map { app =>
       if(app.isDefined) {
-        logger.info(s"[getRegisteredApp] - Found app $appId belonging to ${orgUserId}")
+        logger.info(s"[getRegisteredApp] - Found app $appId belonging to $orgUserId")
       } else {
-        logger.warn(s"[getRegisteredApp] - No app found app $appId belonging to ${orgUserId}")
+        logger.warn(s"[getRegisteredApp] - No app found app $appId belonging to $orgUserId")
       }
       app
     }
@@ -105,9 +102,9 @@ trait ClientService extends Obfuscators {
   def getRegisteredAppsFor(orgUserId: String)(implicit ec: ExC): Future[Seq[RegisteredApplication]] = {
     appStore.getAppsOwnedBy(orgUserId) map { apps =>
       if(apps.nonEmpty) {
-        logger.info(s"[getRegisteredAppsFor] - Found ${apps.length} apps ${orgUserId}")
+        logger.info(s"[getRegisteredAppsFor] - Found ${apps.length} apps $orgUserId")
       } else {
-        logger.warn(s"[getRegisteredAppsFor] - No apps found belonging to ${orgUserId}")
+        logger.warn(s"[getRegisteredAppsFor] - No apps found belonging to $orgUserId")
       }
       apps
     }
@@ -168,7 +165,8 @@ trait ClientService extends Obfuscators {
     appStore.updateApp(query, update)
   }
 
-  def updateTokenExpiry(orgUserId: String, appId: String, idExpiry: Long, accessExpiry: Long, refreshExpiry: Long)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
+  def updateTokenExpiry(orgUserId: String, appId: String, idExpiry: Long, accessExpiry: Long, refreshExpiry: Long)
+                       (implicit ec: ExC): Future[MongoUpdatedResponse] = {
     val query = and(
       equal("owner", orgUserId),
       equal("appId", appId)

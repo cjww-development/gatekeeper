@@ -16,19 +16,19 @@
 
 package services
 
-import java.util.UUID
-
+import database.{AppStore, UserStore}
 import dev.cjww.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
 import dev.cjww.security.Implicits._
 import dev.cjww.security.obfuscation.Obfuscators
-import database.{AppStore, UserStore}
 import helpers.Assertions
 import helpers.database.{MockAppStore, MockIndividualStore, MockOrganisationStore}
 import models.{DigitalContact, Email, RegisteredApplication, User}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
+import services.users.RegistrationService
 import utils.StringUtils
 
+import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class RegistrationServiceSpec

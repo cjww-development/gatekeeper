@@ -16,9 +16,9 @@
 
 package helpers.database
 
+import database.TokenRecordStore
 import dev.cjww.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
-import database.{GrantStore, TokenRecordStore}
-import models.{Grant, TokenRecord}
+import models.TokenRecord
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
 import org.mockito.stubbing.OngoingStubbing

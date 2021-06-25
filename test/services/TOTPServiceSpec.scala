@@ -16,13 +16,11 @@
 
 package services
 
-import java.util.UUID
-
+import database.{IndividualUserStore, OrganisationUserStore}
 import dev.cjww.mongo.responses.{MongoFailedUpdate, MongoSuccessUpdate}
 import dev.cjww.security.Implicits._
 import dev.cjww.security.SecurityConfiguration
 import dev.cjww.security.obfuscation.Obfuscators
-import database.{IndividualUserStore, OrganisationUserStore}
 import dev.samstevens.totp.code.{CodeVerifier, HashingAlgorithm}
 import dev.samstevens.totp.qr.ZxingPngQrGenerator
 import dev.samstevens.totp.secret.SecretGenerator
@@ -32,7 +30,9 @@ import helpers.misc.MockJavaTOTP
 import models.{DigitalContact, Email, User}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
+import services.security._
 
+import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class TOTPServiceSpec

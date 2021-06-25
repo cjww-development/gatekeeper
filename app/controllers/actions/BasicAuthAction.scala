@@ -20,7 +20,7 @@ import errors.StandardErrors
 import models.RegisteredApplication
 import org.slf4j.LoggerFactory
 import play.api.mvc._
-import services.ClientService
+import services.oauth2.ClientService
 
 import java.nio.charset.StandardCharsets
 import java.util.Base64

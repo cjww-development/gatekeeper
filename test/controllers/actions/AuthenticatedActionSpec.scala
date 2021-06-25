@@ -16,11 +16,9 @@
 
 package controllers.actions
 
-import java.util.UUID
-
 import helpers.Assertions
 import helpers.orchestrators.MockUserOrchestrator
-import models.{AuthorisedClient, DigitalContact, Email, Gender, Name, ServerCookies, User, UserInfo}
+import models._
 import orchestrators.UserOrchestrator
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
@@ -29,6 +27,7 @@ import play.api.mvc.{BaseController, ControllerComponents, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
+import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 

@@ -31,7 +31,7 @@ import play.api.mvc.Results.Ok
 import play.api.mvc.{BaseController, ControllerComponents, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import services.TokenService
+import services.oauth2.TokenService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

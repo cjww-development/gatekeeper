@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory
 import pdi.jwt.{Jwt, JwtAlgorithm}
 import play.api.libs.json.Json
 import play.api.mvc._
-import services.TokenService
+import services.oauth2.TokenService
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 

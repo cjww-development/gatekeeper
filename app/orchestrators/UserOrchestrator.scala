@@ -17,13 +17,13 @@
 package orchestrators
 
 import dev.cjww.mongo.responses.MongoUpdatedResponse
-import dev.cjww.security.obfuscation.Obfuscators
 import models._
 import org.slf4j.LoggerFactory
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Request
-import services.{EmailService, RegistrationService, UserService}
-import utils.StringUtils
+import services.comms.EmailService
+import services.users.{RegistrationService, UserService}
+import utils.StringUtils._
 
 import java.text.SimpleDateFormat
 import javax.inject.Inject
@@ -43,15 +43,13 @@ class DefaultUserOrchestrator @Inject()(val userService: UserService,
                                         val emailService: EmailService,
                                         val registrationService: RegistrationService) extends UserOrchestrator
 
-trait UserOrchestrator extends Obfuscators {
-
-  override val locale: String = ""
+trait UserOrchestrator {
 
   protected val userService: UserService
   protected val emailService: EmailService
   protected val registrationService: RegistrationService
 
-  override val logger = LoggerFactory.getLogger(this.getClass)
+  private val logger = LoggerFactory.getLogger(this.getClass)
 
   def getUserDetails(id: String)(implicit ec: ExC): Future[Option[UserInfo]] = {
     def invalidUser(): Option[UserInfo] = {
@@ -62,13 +60,13 @@ trait UserOrchestrator extends Obfuscators {
     userService.getUserInfo(id).map(user => if(user.nonEmpty) user else invalidUser())
   }
 
-  def updateEmailAndReverify(userId: String, email: String)(implicit ec: ExC, req: Request[_]): Future[UserUpdateResponse] = {
+  def updateEmailAndReVerify(userId: String, email: String)(implicit ec: ExC, req: Request[_]): Future[UserUpdateResponse] = {
     userService.getUserInfo(userId) flatMap {
       case Some(user) => if(user.email != email) {
-        val obsEmail = stringObs.encrypt(email)
+        val obsEmail = email.encrypt
         registrationService.isIdentifierInUse(obsEmail, "") flatMap { inUse =>
           if(inUse) {
-            logger.error(s"[updateEmailAndReverify] - The email requested is already in use")
+            logger.error(s"[updateEmailAndReVerify] - The email requested is already in use")
             Future.successful(EmailInUse)
           } else {
             for {
@@ -81,11 +79,11 @@ trait UserOrchestrator extends Obfuscators {
           }
         }
       } else {
-        logger.warn(s"[updateEmailAndReverify] - Aborting update, email address for user $userId has not changed")
+        logger.warn(s"[updateEmailAndReVerify] - Aborting update, email address for user $userId has not changed")
         Future.successful(NoUpdateRequired)
       }
       case None =>
-        logger.error(s"[updateEmailAndReverify] - Failed updating email, no user found for userId $userId")
+        logger.error(s"[updateEmailAndReVerify] - Failed updating email, no user found for userId $userId")
         Future.successful(NoUser)
     }
   }
@@ -94,10 +92,10 @@ trait UserOrchestrator extends Obfuscators {
     if(changeOfPassword.newPassword == changeOfPassword.confirmedPassword) {
       userService.validateCurrentPassword(userId, changeOfPassword.oldPassword) flatMap { isMatched =>
         if(isMatched) {
-          val salt = StringUtils.salter(length = 32)
+          val salt = salter(length = 32)
           for {
             saltToUse <- registrationService.validateSalt(salt)
-            _ <- userService.updatePassword(userId, StringUtils.hasher(saltToUse, changeOfPassword.newPassword), saltToUse)
+            _ <- userService.updatePassword(userId, hasher(saltToUse, changeOfPassword.newPassword), saltToUse)
           } yield {
             logger.info(s"[updatePassword] - Password for user $userId has been updated")
             PasswordUpdated

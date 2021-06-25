@@ -16,14 +16,14 @@
 
 package helpers.services
 
-import models.{Grant, RegisteredApplication}
+import models.Grant
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
 import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import services.GrantService
+import services.oauth2.GrantService
 
 import scala.concurrent.Future
 

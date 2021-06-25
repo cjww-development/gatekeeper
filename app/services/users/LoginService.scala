@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services
+package services.users
 
 import database.{LoginAttemptStore, UserStore, UserStoreUtils}
 import dev.cjww.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
@@ -110,10 +110,12 @@ trait LoginService extends UserStoreUtils {
     val loginAttempt = LoginAttempt(userId, successfulAttempt)
     loginAttemptStore.createLoginAttempt(loginAttempt) map {
       case MongoSuccessCreate =>
-        logger.info(s"[saveLoginAttempt] - Saved ${if(successfulAttempt) "a successful" else "an unsuccessful"} login attempt for user ${userId} under ${loginAttempt.id}")
+        logger.info(
+          s"[saveLoginAttempt] - Saved ${if(successfulAttempt) "a successful" else "an unsuccessful"} login attempt for user $userId under ${loginAttempt.id}"
+        )
         Some(loginAttempt.id)
       case MongoFailedCreate =>
-        logger.warn(s"[saveLoginAttempt] - Failed to save login attempt for user ${userId}")
+        logger.warn(s"[saveLoginAttempt] - Failed to save login attempt for user $userId")
         None
     }
   }

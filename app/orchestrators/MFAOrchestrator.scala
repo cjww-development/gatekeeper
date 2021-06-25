@@ -18,6 +18,7 @@ package orchestrators
 
 import org.slf4j.{Logger, LoggerFactory}
 import services._
+import services.security.{FailedGeneration, MFADisabled, MFAEnabled, QRCode, QRCodeFailed, Secret, TOTPService}
 
 import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}

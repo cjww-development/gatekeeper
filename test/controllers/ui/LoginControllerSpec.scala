@@ -16,11 +16,8 @@
 
 package controllers.ui
 
-import java.util.UUID
-
-import dev.cjww.security.Implicits.ImplicitObfuscator
-import dev.cjww.security.obfuscation.Obfuscators
 import controllers.ui.{routes => uiRoutes}
+import dev.cjww.security.obfuscation.Obfuscators
 import helpers.Assertions
 import helpers.orchestrators.MockLoginOrchestrator
 import models.{DigitalContact, Email, ServerCookies, User}
@@ -32,6 +29,7 @@ import play.api.test.CSRFTokenHelper.addCSRFToken
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
+import java.util.UUID
 import scala.concurrent.ExecutionContext
 
 class LoginControllerSpec

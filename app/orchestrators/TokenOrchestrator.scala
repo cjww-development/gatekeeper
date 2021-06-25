@@ -17,16 +17,22 @@
 package orchestrators
 
 import dev.cjww.mongo.responses._
-import dev.cjww.security.deobfuscation.DeObfuscators
 import models.{RefreshToken, RegisteredApplication}
 import org.slf4j.{Logger, LoggerFactory}
-import services._
+import services.oauth2.{ClientService, GrantService, ScopeService, TokenService}
+import services.users.UserService
+import utils.StringUtils._
 
 import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
 sealed trait TokenResponse
-case class Issued(tokenType: String, scope: String, expiresIn: Long, accessToken: String, idToken: Option[String], refreshToken: Option[String]) extends TokenResponse
+case class Issued(tokenType: String,
+                  scope: String,
+                  expiresIn: Long,
+                  accessToken: String,
+                  idToken: Option[String],
+                  refreshToken: Option[String]) extends TokenResponse
 case object TokenError extends TokenResponse
 case object InvalidGrant extends TokenResponse
 case object InvalidGrantType extends TokenResponse
@@ -41,9 +47,7 @@ class DefaultTokenOrchestrator @Inject()(val grantService: GrantService,
                                          val scopeService: ScopeService,
                                          val tokenService: TokenService) extends TokenOrchestrator
 
-trait TokenOrchestrator extends DeObfuscators {
-
-  override val locale: String = ""
+trait TokenOrchestrator {
 
   protected val grantService: GrantService
   protected val tokenService: TokenService
@@ -51,9 +55,10 @@ trait TokenOrchestrator extends DeObfuscators {
   protected val clientService: ClientService
   protected val scopeService: ScopeService
 
-  override val logger: Logger = LoggerFactory.getLogger(this.getClass)
+  private val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
-  def authorizationCodeGrant(authCode: String, app: RegisteredApplication, redirectUri: String, codeVerifier: Option[String])(implicit ec: ExC): Future[TokenResponse] = {
+  def authorizationCodeGrant(authCode: String, app: RegisteredApplication, redirectUri: String, codeVerifier: Option[String])
+                            (implicit ec: ExC): Future[TokenResponse] = {
     grantService.validateGrant(authCode, app.clientId, redirectUri, codeVerifier) flatMap {
       case Some(grant) =>
         logger.info("[authorizationCodeGrant] - Grant has been validated")
@@ -61,7 +66,7 @@ trait TokenOrchestrator extends DeObfuscators {
 
         userService.getUserInfo(grant.userId).flatMap {
           case Some(userData) =>
-            val clientId = stringDeObfuscate.decrypt(grant.clientId).getOrElse(grant.clientId)
+            val clientId = grant.clientId.decrypt.getOrElse(grant.clientId)
             if(app.oauth2Flows.contains("authorization_code")) {
               logger.info(s"[authorizationCodeGrant] - Issuing new Id and access token for ${grant.userId} for use by clientId ${grant.clientId}")
               val scopedData = userData.toMap.filter{ case (k, _) => scopes.exists(_.name == k)}
@@ -109,7 +114,7 @@ trait TokenOrchestrator extends DeObfuscators {
     if(app.oauth2Flows.contains("client_credentials")) {
       logger.info(s"[clientCredentialsGrant] - Issuing new access token for client ${app.appId} for use by client ${app.appId}")
 
-      val clientId = stringDeObfuscate.decrypt(app.clientId).getOrElse(throw new Exception(s"Could not decrypt clientId for client ${app.appId}"))
+      val clientId = app.clientId.decrypt.getOrElse(throw new Exception(s"Could not decrypt clientId for client ${app.appId}"))
       val tokenSetId = tokenService.generateTokenRecordSetId
       val accessId = tokenService.generateTokenRecordSetId
       val accessToken = tokenService.createClientAccessToken(clientId, tokenSetId, accessId, app.accessTokenExpiry)
@@ -153,7 +158,9 @@ trait TokenOrchestrator extends DeObfuscators {
               val scopedData = userData.toMap.filter{ case (k, _) => scopes.exists(_.name == k)}
               val accessId = tokenService.generateTokenRecordSetId
               val idId = tokenService.generateTokenRecordSetId
-              val accessToken = tokenService.createAccessToken(refreshToken.aud, refreshToken.sub, refreshToken.tsid, accessId, refreshToken.scope.mkString(","), app.accessTokenExpiry)
+              val accessToken = tokenService.createAccessToken(
+                refreshToken.aud, refreshToken.sub, refreshToken.tsid, accessId, refreshToken.scope.mkString(","), app.accessTokenExpiry
+              )
               val idToken = if(refreshToken.scope.contains("openid")) {
                 Some(tokenService.createIdToken(refreshToken.aud, refreshToken.sub, refreshToken.tsid, idId, scopedData, app.idTokenExpiry))
               } else {

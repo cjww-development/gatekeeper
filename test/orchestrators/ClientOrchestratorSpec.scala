@@ -16,18 +16,18 @@
 
 package orchestrators
 
-import java.util.UUID
-
 import dev.cjww.mongo.responses.{MongoFailedDelete, MongoSuccessDelete}
 import dev.cjww.security.Implicits._
 import dev.cjww.security.obfuscation.Obfuscators
 import helpers.Assertions
 import helpers.services.{MockAccountService, MockClientService, MockTokenService}
-import models.{AuthorisedClient, DigitalContact, Email, Gender, Name, RegisteredApplication, User, UserInfo}
+import models._
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import services._
+import services.oauth2._
+import services.users.UserService
 
+import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class ClientOrchestratorSpec
@@ -41,7 +41,6 @@ class ClientOrchestratorSpec
   override val locale: String = ""
 
   val testOrchestrator: ClientOrchestrator = new ClientOrchestrator {
-    override val locale: String = ""
     override protected val clientService: ClientService = mockClientService
     override protected val userService: UserService = mockAccountService
     override protected val tokenService: TokenService = mockTokenService

@@ -16,20 +16,16 @@
 
 package controllers.actions
 
-import java.util.UUID
-
 import helpers.Assertions
-import helpers.orchestrators.MockUserOrchestrator
 import helpers.services.MockClientService
-import models.{AuthorisedClient, RegisteredApplication, ServerCookies, User, UserInfo}
-import orchestrators.UserOrchestrator
+import models.RegisteredApplication
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import play.api.mvc.Results.Ok
 import play.api.mvc.{BaseController, ControllerComponents, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import services.ClientService
+import services.oauth2.ClientService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}

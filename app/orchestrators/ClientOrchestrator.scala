@@ -17,11 +17,11 @@
 package orchestrators
 
 import dev.cjww.mongo.responses._
-import dev.cjww.security.deobfuscation.DeObfuscators
-import dev.cjww.security.obfuscation.Obfuscators
+import utils.StringUtils._
 import models.{AuthorisedClient, RegisteredApplication, TokenExpiry, TokenRecord}
 import org.slf4j.{Logger, LoggerFactory}
-import services._
+import services.oauth2.{ClientService, RegeneratedId, RegeneratedIdAndSecret, RegenerationFailed, TokenService}
+import services.users.{LinkResponse, UserService}
 
 import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
@@ -36,33 +36,25 @@ case object UrlsUpdated extends AppUpdateResponse
 
 class DefaultClientOrchestrator @Inject()(val clientService: ClientService,
                                           val userService: UserService,
-                                          val tokenService: TokenService) extends ClientOrchestrator {
-  override val locale: String = ""
-}
+                                          val tokenService: TokenService) extends ClientOrchestrator
 
-trait ClientOrchestrator extends Obfuscators with DeObfuscators {
+trait ClientOrchestrator {
 
   protected val clientService: ClientService
   protected val userService: UserService
   protected val tokenService: TokenService
 
-  override val logger: Logger = LoggerFactory.getLogger(this.getClass)
+  private val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   def getRegisteredApp(orgUserId: String, appId: String)(implicit ec: ExC): Future[Option[RegisteredApplication]] = {
     clientService.getRegisteredApp(orgUserId, appId).map {
-      _.map(app => app.copy(
-        clientId = stringDeObfuscate.decrypt(app.clientId).getOrElse(throw new Exception(s"Could not decrypt clientId for app ${app.appId}")),
-        clientSecret = app.clientSecret.map(sec => stringDeObfuscate.decrypt(sec).getOrElse(throw new Exception(s"Could not decrypt clientSecret for app ${app.appId}")))
-      ))
+      _.map(RegisteredApplication.decode)
     }
   }
 
   def getRegisteredApps(orgUserId: String, groupedBy: Int)(implicit ec: ExC): Future[Seq[Seq[RegisteredApplication]]] = {
     clientService.getRegisteredAppsFor(orgUserId) map {
-      _.map(app => app.copy(
-        clientId = stringDeObfuscate.decrypt(app.clientId).getOrElse(throw new Exception(s"Could not decrypt clientId for app ${app.appId}")),
-        clientSecret = app.clientSecret.map(sec => stringDeObfuscate.decrypt(sec).getOrElse(throw new Exception(s"Could not decrypt clientSecret for app ${app.appId}")))
-      ))
+      _.map(RegisteredApplication.decode)
       .grouped(groupedBy)
       .toSeq
     }

@@ -16,7 +16,7 @@
 
 package helpers.orchestrators
 
-import models.{Login, User}
+import models.Login
 import orchestrators.LoginOrchestrator
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}

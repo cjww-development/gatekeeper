@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services
+package services.oauth2
 
 import com.nimbusds.jose.Algorithm
 import com.nimbusds.jose.jwk._

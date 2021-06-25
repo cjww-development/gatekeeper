@@ -23,7 +23,7 @@ import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import services.ScopeService
+import services.oauth2.ScopeService
 
 trait MockScopeService extends MockitoSugar with BeforeAndAfterEach {
   self: PlaySpec =>

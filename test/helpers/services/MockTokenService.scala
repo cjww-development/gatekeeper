@@ -16,7 +16,7 @@
 
 package helpers.services
 
-import dev.cjww.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoFailedUpdate, MongoSuccessCreate, MongoSuccessUpdate, MongoUpdatedResponse}
+import dev.cjww.mongo.responses._
 import models.TokenRecord
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
@@ -24,7 +24,7 @@ import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import services.TokenService
+import services.oauth2.TokenService
 
 import scala.concurrent.Future
 

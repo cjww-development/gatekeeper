@@ -16,8 +16,8 @@
 
 package helpers.database
 
-import dev.cjww.mongo.responses.{MongoCreateResponse, MongoDeleteResponse, MongoFailedCreate, MongoSuccessCreate, MongoUpdatedResponse}
 import database.AppStore
+import dev.cjww.mongo.responses._
 import models.RegisteredApplication
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}

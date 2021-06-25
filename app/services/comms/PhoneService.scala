@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services
+package services.comms
 
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.sns.model.{MessageAttributeValue, PublishRequest, PublishResult}
@@ -72,7 +72,7 @@ trait PhoneService {
       userId,
       "phone",
       phoneNumber,
-      code = Some((100000 + ran.nextInt(900000)).toString()),
+      code = Some((100000 + ran.nextInt(900000)).toString),
       accType,
       createdAt = new DateTime()
     )

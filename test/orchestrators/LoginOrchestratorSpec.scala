@@ -18,10 +18,11 @@ package orchestrators
 
 import helpers.Assertions
 import helpers.services.{MockLoginService, MockTOTPService}
-import models.{DigitalContact, Email, Login, LoginAttempt, User}
+import models._
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import services.{FailedGeneration, LoginService, Secret, TOTPService}
+import services.security.{FailedGeneration, Secret, TOTPService}
+import services.users.LoginService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 

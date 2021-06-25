@@ -19,7 +19,7 @@ package controllers.api
 import play.api.i18n.Lang
 import play.api.libs.json.{JsArray, Json}
 import play.api.mvc._
-import services.JwksService
+import services.oauth2.JwksService
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext => ExC}

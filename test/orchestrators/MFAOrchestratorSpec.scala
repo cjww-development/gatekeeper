@@ -16,15 +16,14 @@
 
 package orchestrators
 
-import java.util.UUID
-
 import helpers.Assertions
 import helpers.services.MockTOTPService
 import models.{DigitalContact, Email, User}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import services._
+import services.security._
 
+import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class MFAOrchestratorSpec

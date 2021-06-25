@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services
+package services.comms
 
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.simpleemail.model._

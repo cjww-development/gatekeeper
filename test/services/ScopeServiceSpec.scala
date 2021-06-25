@@ -19,6 +19,7 @@ package services
 import helpers.Assertions
 import models.Scope
 import org.scalatestplus.play.PlaySpec
+import services.oauth2.ScopeService
 
 class ScopeServiceSpec
   extends PlaySpec
