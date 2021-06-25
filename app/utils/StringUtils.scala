@@ -16,6 +16,8 @@
 
 package utils
 
+import dev.cjww.security.DecryptionError
+import dev.cjww.security.defence.DataDefenders
 import io.github.nremond.PBKDF2
 
 import java.nio.charset.StandardCharsets
@@ -33,5 +35,11 @@ object StringUtils {
     PBKDF2(input.getBytes(StandardCharsets.UTF_8), salt.getBytes(StandardCharsets.UTF_8), 20000, 64, "HmacSHA512")
       .map(x => "%02x".format(x))
       .mkString
+  }
+
+  implicit class ImplicitStringUtils(data: String) extends DataDefenders {
+    override val locale: String = ""
+    def encrypt: String = stringDefense.encrypt(data)
+    def decrypt: Either[DecryptionError, String] = stringDefense.decrypt(data)
   }
 }

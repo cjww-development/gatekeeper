@@ -16,8 +16,8 @@
 
 package helpers.database
 
-import dev.cjww.mongo.responses._
 import database.VerificationStore
+import dev.cjww.mongo.responses._
 import models.Verification
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}

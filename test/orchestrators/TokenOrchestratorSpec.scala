@@ -16,8 +16,6 @@
 
 package orchestrators
 
-import java.util.UUID
-
 import dev.cjww.security.Implicits._
 import dev.cjww.security.obfuscation.Obfuscators
 import helpers.Assertions
@@ -25,10 +23,10 @@ import helpers.services._
 import models._
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import play.api.mvc.AnyContentAsEmpty
-import play.api.test.FakeRequest
-import services._
+import services.oauth2.{ClientService, GrantService, ScopeService, TokenService}
+import services.users.UserService
 
+import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class TokenOrchestratorSpec

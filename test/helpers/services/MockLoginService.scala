@@ -16,17 +16,16 @@
 
 package helpers.services
 
-import java.util.UUID
-
-import models.{LoginAttempt, User}
+import models.User
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
 import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import services.LoginService
+import services.users.LoginService
 
+import java.util.UUID
 import scala.concurrent.Future
 
 trait MockLoginService extends MockitoSugar with BeforeAndAfterEach {

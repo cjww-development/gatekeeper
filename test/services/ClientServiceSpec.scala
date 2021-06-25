@@ -16,16 +16,17 @@
 
 package services
 
-import dev.cjww.mongo.responses.{MongoFailedDelete, MongoFailedUpdate, MongoSuccessDelete, MongoSuccessUpdate}
 import database.AppStore
+import dev.cjww.mongo.responses.{MongoFailedDelete, MongoFailedUpdate, MongoSuccessDelete, MongoSuccessUpdate}
+import dev.cjww.security.Implicits._
+import dev.cjww.security.deobfuscation.DeObfuscators
+import dev.cjww.security.obfuscation.Obfuscators
 import helpers.Assertions
 import helpers.database.MockAppStore
 import models.RegisteredApplication
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import dev.cjww.security.Implicits._
-import dev.cjww.security.deobfuscation.DeObfuscators
-import dev.cjww.security.obfuscation.Obfuscators
+import services.oauth2.{ClientService, RegeneratedId, RegeneratedIdAndSecret, RegenerationFailed}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 

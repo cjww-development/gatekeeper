@@ -16,9 +16,9 @@
 
 package helpers.database
 
+import database.LoginAttemptStore
 import dev.cjww.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
-import database.{GrantStore, LoginAttemptStore}
-import models.{Grant, LoginAttempt}
+import models.LoginAttempt
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
 import org.mockito.stubbing.OngoingStubbing

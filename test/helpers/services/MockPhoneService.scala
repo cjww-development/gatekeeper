@@ -20,7 +20,7 @@ import org.mockito.Mockito.reset
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import services.PhoneService
+import services.comms.PhoneService
 
 trait MockPhoneService extends MockitoSugar with BeforeAndAfterEach {
   self: PlaySpec =>

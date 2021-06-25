@@ -16,8 +16,8 @@
 
 package helpers.orchestrators
 
-import models.{Login, RegisteredApplication, User}
-import orchestrators.{ClientOrchestrator, LoginOrchestrator}
+import models.RegisteredApplication
+import orchestrators.ClientOrchestrator
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
 import org.mockito.stubbing.OngoingStubbing

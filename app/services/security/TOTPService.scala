@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package services
+package services.security
 
 import database.{UserStore, UserStoreUtils}
 import dev.cjww.mongo.responses.{MongoFailedUpdate, MongoSuccessUpdate}
-import dev.cjww.security.deobfuscation.DeObfuscators
 import dev.samstevens.totp.code.{CodeVerifier, DefaultCodeGenerator, DefaultCodeVerifier, HashingAlgorithm}
 import dev.samstevens.totp.qr.{QrData, ZxingPngQrGenerator}
 import dev.samstevens.totp.secret.{DefaultSecretGenerator, SecretGenerator}
@@ -27,7 +26,9 @@ import dev.samstevens.totp.util.Utils.getDataUriForImage
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters.{and, equal}
 import org.mongodb.scala.model.Updates.{set, unset}
+import org.slf4j.{Logger, LoggerFactory}
 import play.api.Configuration
+import utils.StringUtils._
 
 import javax.inject.{Inject, Named}
 import scala.concurrent.{Future, ExecutionContext => ExC}
@@ -64,9 +65,7 @@ class DefaultTOTPService @Inject()(@Named("individualUserStore") val individualU
   )
 }
 
-trait TOTPService extends DeObfuscators with UserStoreUtils {
-  override val locale: String = ""
-
+trait TOTPService extends UserStoreUtils {
   val secretGenerator: SecretGenerator
   val qrGenerator: ZxingPngQrGenerator
   val codeVerifier: CodeVerifier
@@ -77,6 +76,8 @@ trait TOTPService extends DeObfuscators with UserStoreUtils {
   val mfaPeriod: Int
 
   private val query: String => Bson = userId => equal("id", userId)
+
+  private val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   def generateSecret(userId: String)(implicit ec: ExC): Future[SecretResponse] = {
     val secret = secretGenerator.generate()
@@ -101,7 +102,7 @@ trait TOTPService extends DeObfuscators with UserStoreUtils {
     getUserStore(userId).findUser(query(userId)).map {
       case Some(user) =>
         val qrData = new QrData.Builder()
-          .label(stringDeObfuscate.decrypt(user.userName).getOrElse(""))
+          .label(user.userName.decrypt.getOrElse(""))
           .secret(secret)
           .issuer(mfaIssuer)
           .algorithm(algorithm)

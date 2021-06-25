@@ -20,7 +20,7 @@ import controllers.actions.BasicAuthAction
 import errors.StandardErrors
 import orchestrators.TokenOrchestrator
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
-import services.ClientService
+import services.oauth2.ClientService
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}

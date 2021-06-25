@@ -18,6 +18,10 @@ package models
 
 import org.joda.time.DateTime
 import play.api.libs.json.{JsObject, Json, OFormat}
+import utils.StringUtils._
+
+import java.text.SimpleDateFormat
+import java.util.Date
 
 case class UserInfo(id: String,
                     userName: String,
@@ -99,4 +103,32 @@ object UserInfo extends TimeFormat {
 
     Json.obj("address" -> addrObj)
   }
+
+  val fromUser: User => UserInfo = user => UserInfo(
+    id = user.id,
+    userName = user.userName.decrypt.getOrElse(""),
+    email = user.digitalContact.email.address.decrypt.getOrElse(""),
+    emailVerified = user.digitalContact.email.verified,
+    phone = user.digitalContact.phone.map(_.number),
+    phoneVerified = user.digitalContact.phone.exists(_.verified),
+    accType = user.accType,
+    name = Name(
+      firstName = user.profile.flatMap(_.givenName),
+      middleName = user.profile.flatMap(_.middleName),
+      lastName = user.profile.flatMap(_.familyName),
+      nickName = user.profile.flatMap(_.nickname)
+    ),
+    gender = Gender(
+      selection = ???,
+      custom = ???
+    ),
+    birthDate = user.profile.flatMap(_.birthDate.map { date =>
+      val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
+      dateFormat.format(date)
+    }),
+    address = user.address,
+    authorisedClients = user.authorisedClients,
+    mfaEnabled = user.mfaEnabled,
+    createdAt = user.createdAt
+  )
 }

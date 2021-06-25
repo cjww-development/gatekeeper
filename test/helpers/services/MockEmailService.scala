@@ -25,7 +25,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.mvc.Request
-import services.EmailService
+import services.comms.EmailService
 
 import scala.concurrent.Future
 

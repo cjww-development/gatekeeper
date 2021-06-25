@@ -31,6 +31,10 @@ import orchestrators._
 import play.api.inject.{Binding, Module}
 import play.api.{Configuration, Environment}
 import services._
+import services.comms.{DefaultEmailService, DefaultPhoneService, EmailService, PhoneService}
+import services.oauth2.{ClientService, DefaultClientService, DefaultGrantService, DefaultJwksService, DefaultScopeService, DefaultTokenService, GrantService, JwksService, ScopeService, TokenService}
+import services.security.{DefaultTOTPService, TOTPService}
+import services.users.{DefaultLoginService, DefaultRegistrationService, DefaultUserService, LoginService, RegistrationService, UserService}
 
 class ServiceBindings extends Module {
   override def bindings(environment: Environment, configuration: Configuration): collection.Seq[Binding[_]] = {

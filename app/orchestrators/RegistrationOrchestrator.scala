@@ -17,11 +17,12 @@
 package orchestrators
 
 import dev.cjww.mongo.responses.{MongoFailedCreate, MongoFailedUpdate, MongoSuccessCreate, MongoSuccessUpdate}
-import dev.cjww.security.deobfuscation.DeObfuscators
 import models.{RegisteredApplication, User, Verification}
 import org.slf4j.LoggerFactory
 import play.api.mvc.Request
-import services.{EmailService, PhoneService, RegistrationService, UserService}
+import services.users.{RegistrationService, UserService}
+import services.comms.{EmailService, PhoneService}
+import utils.StringUtils._
 
 import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
@@ -46,18 +47,16 @@ case object VerificationSent extends VerificationResponse
 class DefaultRegistrationOrchestrator @Inject()(val registrationService: RegistrationService,
                                                 val userService: UserService,
                                                 val phoneService: PhoneService,
-                                                val emailService: EmailService) extends RegistrationOrchestrator {
-  override val locale: String = ""
-}
+                                                val emailService: EmailService) extends RegistrationOrchestrator
 
-trait RegistrationOrchestrator extends DeObfuscators {
+trait RegistrationOrchestrator {
 
   protected val registrationService: RegistrationService
   protected val emailService: EmailService
   protected val userService: UserService
   protected val phoneService: PhoneService
 
-  override val logger = LoggerFactory.getLogger(this.getClass)
+  private val logger = LoggerFactory.getLogger(this.getClass)
 
   def registerUser(user: User)(implicit ec: ExC, req: Request[_]): Future[UserRegistrationResponse] = {
     registrationService.isIdentifierInUse(user.digitalContact.email.address, user.userName) flatMap {
@@ -67,9 +66,9 @@ trait RegistrationOrchestrator extends DeObfuscators {
       case false => registrationService.validateSalt(user.salt) flatMap { saltToUse =>
         registrationService.createNewUser(user.copy(salt = saltToUse)) flatMap {
           case MongoSuccessCreate =>
-            val emailAddr = stringDeObfuscate.decrypt(user.digitalContact.email.address).getOrElse(throw new Exception("Decryption error"))
+            val emailAddress = user.digitalContact.email.address.decrypt.getOrElse(throw new Exception("Decryption error"))
             emailService.saveVerificationRecord(user.id, user.digitalContact.email.address, user.accType) map { record =>
-              emailService.sendEmailVerificationMessage(emailAddr, record)
+              emailService.sendEmailVerificationMessage(emailAddress, record)
               logger.info(s"[registerUser] - Registration successful; new user under ${user.id}")
               Registered
             }

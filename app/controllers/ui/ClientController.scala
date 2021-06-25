@@ -23,9 +23,9 @@ import models.TokenExpiry
 import orchestrators._
 import play.api.i18n.{I18NSupportLowPriorityImplicits, I18nSupport, Lang}
 import play.api.mvc._
-import services.ScopeService
+import services.oauth2.ScopeService
 import views.html.client._
-import views.html.misc.{NotFound => NotFoundView, INS}
+import views.html.misc.{INS, NotFound => NotFoundView}
 import views.html.registration.AppRegistration
 
 import javax.inject.Inject

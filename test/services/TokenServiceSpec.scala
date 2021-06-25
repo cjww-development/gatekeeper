@@ -16,18 +16,19 @@
 
 package services
 
-import dev.cjww.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
 import com.nimbusds.jose.Algorithm
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator
 import com.nimbusds.jose.jwk.{KeyUse, RSAKey}
 import database.TokenRecordStore
+import dev.cjww.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
 import helpers.Assertions
 import helpers.database.MockTokenRecordStore
-import models.{AuthorisedClient, Gender, Name, RefreshToken, TokenRecord, UserInfo}
+import models._
 import org.apache.commons.net.util.Base64
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
+import services.oauth2.TokenService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 

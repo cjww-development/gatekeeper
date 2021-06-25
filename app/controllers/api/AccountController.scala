@@ -21,7 +21,7 @@ import orchestrators.UserOrchestrator
 import play.api.Configuration
 import play.api.i18n.Lang
 import play.api.mvc._
-import services.TokenService
+import services.oauth2.TokenService
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext => ExC}

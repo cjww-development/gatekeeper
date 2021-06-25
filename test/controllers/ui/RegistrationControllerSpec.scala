@@ -18,7 +18,7 @@ package controllers.ui
 
 import helpers.Assertions
 import helpers.orchestrators.{MockRegistrationOrchestrator, MockUserOrchestrator}
-import orchestrators.{AccountIdsInUse, Registered, RegistrationError, RegistrationOrchestrator, UserOrchestrator}
+import orchestrators._
 import org.scalatestplus.play.PlaySpec
 import play.api.mvc.ControllerComponents
 import play.api.test.CSRFTokenHelper.addCSRFToken

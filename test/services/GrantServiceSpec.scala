@@ -16,15 +16,16 @@
 
 package services
 
+import database.{AppStore, GrantStore}
+import dev.cjww.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
 import dev.cjww.security.Implicits._
 import dev.cjww.security.obfuscation.Obfuscators
-import dev.cjww.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
-import database.{AppStore, GrantStore}
 import helpers.Assertions
 import helpers.database.{MockAppStore, MockGrantStore}
 import models.{Grant, RegisteredApplication}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
+import services.oauth2.GrantService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 

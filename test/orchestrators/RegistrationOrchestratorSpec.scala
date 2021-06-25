@@ -16,15 +16,16 @@
 
 package orchestrators
 
-import dev.cjww.security.obfuscation.Obfuscators
-import dev.cjww.security.Implicits._
+import utils.StringUtils._
 import helpers.Assertions
 import helpers.services.{MockEmailService, MockPhoneService, MockRegistrationService, MockUserService}
-import models.{DigitalContact, Email, RegisteredApplication, User, Verification}
+import models._
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
+import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
-import services.{EmailService, PhoneService, RegistrationService, UserService}
+import services.comms.{EmailService, PhoneService}
+import services.users.{RegistrationService, UserService}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -34,17 +35,13 @@ class RegistrationOrchestratorSpec
     with MockRegistrationService
     with MockEmailService
     with MockPhoneService
-    with MockUserService
-    with Obfuscators {
-
-  override val locale: String = ""
+    with MockUserService {
 
   val testOrchestrator: RegistrationOrchestrator = new RegistrationOrchestrator {
     override protected val phoneService: PhoneService = mockPhoneService
     override protected val userService: UserService = mockUserService
     override val registrationService: RegistrationService = mockRegistrationService
     override protected val emailService: EmailService = mockEmailService
-    override val locale: String = ""
   }
 
   val testUser: User = User(
@@ -87,7 +84,7 @@ class RegistrationOrchestratorSpec
   )
 
   "registerUser" should {
-    implicit val fakeRequest = FakeRequest()
+    implicit val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
 
     "return a Registered response" when {
       "the user is successfully registered" in {

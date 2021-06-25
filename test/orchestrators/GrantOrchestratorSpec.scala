@@ -16,17 +16,17 @@
 
 package orchestrators
 
-import java.util.UUID
-
 import dev.cjww.security.Implicits._
 import dev.cjww.security.obfuscation.Obfuscators
 import helpers.Assertions
 import helpers.services.{MockAccountService, MockClientService, MockGrantService, MockScopeService}
-import models.{AuthorisedClient, DigitalContact, Email, Gender, Name, RegisteredApplication, Scope, User, UserInfo}
+import models._
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import services.{ClientService, GrantService, ScopeService, UserService}
+import services.oauth2.{ClientService, GrantService, ScopeService}
+import services.users.UserService
 
+import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class GrantOrchestratorSpec

@@ -16,15 +16,15 @@
 
 package orchestrators
 
-import java.util.UUID
-
 import helpers.Assertions
 import helpers.services.{MockAccountService, MockEmailService, MockRegistrationService}
-import models.{AuthorisedClient, DigitalContact, Email, Gender, Name, User, UserInfo}
+import models._
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import services.{EmailService, RegistrationService, UserService}
+import services.comms.EmailService
+import services.users.{RegistrationService, UserService}
 
+import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class UserOrchestratorSpec

@@ -14,27 +14,23 @@
  * limitations under the License.
  */
 
-package services
+package services.users
 
 import database.{UserStore, UserStoreUtils}
 import dev.cjww.mongo.responses.{MongoFailedUpdate, MongoSuccessUpdate, MongoUpdatedResponse}
 import dev.cjww.security.SecurityConfiguration
 import dev.cjww.security.deobfuscation.DeObfuscators
 import models._
-import org.joda.time.{DateTime, DateTimeZone}
-import org.mongodb.scala.bson.BsonValue
+import org.joda.time.DateTime
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters.{and, equal}
 import org.mongodb.scala.model.Updates.{set, unset}
 import org.slf4j.{Logger, LoggerFactory}
-import utils.BsonUtils._
 import utils.StringUtils
 
-import java.text.SimpleDateFormat
 import java.util.Date
 import javax.inject.{Inject, Named}
 import scala.concurrent.{Future, ExecutionContext => ExC}
-import scala.jdk.CollectionConverters._
 
 sealed trait LinkResponse
 case object LinkSuccess extends LinkResponse
@@ -57,86 +53,11 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
 
   private val query: String => Bson = userId => equal("id", userId)
 
-  private def getAuthorisedClientFromBson(bson: Map[String, BsonValue]): List[AuthorisedClient] = {
-    bson
-      .get("authorisedClients")
-      .map(_.asArray().getValues.asScala.map { bson =>
-        val document = bson.asDocument()
-        AuthorisedClient(
-          appId = document.getString("appId").getValue,
-          authorisedScopes = document
-            .getArray("authorisedScopes")
-            .getValues
-            .asScala
-            .map(_.asString().getValue)
-            .toSeq,
-          authorisedOn = new DateTime(document.getDateTime("authorisedOn").getValue, DateTimeZone.UTC)
-        )
-      }.toList)
-      .getOrElse(List.empty[AuthorisedClient])
-  }
-
   def getUserInfo(userId: String)(implicit ec: ExC): Future[Option[UserInfo]] = {
-    val projections = List(
-      "userName",
-      "digitalContact",
-      "createdAt",
-      "authorisedClients",
-      "mfaEnabled",
-      "accType",
-      "profile",
-      "address"
-    )
-    getUserStore(userId).projectValue("id", userId, projections:_*) map { data =>
-      if(data.nonEmpty) {
+    getUserStore(userId).findUser(query(userId)).map {
+      _.map { user =>
         logger.info(s"[getUserInfo] - Found user data for user $userId")
-        Some(UserInfo(
-          id = data("id").asString().getValue,
-          userName = stringDeObfuscate.decrypt(data("userName").asString().getValue).getOrElse("---"),
-          email = stringDeObfuscate
-            .decrypt(data("digitalContact").asDocument().getDocument("email").getString("address").getValue)
-            .getOrElse("---"),
-          emailVerified = data("digitalContact").asDocument().getDocument("email").getBoolean("verified").getValue,
-          phone = data("digitalContact").asDocument().getOptionalDocument("phone").flatMap(_.getOptionalString("number")),
-          phoneVerified = data("digitalContact").asDocument().getOptionalDocument("phone").flatMap(_.getOptionalBoolean("verified")).getOrElse(false),
-          accType = data("accType").asString().getValue,
-          name = Name(
-            firstName  = data.get("profile").flatMap(_.asDocument().getOptionalString("givenName")),
-            middleName = data.get("profile").flatMap(_.asDocument().getOptionalString("middleName")),
-            lastName   = data.get("profile").flatMap(_.asDocument().getOptionalString("familyName")),
-            nickName   = data.get("profile").flatMap(_.asDocument().getOptionalString("nickname"))
-          ),
-          gender = {
-            val genderValue = data.get("profile").flatMap(_.asDocument().getOptionalString("gender")).getOrElse("not specified")
-            Gender(
-              selection = if(Gender.toList.contains(genderValue)) genderValue else "other",
-              custom = if(Gender.toList.contains(genderValue)) None else Some(genderValue)
-            )
-          },
-          birthDate = data.get("profile").flatMap(_.asDocument().getOptionalLong("birthDate").map { dateLong =>
-            val date = new Date(dateLong)
-            val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
-            dateFormat.format(date)
-          }),
-          address = data.get("address").map(_.asDocument()).map { addrDoc =>
-            val formatted = addrDoc.get("formatted").asString().getValue
-            val streetAddress = addrDoc.get("streetAddress").asString().getValue
-            val locality = addrDoc.get("locality").asString().getValue
-            val region = addrDoc.get("region").asString().getValue
-            val postalCode = addrDoc.get("postalCode").asString().getValue
-            val country = addrDoc.get("country").asString().getValue
-
-            Address(formatted, streetAddress, locality, region, postalCode, country)
-          },
-          authorisedClients = getAuthorisedClientFromBson(data),
-          mfaEnabled = data("mfaEnabled").asBoolean().getValue,
-          createdAt = new DateTime(
-            data("createdAt").asDateTime().getValue, DateTimeZone.UTC
-          )
-        ))
-      } else {
-        logger.info(s"[getUserInfo] - Could not find data for user $userId")
-        None
+        UserInfo.fromUser(user)
       }
     }
   }
@@ -235,7 +156,8 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
     }
   }
 
-  def updateName(userId: String, firstName: Option[String], middleName: Option[String], lastName: Option[String], nickName: Option[String])(implicit ec: ExC): Future[MongoUpdatedResponse] = {
+  def updateName(userId: String, firstName: Option[String], middleName: Option[String], lastName: Option[String], nickName: Option[String])
+                (implicit ec: ExC): Future[MongoUpdatedResponse] = {
     val collection = getUserStore(userId)
     val update = and(
       firstName.fold(unset("profile.givenName"))(fn => set("profile.givenName", fn)),
@@ -288,9 +210,9 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
 
   def updateAddress(userId: String, address: Option[Address])(implicit ec: ExC): Future[MongoUpdatedResponse] = {
     val collection = getUserStore(userId)
-    val update = address.fold(unset("address"))(adr => set("address", adr))
+    val addressUpdate = address.fold(unset("address"))(adr => set("address", adr))
 
-    collection.updateUser(query(userId), update) map {
+    collection.updateUser(query(userId), addressUpdate) map {
       case MongoSuccessUpdate =>
         logger.info(s"[updateAddress] - Updated address for user $userId")
         MongoSuccessUpdate
@@ -302,12 +224,12 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
 
   def setVerifiedPhoneNumber(userId: String, phoneNumber: String)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
     val collection = getUserStore(userId)
-    val update = and(
+    val phoneNumberUpdate = and(
       set("digitalContact.phone.number", phoneNumber),
       set("digitalContact.phone.verified", true)
     )
 
-    collection.updateUser(query(userId), update) map {
+    collection.updateUser(query(userId), phoneNumberUpdate) map {
       case MongoSuccessUpdate =>
         logger.info(s"[updateAddress] - Updated address for user $userId")
         MongoSuccessUpdate

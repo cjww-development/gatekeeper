@@ -24,7 +24,7 @@ import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import services.RegistrationService
+import services.users.RegistrationService
 
 import scala.concurrent.{Future, ExecutionContext => ExC}
 

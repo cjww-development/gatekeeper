@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services
+package services.oauth2
 
 import database.{AppStore, GrantStore}
 import dev.cjww.mongo.responses.MongoCreateResponse

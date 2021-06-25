@@ -23,7 +23,7 @@ import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import services.{MFAEnabledResponse, QRCodeResponse, SecretResponse, TOTPService, UserService}
+import services.users.UserService
 
 import scala.concurrent.Future
 

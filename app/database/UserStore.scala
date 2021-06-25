@@ -71,8 +71,8 @@ trait UserStore extends DatabaseRepository with CodecReg {
       doc.fold[Map[String, BsonValue]](Map())(_.toMap)
     }
 
-    val inclusions = fields((projections
-      .map(str => include(str)) ++ Seq(include("id"), excludeId())):_*)
+    val inclusions = fields(projections
+      .map(str => include(str)) ++ Seq(include("id"), excludeId()):_*)
 
     documentBasedCollection
       .find(equal(key, value))

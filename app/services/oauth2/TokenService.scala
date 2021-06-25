@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services
+package services.oauth2
 
 import com.nimbusds.jose.jwk.RSAKey
 import database.TokenRecordStore
@@ -55,64 +55,37 @@ trait TokenService {
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  def createAccessToken(clientId: String, userId: String, setId: String, tokenId: String, scope: String, expiry: Long): String = {
+  private def buildGenericPayload(aud: String, sub: String, expiry: Long, customClaims: List[(String, String)]): String = {
     val now = Instant.now
-
-    val claims = JwtClaim()
-      .to(clientId)
+    JwtClaim()
+      .to(aud)
       .by(issuer)
       .issuedAt(now.getEpochSecond)
       .startsAt(now.getEpochSecond)
       .expiresAt(now.plusMillis(expiry).getEpochSecond)
-      .about(userId)
-      .++[String](
-        "scp" -> scope,
-        "tsid" -> setId,
-        "tid" -> tokenId
-      ).toJson
+      .about(sub)
+      .++[String](customClaims:_*)
+      .toJson
+  }
 
+  def createAccessToken(clientId: String, userId: String, setId: String, tokenId: String, scope: String, expiry: Long): String = {
+    val customClaims = List("scp" -> scope, "tsid" -> setId, "tid" -> tokenId)
+    val claims = buildGenericPayload(clientId, userId, expiry, customClaims)
     Jwt.encode(claims, signature, JwtAlgorithm.HS512)
   }
 
   def createIdToken(clientId: String, userId: String, setId: String, tokenId: String, userData: Map[String, String], expiry: Long): String = {
-    val now = Instant.now
-
     val header = JwtHeader(algorithm = JwtAlgorithm.RS256)
       .withKeyId(jwks.getKeyID)
       .toJson
-
-    val claims = JwtClaim()
-      .to(clientId)
-      .by(issuer)
-      .issuedAt(now.getEpochSecond)
-      .startsAt(now.getEpochSecond)
-      .expiresAt(now.plusMillis(expiry).getEpochSecond)
-      .about(userId)
-      .++[String](Seq(
-        "tsid" -> setId,
-        "tid" -> tokenId
-      ) ++ userData.toSeq:_*)
-      .toJson
-
+    val customClaims = List("tsid" -> setId, "tid" -> tokenId) ++ userData
+    val claims = buildGenericPayload(clientId, userId, expiry, customClaims)
     Jwt.encode(header, claims, jwks.toPrivateKey, JwtAlgorithm.RS256)
   }
 
   def createClientAccessToken(clientId: String, setId: String, tokenId: String, expiry: Long): String = {
-    val now = Instant.now
-
-    val claims = JwtClaim()
-      .to(clientId)
-      .by(issuer)
-      .issuedAt(now.getEpochSecond)
-      .startsAt(now.getEpochSecond)
-      .expiresAt(now.plusMillis(expiry).getEpochSecond)
-      .about(clientId)
-      .++[String](
-        "tsid" -> setId,
-        "tid" -> tokenId
-      )
-      .toJson
-
+    val customClaims = List("tsid" -> setId, "tid" -> tokenId)
+    val claims = buildGenericPayload(clientId, clientId, expiry, customClaims)
     Jwt.encode(claims, signature, JwtAlgorithm.HS512)
   }
 
@@ -137,7 +110,8 @@ trait TokenService {
     UUID.randomUUID().toString
   }
 
-  def createTokenRecordSet(recordSetId: String, userId: String, appId: String, accessId: String, idId: Option[String], refreshId: Option[String])(implicit ec: ExC): Future[MongoCreateResponse] = {
+  def createTokenRecordSet(recordSetId: String, userId: String, appId: String, accessId: String, idId: Option[String], refreshId: Option[String])
+                          (implicit ec: ExC): Future[MongoCreateResponse] = {
     val record = TokenRecord(recordSetId, userId, appId, accessId, idId, refreshId, issuedAt = new DateTime())
     tokenRecordStore.createTokenRecord(record) map {
       case resp@MongoSuccessCreate =>
@@ -187,10 +161,11 @@ trait TokenService {
 
   def extractTokenIds(token: String): (String, String) = {
     val json = Json.parse(Jwt.decode(token, signature, Seq(JwtAlgorithm.HS512)).get.toJson)
-    (json.\("tsid").as[String] -> json.\("tid").as[String])
+    json.\("tsid").as[String] -> json.\("tid").as[String]
   }
 
-  def revokeSpecificToken(tokenType: Option[String], setId: String, tokenId: String)(implicit ec: ExC): Future[Either[MongoUpdatedResponse, MongoDeleteResponse]] = {
+  def revokeSpecificToken(tokenType: Option[String], setId: String, tokenId: String)
+                         (implicit ec: ExC): Future[Either[MongoUpdatedResponse, MongoDeleteResponse]] = {
     if(tokenType.isDefined) {
       val field = tokenType.collect {
         case "access_token"  => "accessTokenId"
