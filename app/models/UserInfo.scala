@@ -118,10 +118,13 @@ object UserInfo extends TimeFormat {
       lastName = user.profile.flatMap(_.familyName),
       nickName = user.profile.flatMap(_.nickname)
     ),
-    gender = Gender(
-      selection = ???,
-      custom = ???
-    ),
+    gender = {
+      val genderValue = user.profile.flatMap(_.gender).getOrElse("not specified")
+      Gender(
+        selection = if(Gender.toList.contains(genderValue)) genderValue else "other",
+        custom = if(Gender.toList.contains(genderValue)) None else Some(genderValue)
+      )
+    },
     birthDate = user.profile.flatMap(_.birthDate.map { date =>
       val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
       dateFormat.format(date)
