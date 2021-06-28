@@ -21,7 +21,7 @@ import database.AppStore
 import dev.cjww.mongo.responses.{MongoDeleteResponse, MongoFailedUpdate, MongoSuccessUpdate, MongoUpdatedResponse}
 import models.{PresetService, RegisteredApplication}
 import org.mongodb.scala.model.Filters.{and, equal}
-import org.mongodb.scala.model.Updates.set
+import org.mongodb.scala.model.Updates.{combine, set, unset}
 import org.slf4j.{Logger, LoggerFactory}
 import play.api.Configuration
 import utils.StringUtils._
@@ -139,9 +139,9 @@ trait ClientService {
     )
 
     val update = if(isConfidential) {
-      and(set("clientId", clientId), set("clientSecret", clientSecret))
+      combine(set("clientId", clientId), set("clientSecret", clientSecret))
     } else {
-      and(set("clientId", clientId))
+      combine(set("clientId", clientId))
     }
 
     appStore.updateApp(query, update) map {
@@ -155,7 +155,7 @@ trait ClientService {
   }
 
   def deleteClient(orgUserId: String, appId: String)(implicit ec: ExC): Future[MongoDeleteResponse] = {
-    val query = and(
+    val query = combine(
       equal("owner", orgUserId),
       equal("appId", appId)
     )
@@ -164,7 +164,7 @@ trait ClientService {
   }
 
   def updateOAuth2Flows(flows: Seq[String], appId: String, orgUserId: String)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
-    val query = and(
+    val query = combine(
       equal("owner", orgUserId),
       equal("appId", appId)
     )
@@ -175,7 +175,7 @@ trait ClientService {
   }
 
   def updateOAuth2Scopes(scopes: Seq[String], appId: String, orgUserId: String)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
-    val query = and(
+    val query = combine(
       equal("owner", orgUserId),
       equal("appId", appId)
     )
@@ -192,7 +192,7 @@ trait ClientService {
       equal("appId", appId)
     )
 
-    val update = and(
+    val update = combine(
       set("idTokenExpiry", idExpiry),
       set("accessTokenExpiry", accessExpiry),
       set("refreshTokenExpiry", refreshExpiry)
@@ -207,10 +207,25 @@ trait ClientService {
       equal("appId", appId)
     )
 
-    val update = and(
+    val update = combine(
       set("homeUrl", homeUrl),
       set("redirectUrl", redirectUrl)
     )
+
+    appStore.updateApp(query, update)
+  }
+
+  def updateBasicDetails(owner: String, appId: String, name: String, desc: String, iconUrl: Option[String])(implicit ec: ExC): Future[MongoUpdatedResponse] = {
+    val query = and(
+      equal("owner", owner),
+      equal("appId", appId)
+    )
+
+    val update = if(iconUrl.nonEmpty) {
+      combine(set("name", name), set("desc", desc), set("iconUrl", iconUrl.get))
+    } else {
+      combine(set("name", name), set("desc", desc), unset("iconUrl"))
+    }
 
     appStore.updateApp(query, update)
   }

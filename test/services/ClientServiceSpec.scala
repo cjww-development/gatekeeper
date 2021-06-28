@@ -262,4 +262,26 @@ class ClientServiceSpec
       }
     }
   }
+
+  "updateBasicDetails" should {
+    "return a MongoSuccessUpdate" when {
+      "the apps basic details were updated" in {
+        mockUpdateApp(resp = MongoSuccessUpdate)
+
+        awaitAndAssert(testService.updateBasicDetails("testOwner", "testAppId", "testName", "testDesc", Some("testIconUrl"))) {
+          _ mustBe MongoSuccessUpdate
+        }
+      }
+    }
+
+    "return a MongoFailedUpdate" when {
+      "the apps basic details could not be updated" in {
+        mockUpdateApp(resp = MongoFailedUpdate)
+
+        awaitAndAssert(testService.updateBasicDetails("testOwner", "testAppId", "testName", "testDesc", Some("testIconUrl"))) {
+          _ mustBe MongoFailedUpdate
+        }
+      }
+    }
+  }
 }

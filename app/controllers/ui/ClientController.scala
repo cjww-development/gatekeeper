@@ -197,4 +197,15 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
       _ => Redirect(routes.ClientController.getClientDetails(appId))
     }
   }
+
+  def updateBasicDetails(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => orgUserId =>
+    val body = req.body.asFormUrlEncoded.getOrElse(Map())
+    val name = body.getOrElse("name", Seq("")).head
+    val desc = body.getOrElse("desc", Seq("")).head
+    val iconUrl = body.get("icon-url").filter(_.head != "").map(_.head)
+
+    clientOrchestrator.updateBasicDetails(appId, orgUserId, name, desc, iconUrl) map {
+      _ => Redirect(routes.ClientController.getClientDetails(appId))
+    }
+  }
 }

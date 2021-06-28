@@ -24,7 +24,7 @@ import models._
 import org.joda.time.DateTime
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters.{and, equal}
-import org.mongodb.scala.model.Updates.{set, unset}
+import org.mongodb.scala.model.Updates.{combine, set, unset}
 import org.slf4j.{Logger, LoggerFactory}
 import utils.StringUtils
 
@@ -124,7 +124,7 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
 
   def updateUserEmailAddress(userId: String, emailAddress: String)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
     val collection = getUserStore(userId)
-    val update: String => Bson = email => and(
+    val update: String => Bson = email => combine(
       set("email", email),
       set("emailVerified", false)
     )
@@ -141,7 +141,7 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
 
   def updatePassword(userId: String, password: String, salt: String)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
     val collection = getUserStore(userId)
-    val update = and(
+    val update = combine(
       set("password", password),
       set("salt", salt)
     )
@@ -159,7 +159,7 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
   def updateName(userId: String, firstName: Option[String], middleName: Option[String], lastName: Option[String], nickName: Option[String])
                 (implicit ec: ExC): Future[MongoUpdatedResponse] = {
     val collection = getUserStore(userId)
-    val update = and(
+    val update = combine(
       firstName.fold(unset("profile.givenName"))(fn => set("profile.givenName", fn)),
       middleName.fold(unset("profile.middleName"))(mN => set("profile.middleName", mN)),
       lastName.fold(unset("profile.familyName"))(lN => set("profile.familyName", lN)),
@@ -224,7 +224,7 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
 
   def setVerifiedPhoneNumber(userId: String, phoneNumber: String)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
     val collection = getUserStore(userId)
-    val phoneNumberUpdate = and(
+    val phoneNumberUpdate = combine(
       set("digitalContact.phone.number", phoneNumber),
       set("digitalContact.phone.verified", true)
     )

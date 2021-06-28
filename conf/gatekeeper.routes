@@ -50,5 +50,6 @@ POST        /client/update/flows                    controllers.ui.ClientControl
 POST        /client/update/scopes                   controllers.ui.ClientController.updateOAuthScopes(appId)
 POST        /client/update/expiry                   controllers.ui.ClientController.updateTokenExpiry(appId)
 POST        /client/update/urls                     controllers.ui.ClientController.updateHomeAndRedirect(appId)
+POST        /client/update/basics                   controllers.ui.ClientController.updateBasicDetails(appId)
 
 GET         /assets/*file                           controllers.Assets.at(path="/public", file)

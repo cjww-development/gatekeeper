@@ -22,7 +22,7 @@ import dev.cjww.mongo.responses._
 import models.{RefreshToken, TokenExpiry, TokenRecord}
 import org.joda.time.DateTime
 import org.mongodb.scala.model.Filters.{and, equal}
-import org.mongodb.scala.model.Updates.set
+import org.mongodb.scala.model.Updates.{combine, set}
 import org.slf4j.LoggerFactory
 import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim, JwtHeader}
 import play.api.Configuration
@@ -140,7 +140,7 @@ trait TokenService {
 
   def updateTokenRecordSet(recordSetId: String, accessTokenId: String, idTokenId: String)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
     val query = equal("tokenSetId", recordSetId)
-    val update = and(
+    val update = combine(
       set("accessTokenId", accessTokenId),
       set("idTokenId", idTokenId),
       set("issuedAt", new DateTime())

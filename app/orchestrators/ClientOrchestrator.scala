@@ -33,6 +33,7 @@ case object UpdatedFailed extends AppUpdateResponse
 case object FlowsUpdated extends AppUpdateResponse
 case object ExpiryUpdated extends AppUpdateResponse
 case object UrlsUpdated extends AppUpdateResponse
+case object BasicsUpdates extends AppUpdateResponse
 
 class DefaultClientOrchestrator @Inject()(val clientService: ClientService,
                                           val userService: UserService,
@@ -175,6 +176,17 @@ trait ClientOrchestrator {
         UrlsUpdated
       case MongoFailedUpdate =>
         logger.warn(s"[updateRedirects] - Failed to update home url and redirect url for app $appId belonging to org user $orgUserId")
+        UpdatedFailed
+    }
+  }
+
+  def updateBasicDetails(appId: String, orgUserId: String, name: String, desc: String, iconUrl: Option[String])(implicit ec: ExC): Future[AppUpdateResponse] = {
+    clientService.updateBasicDetails(orgUserId, appId, name, desc, iconUrl) map {
+      case MongoSuccessUpdate =>
+        logger.info(s"[updateBasicDetails] - Updated the basics for app $appId belonging to org user $orgUserId")
+        BasicsUpdates
+      case MongoFailedUpdate =>
+        logger.warn(s"[updateBasicDetails] - Failed to update basics for app $appId belonging to org user $orgUserId")
         UpdatedFailed
     }
   }

@@ -16,7 +16,7 @@
 
 package orchestrators
 
-import dev.cjww.mongo.responses.{MongoFailedDelete, MongoSuccessDelete}
+import dev.cjww.mongo.responses.{MongoFailedDelete, MongoFailedUpdate, MongoSuccessDelete, MongoSuccessUpdate}
 import dev.cjww.security.Implicits._
 import dev.cjww.security.obfuscation.Obfuscators
 import helpers.Assertions
@@ -385,6 +385,28 @@ class ClientOrchestratorSpec
 
         awaitAndAssert(testOrchestrator.getAuthorisedApp(testUser.id, testApp.appId)) {
           _ mustBe None
+        }
+      }
+    }
+  }
+
+  "updateBasicDetails" should {
+    "return a MongoSuccessUpdate" when {
+      "the apps basic details were updated" in {
+        mockUpdateBasicDetails(resp = MongoSuccessUpdate)
+
+        awaitAndAssert(testOrchestrator.updateBasicDetails("testOwner", "testAppId", "testName", "testDesc", Some("testIconUrl"))) {
+          _ mustBe BasicsUpdates
+        }
+      }
+    }
+
+    "return a MongoFailedUpdate" when {
+      "the apps basic details could not be updated" in {
+        mockUpdateBasicDetails(resp = MongoFailedUpdate)
+
+        awaitAndAssert(testOrchestrator.updateBasicDetails("testOwner", "testAppId", "testName", "testDesc", Some("testIconUrl"))) {
+          _ mustBe UpdatedFailed
         }
       }
     }
