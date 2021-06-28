@@ -16,7 +16,11 @@
 
     <div class="card card-blue">
         <div class="card-body">
-            <svg data-jdenticon-value="@{app.name}" width="100" height="100"/>
+            @if(app.iconUrl.nonEmpty) {
+                <img src="@{app.iconUrl.get}" alt="" width="100">
+            } else {
+                <svg data-jdenticon-value="@{app.name}" width="100" height="100"/>
+            }
             <h4 class="card-title">@{app.name}</h4>
             <p>@{app.desc}</p>
         </div>

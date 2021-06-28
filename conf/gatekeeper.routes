@@ -40,6 +40,7 @@ GET         /client/revoke/app                      controllers.ui.ClientControl
 GET         /client/revoke/session                  controllers.ui.ClientController.revokeSession(tokenSetId, appId)
 GET         /client/register                        controllers.ui.ClientController.showAppReg()
 POST        /client/register                        controllers.ui.ClientController.submitAppReg()
+POST        /client/register-preset                 controllers.ui.ClientController.submitPreset()
 GET         /client                                 controllers.ui.ClientController.getClientDetails(appId)
 GET         /client/regenerate                      controllers.ui.ClientController.regenerateIdAndSecretShow(appId)
 POST        /client/regenerate                      controllers.ui.ClientController.regenerateIdAndSecretSubmit(appId)

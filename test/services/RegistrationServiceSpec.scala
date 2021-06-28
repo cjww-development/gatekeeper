@@ -94,6 +94,7 @@ class RegistrationServiceSpec
     owner        = "testOwner",
     name         = "testName",
     desc         = "testDesc",
+    iconUrl      = None,
     homeUrl      = "http://localhost:8080",
     redirectUrl  = "http://localhost:8080/redirect",
     clientType   = "confidential",

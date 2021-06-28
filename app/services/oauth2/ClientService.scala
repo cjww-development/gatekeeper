@@ -16,28 +16,48 @@
 
 package services.oauth2
 
+import com.typesafe.config.Config
 import database.AppStore
 import dev.cjww.mongo.responses.{MongoDeleteResponse, MongoFailedUpdate, MongoSuccessUpdate, MongoUpdatedResponse}
-import models.RegisteredApplication
+import models.{PresetService, RegisteredApplication}
 import org.mongodb.scala.model.Filters.{and, equal}
 import org.mongodb.scala.model.Updates.set
 import org.slf4j.{Logger, LoggerFactory}
+import play.api.Configuration
 import utils.StringUtils._
 
 import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
+import scala.util.Try
 
 sealed trait RegenerationResponse
 case object RegeneratedId extends RegenerationResponse
 case object RegeneratedIdAndSecret extends RegenerationResponse
 case object RegenerationFailed extends RegenerationResponse
 
-class DefaultClientService @Inject()(val appStore: AppStore) extends ClientService
+class DefaultClientService @Inject()(val appStore: AppStore,
+                                     val config: Configuration) extends ClientService {
+  override protected val presetServices: Seq[PresetService] = {
+    config.get[Seq[Config]]("well-known-services").map { conf =>
+      PresetService(
+        name = conf.getString("name"),
+        desc = conf.getString("desc"),
+        icon = conf.getString("icon"),
+        domain = Try(conf.getString("domain")).map(Some(_)).getOrElse(None),
+        redirect = conf.getString("redirect")
+      )
+    }
+  }
+}
 
 trait ClientService {
   val appStore: AppStore
 
+  protected val presetServices: Seq[PresetService]
+
   private val logger: Logger = LoggerFactory.getLogger(this.getClass)
+
+  def getPresetServices: Seq[PresetService] = presetServices
 
   def getRegisteredApp(orgUserId: String, appId: String)(implicit ec: ExC): Future[Option[RegisteredApplication]] = {
     val query = and(

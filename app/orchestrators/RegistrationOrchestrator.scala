@@ -16,12 +16,14 @@
 
 package orchestrators
 
+import controllers.routes
 import dev.cjww.mongo.responses.{MongoFailedCreate, MongoFailedUpdate, MongoSuccessCreate, MongoSuccessUpdate}
 import models.{RegisteredApplication, User, Verification}
 import org.slf4j.LoggerFactory
 import play.api.mvc.Request
 import services.users.{RegistrationService, UserService}
 import services.comms.{EmailService, PhoneService}
+import services.oauth2.ClientService
 import utils.StringUtils._
 
 import javax.inject.Inject
@@ -34,6 +36,7 @@ case object RegistrationError extends UserRegistrationResponse
 
 sealed trait AppRegistrationResponse
 case object AppRegistered extends AppRegistrationResponse
+case class AppRegistered(appId: String) extends AppRegistrationResponse
 case object AppRegistrationError extends AppRegistrationResponse
 
 sealed trait VerificationResponse
@@ -47,6 +50,7 @@ case object VerificationSent extends VerificationResponse
 class DefaultRegistrationOrchestrator @Inject()(val registrationService: RegistrationService,
                                                 val userService: UserService,
                                                 val phoneService: PhoneService,
+                                                val clientService: ClientService,
                                                 val emailService: EmailService) extends RegistrationOrchestrator
 
 trait RegistrationOrchestrator {
@@ -55,6 +59,7 @@ trait RegistrationOrchestrator {
   protected val emailService: EmailService
   protected val userService: UserService
   protected val phoneService: PhoneService
+  protected val clientService: ClientService
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
@@ -86,6 +91,31 @@ trait RegistrationOrchestrator {
         case MongoSuccessCreate => AppRegistered
         case MongoFailedCreate  => AppRegistrationError
       }
+    }
+  }
+
+  def registerPresetApplication(orgId: String, presetName: String)(implicit ec: ExC): Future[AppRegistrationResponse] = {
+    clientService.getPresetServices.find(_.name.replace(" ", "-") == presetName) match {
+      case Some(preset) =>
+        val domain = preset.domain.getOrElse("https://change-to-your-domain.com")
+        val app = RegisteredApplication(
+          orgId,
+          preset.name.capitalize,
+          preset.desc,
+          domain,
+          s"$domain${preset.redirect}",
+          "confidential",
+          Some(routes.Assets.at(s"images/services/${preset.icon}").url)
+        )
+        registrationService.validateIdsAndSecrets(app) flatMap { cleansedApp =>
+          registrationService.createApp(cleansedApp) map {
+            case MongoSuccessCreate => AppRegistered(cleansedApp.appId)
+            case MongoFailedCreate  => AppRegistrationError
+          }
+        }
+      case None =>
+        logger.warn(s"[registerPresetApplication] - No preset client found matching name $presetName")
+        Future.successful(AppRegistrationError)
     }
   }
 

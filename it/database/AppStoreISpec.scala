@@ -39,6 +39,7 @@ class AppStoreISpec extends PlaySpec with IntegrationApp with Assertions with Be
     owner        = "testOwner",
     name         = "test-app-name",
     desc         = "test desc",
+    iconUrl      = None,
     homeUrl      = "http://localhost:8080",
     redirectUrl  = "http://localhost:8080/rediect",
     clientType   = "confidential",

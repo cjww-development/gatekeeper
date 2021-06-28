@@ -6,6 +6,7 @@
 @(apps: Seq[Seq[RegisteredApplication]])(implicit rh: RequestHeader)
 
 @Main("View all your clients", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
+    <script src="https://cdn.jsdelivr.net/npm/jdenticon@@3.0.1" async></script>
     <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
     <h1 class="h3 mb-3 font-weight-normal">Registered clients</h1>
     <hr>
@@ -18,6 +19,11 @@
             @for(app <- appGroup) {
                 <div class="card">
                     <div class="card-body">
+                        @if(app.iconUrl.nonEmpty) {
+                            <img src="@{app.iconUrl.get}" alt="" width="100">
+                        } else {
+                            <svg data-jdenticon-value="@{app.name}" width="100" height="100"/>
+                        }
                         <h5 class="card-title">@{app.name}</h5>
                         <p class="default-text">@{app.desc}</p>
                         <a href="@uiRoutes.ClientController.getClientDetails(app.appId)" class="btn btn-primary btn-block">View</a>
