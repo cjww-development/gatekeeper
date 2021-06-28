@@ -42,6 +42,40 @@
 
     <div class="card">
         <div class="card-body">
+            <h4 class="card-title default-text">Basic details</h4>
+            <form action="@uiRoutes.ClientController.updateBasicDetails(app.appId)" method="post">
+                @CSRF.formField
+
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="basic-addon1">Name</span>
+                    </div>
+                    <input type="text" class="form-control" name="name" value="@{app.name}" placeholder="Name of the client">
+                </div>
+
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="basic-addon1">Description</span>
+                    </div>
+                    <input type="text" class="form-control" name="desc" value="@{app.desc}" placeholder="Description of what the client does">
+                </div>
+
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="basic-addon1">Icon Url</span>
+                    </div>
+                    <input type="text" class="form-control" name="icon-url" @if(app.iconUrl.nonEmpty) { value="@{app.iconUrl.get}" } placeholder="Url to the clients icon file">
+                </div>
+
+                <hr>
+
+                <button class="btn btn-lg btn-primary btn-block" type="submit">Update basic details</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
             <h4 class="card-title default-text">Redirects</h4>
             <form action="@uiRoutes.ClientController.updateHomeAndRedirect(app.appId)" method="post">
                 @CSRF.formField
