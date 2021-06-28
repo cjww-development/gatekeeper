@@ -31,6 +31,7 @@ case class RegisteredApplication(appId: String,
                                  owner: String,
                                  name: String,
                                  desc: String,
+                                 iconUrl: Option[String],
                                  homeUrl: String,
                                  redirectUrl: String,
                                  clientType: String,
@@ -75,12 +76,15 @@ object RegisteredApplication extends Obfuscators with DeObfuscators with TimeFor
     }
   }
 
-  def apply(owner: String, name: String, desc: String, homeUrl: String, redirectUrl: String, clientType: String): RegisteredApplication = {
+  def apply(owner: String, name: String, desc: String,
+            homeUrl: String, redirectUrl: String, clientType: String,
+            iconUrl: Option[String]): RegisteredApplication = {
     new RegisteredApplication(
       s"appId-${UUID.randomUUID().toString}",
       owner,
       name,
       desc,
+      iconUrl,
       homeUrl,
       redirectUrl,
       clientType,
@@ -98,8 +102,8 @@ object RegisteredApplication extends Obfuscators with DeObfuscators with TimeFor
     )
   }
 
-  def unapply(arg: RegisteredApplication): Option[(String, String, String, String, String)] = {
-    Some(arg.name, arg.desc, arg.homeUrl, arg.redirectUrl, arg.clientType)
+  def unapply(arg: RegisteredApplication): Option[(String, String, String, String, String, Option[String])] = {
+    Some(arg.name, arg.desc, arg.homeUrl, arg.redirectUrl, arg.clientType, arg.iconUrl)
   }
 
   implicit val inboundReads: Reads[RegisteredApplication] = (json: JsValue) => {
@@ -124,6 +128,7 @@ object RegisteredApplication extends Obfuscators with DeObfuscators with TimeFor
         owner = json.\("owner").as[String],
         name = json.\("name").as[String],
         desc = json.\("desc").as[String],
+        iconUrl = json.\("iconUrl").asOpt[String],
         homeUrl = json.\("homeUrl").as[String],
         redirectUrl = json.\("redirectUrl").as[String],
         clientType,

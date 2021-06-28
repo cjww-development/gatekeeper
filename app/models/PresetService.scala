@@ -14,21 +14,10 @@
  * limitations under the License.
  */
 
-package forms
+package models
 
-import models.RegisteredApplication
-import play.api.data.Form
-import play.api.data.Forms._
-
-object AppRegistrationForm {
-  def form(owner: String): Form[RegisteredApplication] = Form(
-    mapping(
-      "name" -> text,
-      "desc" -> text,
-      "homeUrl" -> text,
-      "redirectUrl" -> text,
-      "clientType" -> text,
-      "iconUrl" -> optional(text)
-    )(RegisteredApplication.apply(owner, _, _, _, _, _, _))(RegisteredApplication.unapply)
-  )
-}
+case class PresetService(name: String,
+                         desc: String,
+                         icon: String,
+                         domain: Option[String],
+                         redirect: String)

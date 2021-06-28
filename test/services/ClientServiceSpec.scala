@@ -23,9 +23,10 @@ import dev.cjww.security.deobfuscation.DeObfuscators
 import dev.cjww.security.obfuscation.Obfuscators
 import helpers.Assertions
 import helpers.database.MockAppStore
-import models.RegisteredApplication
+import models.{PresetService, RegisteredApplication}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
+import play.api.Configuration
 import services.oauth2.{ClientService, RegeneratedId, RegeneratedIdAndSecret, RegenerationFailed}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -41,6 +42,22 @@ class ClientServiceSpec
 
   private val testService: ClientService = new ClientService {
     override val appStore: AppStore = mockAppStore
+    override protected val presetServices: Seq[PresetService] = Seq(
+      PresetService(
+        name = "test service",
+        desc = "For test integrations",
+        icon = "/images/icon.png",
+        domain = Some("https://test.example.com"),
+        redirect = "/callback"
+      ),
+      PresetService(
+        name = "test service",
+        desc = "For test integrations",
+        icon = "/images/icon.png",
+        domain = None,
+        redirect = "/callback"
+      )
+    )
   }
 
   val testApp: RegisteredApplication = RegisteredApplication(
@@ -48,6 +65,7 @@ class ClientServiceSpec
     owner        = "testOwner",
     name         = "test-app-name",
     desc         = "test desc",
+    iconUrl      = None,
     homeUrl      = "http://localhost:8080",
     redirectUrl  = "http://localhost:8080/rediect",
     clientType   = "confidential",
@@ -60,6 +78,26 @@ class ClientServiceSpec
     refreshTokenExpiry = 0L,
     createdAt    = DateTime.now()
   )
+
+  "getPresetServices" should {
+    "return a sequence of preset services" in {
+      assertOutput(testService.getPresetServices) { services =>
+        services.length mustBe 2
+
+        services.head.name mustBe "test service"
+        services.head.desc mustBe "For test integrations"
+        services.head.icon mustBe "/images/icon.png"
+        services.head.domain mustBe Some("https://test.example.com")
+        services.head.redirect mustBe "/callback"
+
+        services.last.name mustBe "test service"
+        services.last.desc mustBe "For test integrations"
+        services.last.icon mustBe "/images/icon.png"
+        services.last.domain mustBe None
+        services.last.redirect mustBe "/callback"
+      }
+    }
+  }
 
   "getRegisteredApp (orgUserId and appId)" should {
     "return a registered app" when {

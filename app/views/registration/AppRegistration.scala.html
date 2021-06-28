@@ -4,15 +4,31 @@
 @import views.html.Main
 @import views.html.components.forms.{SlidingCheckbox, TextInput}
 
-@(form: Form[RegisteredApplication])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
+@(form: Form[RegisteredApplication], services: Seq[String])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
 
 @Main("Register an OAuth Client", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
-    <form action="@{uiRoutes.ClientController.submitAppReg()}" method="post">
-        <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
-        <h1 class="h3 mb-3 font-weight-normal">Register a Client</h1>
+    <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
+    <h1 class="h3 mb-3 font-weight-normal">Register a Client</h1>
+
+    <hr>
+
+    <form action="@{uiRoutes.ClientController.submitPreset()}" method="post">
+        @CSRF.formField
+
+        <select name="preset-choice" class="form-control">
+            @for(service <- services) {
+                <option value=@{service.replace(" ", "-")}>@service.capitalize</option>
+            }
+        </select>
 
         <hr>
 
+        <button class="btn btn-lg btn-primary btn-block" id="registration-submit" type="submit">Create preset client</button>
+    </form>
+
+    <hr>
+
+    <form action="@{uiRoutes.ClientController.submitAppReg()}" method="post">
         @CSRF.formField
 
         @emptyForm(form)
@@ -69,6 +85,16 @@
         Symbol("_id") -> "redirectUrlInput",
         Symbol("_name") -> "redirectUrl",
         Symbol("_label") -> "Redirect URL",
+        Symbol("_type") -> "text",
+        Symbol("_class") -> "form-control form-input-middle"
+    )
+
+    @TextInput(
+        form("iconUrl"),
+        isReadOnly = false,
+        Symbol("_id") -> "iconUrlInput",
+        Symbol("_name") -> "iconUrl",
+        Symbol("_label") -> "Icon URL",
         Symbol("_type") -> "text",
         Symbol("_class") -> "form-control form-input-bottom"
     )

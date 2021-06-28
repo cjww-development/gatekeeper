@@ -21,6 +21,7 @@ However, if a service offers integration with a third party OAuth2 provider, the
     - Limit available OAuth2 flows
     - Modify token validity
     - Regenerate client Id and secret
+    - Create clients from presets
 - User and developer registration
     - Update email and password
     - Email verification (via AWS SES)
@@ -116,6 +117,39 @@ The following table describes what each of the gatekeeper envs means in the dock
 | ENC_KEY       | 23817cc7d0e6460e9c1515aa4047b29b | The key used to secure data. Should be changed to run in prod                                            |
 | MFA_ISSUER    | Gatekeeper (docker)              | The string used to describe the TOTP Code in apps like Google Authenticator                              |
 | SMS_SENDER_ID | SmsVerify                        | The string used to say where SMS messages have come from                                                 |
+
+## Adding further client presets
+Gatekeeper supports creating client presets for 
+* Jenkins
+* Grafana
+* Portainer
+* OpenId connect playground
+
+OpenId connect playground has its domain configured as it's a managed service. Jenkins, grafana and portainer do not as they can be hosted anywhere.
+
+```hocon
+well-known-services = [
+  {
+    name = "jenkins"
+    desc = "Build great things at any scale"
+    icon = "jenkins.svg"
+    redirect = "/securityRealm/finishLogin"
+  },
+  {
+    name = "openid connect playground"
+    desc = "For testing OIDC configurations"
+    icon = "openid.png"
+    domain = "https://openidconnect.net"
+    redirect = "/callback"
+  }
+]
+```
+
+In `application.conf` the well known services block defines the presets. You can extend the preset services by creating PR's that add to this list. The domain should be specified if the service is hosted in one place.
+
+For the time being, the service's icon needs to be hosted in Gatekeeper, find a suitable image for the service and place the image in `public/images/services`. In the config block enter the name of the file under icon.
+
+Once a service has been added to this list, it will be available for creation in the frontend. 
 
 License
 =======

@@ -23,7 +23,7 @@ import models.TokenExpiry
 import orchestrators._
 import play.api.i18n.{I18NSupportLowPriorityImplicits, I18nSupport, Lang}
 import play.api.mvc._
-import services.oauth2.ScopeService
+import services.oauth2.{ClientService, ScopeService}
 import views.html.client._
 import views.html.misc.{INS, NotFound => NotFoundView}
 import views.html.registration.AppRegistration
@@ -36,6 +36,7 @@ class DefaultClientController @Inject()(val controllerComponents: ControllerComp
                                         val scopeService: ScopeService,
                                         val userOrchestrator: UserOrchestrator,
                                         val clientOrchestrator: ClientOrchestrator,
+                                        val clientService: ClientService,
                                         val tokenOrchestrator: TokenOrchestrator,
                                         val registrationOrchestrator: RegistrationOrchestrator) extends ClientController {
   override implicit val ec: ExC = controllerComponents.executionContext
@@ -46,6 +47,7 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
   val registrationOrchestrator: RegistrationOrchestrator
   val clientOrchestrator: ClientOrchestrator
   val scopeService: ScopeService
+  val clientService: ClientService
   val tokenOrchestrator: TokenOrchestrator
 
   implicit val ec: ExC
@@ -53,7 +55,20 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
   implicit def langs(implicit rh: RequestHeader): Lang = messagesApi.preferred(rh).lang
 
   def showAppReg(): Action[AnyContent] = authenticatedOrgUser { implicit req => userId =>
-    Future.successful(Ok(AppRegistration(appRegForm(userId))))
+    val presetService = clientService.getPresetServices.map(_.name)
+    Future.successful(Ok(AppRegistration(appRegForm(userId), presetService)))
+  }
+
+  def submitPreset(): Action[AnyContent] = authenticatedOrgUser { implicit req => userId =>
+    val reqBody = req.body.asFormUrlEncoded.getOrElse(Map())
+    val presetChoice = reqBody.get("preset-choice").map(_.head)
+    presetChoice match {
+      case Some(preset) => registrationOrchestrator.registerPresetApplication(userId, preset) map {
+        case AppRegistered(id) => Redirect(routes.ClientController.getClientDetails(id))
+        case AppRegistrationError => InternalServerError(INS())
+      }
+      case None => Future.successful(InternalServerError(INS()))
+    }
   }
 
   def submitAppReg(): Action[AnyContent] = authenticatedOrgUser { implicit req => userId =>

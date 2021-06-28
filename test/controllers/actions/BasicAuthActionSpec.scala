@@ -47,6 +47,7 @@ class BasicAuthActionSpec extends PlaySpec with MockClientService with Assertion
     owner        = "testOwner",
     name         = "testName",
     desc         = "testDesc",
+    iconUrl      = None,
     homeUrl      = "http://localhost:8080",
     redirectUrl  = "http://localhost:8080/redirect",
     clientType   = "confidential",

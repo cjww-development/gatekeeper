@@ -18,13 +18,14 @@ package orchestrators
 
 import utils.StringUtils._
 import helpers.Assertions
-import helpers.services.{MockEmailService, MockPhoneService, MockRegistrationService, MockUserService}
+import helpers.services.{MockClientService, MockEmailService, MockPhoneService, MockRegistrationService, MockUserService}
 import models._
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import services.comms.{EmailService, PhoneService}
+import services.oauth2.ClientService
 import services.users.{RegistrationService, UserService}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -35,6 +36,7 @@ class RegistrationOrchestratorSpec
     with MockRegistrationService
     with MockEmailService
     with MockPhoneService
+    with MockClientService
     with MockUserService {
 
   val testOrchestrator: RegistrationOrchestrator = new RegistrationOrchestrator {
@@ -42,6 +44,7 @@ class RegistrationOrchestratorSpec
     override protected val userService: UserService = mockUserService
     override val registrationService: RegistrationService = mockRegistrationService
     override protected val emailService: EmailService = mockEmailService
+    override protected val clientService: ClientService = mockClientService
   }
 
   val testUser: User = User(
@@ -70,6 +73,7 @@ class RegistrationOrchestratorSpec
     owner        = "testOwner",
     name         = "testName",
     desc         = "testDesc",
+    iconUrl      = None,
     homeUrl      = "http://localhost:8080",
     redirectUrl  = "http://localhost:8080/redirect",
     clientType   = "confidential",
@@ -151,6 +155,50 @@ class RegistrationOrchestratorSpec
         mockCreateApp(success = false)
 
         awaitAndAssert(testOrchestrator.registerApplication(testApp)) {
+          _ mustBe AppRegistrationError
+        }
+      }
+    }
+  }
+
+  "registerPresetApplication" should {
+    val presets = Seq(
+      PresetService(
+        name = "test service",
+        desc = "For test integrations",
+        icon = "/images/icon.png",
+        domain = Some("https://test.example.com"),
+        redirect = "/callback"
+      )
+    )
+
+    "return an AppRegistered" when {
+      "the preset application has been created" in {
+        mockGetPresetServices(presets)
+        mockValidateIdsAndSecrets(testApp)
+        mockCreateApp(success = true)
+
+        awaitAndAssert(testOrchestrator.registerPresetApplication("testOrgId", "test-service")) {
+          _ mustBe AppRegistered(testApp.appId)
+        }
+      }
+    }
+
+    "return an AppRegistrationError" when {
+      "there was a problem creating the preset application" in {
+        mockGetPresetServices(presets)
+        mockValidateIdsAndSecrets(testApp)
+        mockCreateApp(success = false)
+
+        awaitAndAssert(testOrchestrator.registerPresetApplication("testOrgId", "test-service")) {
+          _ mustBe AppRegistrationError
+        }
+      }
+
+      "the preset application could not be found in config" in {
+        mockGetPresetServices(Seq())
+
+        awaitAndAssert(testOrchestrator.registerPresetApplication("testOrgId", "test-service")) {
           _ mustBe AppRegistrationError
         }
       }

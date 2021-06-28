@@ -17,7 +17,7 @@
 package helpers.services
 
 import dev.cjww.mongo.responses.MongoDeleteResponse
-import models.RegisteredApplication
+import models.{PresetService, RegisteredApplication}
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
 import org.mockito.stubbing.OngoingStubbing
@@ -36,6 +36,11 @@ trait MockClientService extends MockitoSugar with BeforeAndAfterEach {
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockClientService)
+  }
+
+  def mockGetPresetServices(presetServices: Seq[PresetService]): OngoingStubbing[Seq[PresetService]] = {
+    when(mockClientService.getPresetServices)
+      .thenReturn(presetServices)
   }
 
   def mockGetRegisteredApp(app: Option[RegisteredApplication]): OngoingStubbing[Future[Option[RegisteredApplication]]] = {
