@@ -18,7 +18,7 @@ package services.comms.email
 
 import database.VerificationStore
 import dev.cjww.mongo.responses.MongoDeleteResponse
-import models.Verification
+import models.{EmailResponse, Verification}
 import org.joda.time.DateTime
 import org.mongodb.scala.model.Filters.{and, equal}
 import play.api.mvc.Request
@@ -26,14 +26,14 @@ import play.api.mvc.Request
 import java.util.UUID
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
-trait EmailService[T] {
+trait EmailService {
 
   val emailSenderAddress: String
   val verificationSubjectLine: String
 
   val verificationStore: VerificationStore
 
-  def sendEmailVerificationMessage(to: String, record: Verification)(implicit req: Request[_]): T
+  def sendEmailVerificationMessage(to: String, record: Verification)(implicit req: Request[_], ec: ExC): Future[EmailResponse]
 
   def saveVerificationRecord(userId: String, email: String, accType: String)(implicit ec: ExC): Future[Verification] = {
     val record = Verification(

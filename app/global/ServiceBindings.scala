@@ -30,7 +30,7 @@ import filters.{DefaultRequestLoggingFilter, DefaultShutteringFilter, RequestLog
 import orchestrators._
 import play.api.inject.{Binding, Module}
 import play.api.{Configuration, Environment}
-import services.comms.email.{DefaultSesService, SesService}
+import services.comms.email.{DefaultMailgunService, DefaultSesService, EmailService}
 import services.comms.{DefaultPhoneService, PhoneService}
 import services.oauth2._
 import services.security.{DefaultTOTPService, TOTPService}
@@ -47,7 +47,7 @@ class ServiceBindings extends Module {
     apiControllers() ++
     testControllers() ++
     systemControllers() ++
-    emailService()
+    emailService(configuration)
   }
 
   private def globals(): Seq[Binding[_]] = Seq(
@@ -123,7 +123,11 @@ class ServiceBindings extends Module {
     bind[ExceptionTestController].to[DefaultExceptionTestController].eagerly()
   )
 
-  private def emailService(): Seq[Binding[_]] = Seq(
-    bind[SesService].to[DefaultSesService].eagerly()
-  )
+  private def emailService(config: Configuration): Seq[Binding[_]] = {
+    config.get[String]("email-service.selected-provider") match {
+      case "ses"      => Seq(bind[EmailService].to[DefaultSesService].eagerly())
+      case "mail-gun" => Seq(bind[EmailService].to[DefaultMailgunService].eagerly())
+      case _          => throw new RuntimeException("Invalid email provider")
+    }
+  }
 }

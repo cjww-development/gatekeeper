@@ -22,7 +22,7 @@ import models.{RegisteredApplication, User, Verification}
 import org.slf4j.LoggerFactory
 import play.api.mvc.Request
 import services.comms.PhoneService
-import services.comms.email.SesService
+import services.comms.email.EmailService
 import services.oauth2.ClientService
 import services.users.{RegistrationService, UserService}
 import utils.StringUtils._
@@ -53,12 +53,12 @@ class DefaultRegistrationOrchestrator @Inject()(val registrationService: Registr
                                                 val userService: UserService,
                                                 val phoneService: PhoneService,
                                                 val clientService: ClientService,
-                                                val emailService: SesService) extends RegistrationOrchestrator
+                                                val emailService: EmailService) extends RegistrationOrchestrator
 
 trait RegistrationOrchestrator {
 
   protected val registrationService: RegistrationService
-  protected val emailService: SesService
+  protected val emailService: EmailService
   protected val userService: UserService
   protected val phoneService: PhoneService
   protected val clientService: ClientService
@@ -74,15 +74,11 @@ trait RegistrationOrchestrator {
         registrationService.createNewUser(user.copy(salt = saltToUse)) flatMap {
           case MongoSuccessCreate =>
             val emailAddress = user.digitalContact.email.address.decrypt.getOrElse(throw new Exception("Decryption error"))
-            emailService.saveVerificationRecord(user.id, user.digitalContact.email.address, user.accType) map { record =>
-              logger.info(s"[registerUser] - Registration successful; new user under ${user.id}")
-              Try(emailService.sendEmailVerificationMessage(emailAddress, record)) match {
-                case Success(_) =>
-                  logger.info(s"[registerUser] - Send email verification message to user ${user.id}")
-                  Registered
-                case Failure(e) =>
-                  logger.warn("[registerUser] - Problem sending email verification message", e)
-                  Registered
+            emailService.saveVerificationRecord(user.id, user.digitalContact.email.address, user.accType) flatMap { record =>
+              emailService.sendEmailVerificationMessage(emailAddress, record).map { resp =>
+                logger.info(s"[registerUser] - Welcome email sent with messageId ${resp.messageId} to userId ${resp.userId} via ${resp.provider}")
+                logger.info(s"[registerUser] - Registration successful; new user under ${user.id}")
+                Registered
               }
             }
           case MongoFailedCreate =>

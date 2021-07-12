@@ -21,19 +21,20 @@ import com.amazonaws.services.simpleemail.model._
 import com.amazonaws.services.simpleemail.{AmazonSimpleEmailService, AmazonSimpleEmailServiceClientBuilder}
 import database.VerificationStore
 import dev.cjww.security.Implicits._
-import models.Verification
+import models.{EmailResponse, Verification}
 import play.api.Configuration
 import play.api.mvc.Request
 import views.html.email.VerificationEmail
 
 import java.nio.charset.StandardCharsets
 import javax.inject.Inject
+import scala.concurrent.{Future, ExecutionContext => ExC}
 
 class DefaultSesService @Inject()(val config: Configuration,
                                   val verificationStore: VerificationStore) extends SesService {
   override val awsRegion: String = config.get[String]("email-service.ses.region")
-  override val emailSenderAddress: String = config.get[String]("email-service.ses.from")
-  override val verificationSubjectLine: String = config.get[String]("email-service.ses.verification-subject")
+  override val emailSenderAddress: String = config.get[String]("email-service.default.from")
+  override val verificationSubjectLine: String = config.get[String]("email-service.default.verification-subject")
 
   override val emailClient: AmazonSimpleEmailService = AmazonSimpleEmailServiceClientBuilder
     .standard()
@@ -41,11 +42,11 @@ class DefaultSesService @Inject()(val config: Configuration,
     .build()
 }
 
-trait SesService extends EmailService[SendEmailResult] {
+trait SesService extends EmailService {
   val awsRegion: String
   val emailClient: AmazonSimpleEmailService
 
-  override def sendEmailVerificationMessage(to: String, record: Verification)(implicit req: Request[_]): SendEmailResult = {
+  override def sendEmailVerificationMessage(to: String, record: Verification)(implicit req: Request[_], ec: ExC): Future[EmailResponse] = {
     val queryParam = record.encrypt
 
     val destination: Destination = new Destination()
@@ -71,6 +72,7 @@ trait SesService extends EmailService[SendEmailResult] {
       .withMessage(message)
       .withSource(emailSenderAddress)
 
-    emailClient.sendEmail(request)
+    val resp = emailClient.sendEmail(request)
+    Future.successful(EmailResponse("ses", record.userId, resp.getMessageId))
   }
 }

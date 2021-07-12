@@ -21,7 +21,7 @@ import models._
 import org.slf4j.LoggerFactory
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Request
-import services.comms.email.SesService
+import services.comms.email.EmailService
 import services.users.{RegistrationService, UserService}
 import utils.StringUtils._
 
@@ -40,13 +40,13 @@ case object PasswordUpdated extends UserUpdateResponse
 case object InvalidOldPassword extends UserUpdateResponse
 
 class DefaultUserOrchestrator @Inject()(val userService: UserService,
-                                        val emailService: SesService,
+                                        val emailService: EmailService,
                                         val registrationService: RegistrationService) extends UserOrchestrator
 
 trait UserOrchestrator {
 
   protected val userService: UserService
-  protected val emailService: SesService
+  protected val emailService: EmailService
   protected val registrationService: RegistrationService
 
   private val logger = LoggerFactory.getLogger(this.getClass)
@@ -71,16 +71,11 @@ trait UserOrchestrator {
           } else {
             for {
               _ <- userService.updateUserEmailAddress(userId, obsEmail)
-              Some(vRec) <- emailService.saveVerificationRecord(userId, obsEmail, user.accType)
+              vRec <- emailService.saveVerificationRecord(userId, obsEmail, user.accType)
+              resp <- emailService.sendEmailVerificationMessage(email, vRec)
             } yield {
-              Try(emailService.sendEmailVerificationMessage(email, vRec)) match {
-                case Success(_) =>
-                  logger.info(s"[updateEmailAndReVerify] - Send email verification message to user $userId")
-                  EmailUpdated
-                case Failure(e) =>
-                  logger.warn("[updateEmailAndReVerify] - Problem sending email verification message", e)
-                  EmailUpdated
-              }
+              logger.info(s"[updateEmailAndReVerify] - Reverification email sent with messageId ${resp.messageId} to userId ${resp.userId} via ${resp.provider}")
+              EmailUpdated
             }
           }
         }
