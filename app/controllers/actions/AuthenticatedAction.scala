@@ -18,6 +18,7 @@ package controllers.actions
 
 import controllers.ui.routes
 import models.ServerCookies._
+import models.UserInfo
 import orchestrators.UserOrchestrator
 import org.slf4j.LoggerFactory
 import play.api.mvc._
@@ -33,46 +34,45 @@ trait AuthenticatedAction {
   private val logger = LoggerFactory.getLogger(this.getClass)
 
   private type AuthenticatedRequest = Request[AnyContent] => String => Future[Result]
+  private type AuthenticatedUserRequest = Request[AnyContent] => UserInfo => Future[Result]
 
-  def authenticatedUser(f: AuthenticatedRequest)(implicit ec: ExC): Action[AnyContent] = Action.async { implicit req =>
+  def authenticatedUser(f: AuthenticatedUserRequest)(implicit ec: ExC): Action[AnyContent] = Action.async { implicit req =>
     req.cookies.get("aas") match {
       case Some(cookie) =>
         val userId = cookie.getValue()
         userOrchestrator.getUserDetails(userId) flatMap {
-          user => if(user.nonEmpty) {
-            logger.info(s"[authenticatedUser] - Authenticated user found, authenticated as user $userId")
-            f(req)(userId)
-          } else {
-            logger.warn(s"[authenticatedUser] - Authenticated user found, but could not find user on record")
+          case Some(user) =>
+            logger.info(s"[authenticatedUserWithUserInfo] - Authenticated user found, authenticated as user $userId")
+            f(req)(user)
+          case None =>
+            logger.warn(s"[authenticatedUserWithUserInfo] - Authenticated user found, but could not find user on record")
             loginRedirect
-          }
         }
       case None =>
-        logger.warn(s"[authenticatedUser] - No authenticated user found, redirecting to login")
+        logger.warn(s"[authenticatedUserWithUserInfo] - No authenticated user found, redirecting to login")
         loginRedirect
     }
   }
 
-  def authenticatedOrgUser(f: AuthenticatedRequest)(implicit ec: ExC): Action[AnyContent] = Action.async { implicit req =>
+  def authenticatedOrgUser(f: AuthenticatedUserRequest)(implicit ec: ExC): Action[AnyContent] = Action.async { implicit req =>
     req.cookies.get("aas") match {
       case Some(cookie) =>
         val userId = cookie.getValue()
         userOrchestrator.getUserDetails(userId) flatMap {
-          user => if(user.nonEmpty) {
-            logger.info(s"[authenticatedUser] - Authenticated user found, authenticated as user $userId")
-            if(user.get.accType == "organisation") {
-              f(req)(userId)
+          case Some(user) =>
+            logger.info(s"[authenticatedOrgUserWithUserInfo] - Authenticated user found, authenticated as user $userId")
+            if(user.accType == "organisation") {
+              f(req)(user)
             } else {
-              logger.warn(s"[authenticatedUser] - Authenticated user found, but user is not an org user")
+              logger.warn(s"[authenticatedOrgUserWithUserInfo] - Authenticated user found, but user is not an org user")
               Future.successful(NotFound(NotFoundView()))
             }
-          } else {
-            logger.warn(s"[authenticatedUser] - Authenticated user found, but could not find user on record")
+          case None =>
+            logger.warn(s"[authenticatedOrgUserWithUserInfo] - Authenticated user found, but could not find user on record")
             loginRedirect
-          }
         }
       case None =>
-        logger.warn(s"[authenticatedUser] - No authenticated user found, redirecting to login")
+        logger.warn(s"[authenticatedOrgUserWithUserInfo] - No authenticated user found, redirecting to login")
         loginRedirect
     }
   }

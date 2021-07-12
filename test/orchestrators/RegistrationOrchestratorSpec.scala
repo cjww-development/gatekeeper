@@ -16,9 +16,8 @@
 
 package orchestrators
 
-import utils.StringUtils._
 import helpers.Assertions
-import helpers.services.{MockClientService, MockEmailService, MockPhoneService, MockRegistrationService, MockUserService}
+import helpers.services._
 import models._
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
@@ -27,6 +26,7 @@ import play.api.test.FakeRequest
 import services.comms.{EmailService, PhoneService}
 import services.oauth2.ClientService
 import services.users.{RegistrationService, UserService}
+import utils.StringUtils._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -95,7 +95,7 @@ class RegistrationOrchestratorSpec
         mockIsIdentifierInUse(inUse = false)
         mockValidateSalt(salt = "testSalt")
         mockCreateNewUser(success = true)
-        mockSaveVerificationRecord(verificationRecord = Verification(
+        mockSaveVerificationRecord(verificationRecord = Some(Verification(
           verificationId = "testVerifyId",
           userId = "testUserId",
           contactType = "email",
@@ -103,7 +103,7 @@ class RegistrationOrchestratorSpec
           code = None,
           accType = "individual",
           createdAt = new DateTime()
-        ))
+        )))
         mockSendEmailVerificationMessage()
 
         awaitAndAssert(testOrchestrator.registerUser(testUser)) {

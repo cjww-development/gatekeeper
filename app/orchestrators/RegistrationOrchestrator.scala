@@ -21,13 +21,14 @@ import dev.cjww.mongo.responses.{MongoFailedCreate, MongoFailedUpdate, MongoSucc
 import models.{RegisteredApplication, User, Verification}
 import org.slf4j.LoggerFactory
 import play.api.mvc.Request
-import services.users.{RegistrationService, UserService}
 import services.comms.{EmailService, PhoneService}
 import services.oauth2.ClientService
+import services.users.{RegistrationService, UserService}
 import utils.StringUtils._
 
 import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
+import scala.util.{Failure, Success, Try}
 
 sealed trait UserRegistrationResponse
 case object Registered extends UserRegistrationResponse
@@ -73,9 +74,15 @@ trait RegistrationOrchestrator {
           case MongoSuccessCreate =>
             val emailAddress = user.digitalContact.email.address.decrypt.getOrElse(throw new Exception("Decryption error"))
             emailService.saveVerificationRecord(user.id, user.digitalContact.email.address, user.accType) map { record =>
-              emailService.sendEmailVerificationMessage(emailAddress, record)
               logger.info(s"[registerUser] - Registration successful; new user under ${user.id}")
-              Registered
+              Try(emailService.sendEmailVerificationMessage(emailAddress, record.get)) match {
+                case Success(_) =>
+                  logger.info(s"[registerUser] - Send email verification message to user ${user.id}")
+                  Registered
+                case Failure(e) =>
+                  logger.warn("[registerUser] - Problem sending email verification message", e)
+                  Registered
+              }
             }
           case MongoFailedCreate =>
             logger.error(s"[registerUser] - Registration unsuccessful; There was a problem creating the user")
@@ -140,7 +147,7 @@ trait RegistrationOrchestrator {
   def sendPhoneVerificationMessage(userId: String, phoneNumber: String)(implicit ec: ExC): Future[VerificationResponse] = {
     userService.getUserInfo(userId) flatMap {
       case Some(userInfo) => phoneService.saveVerificationRecord(userId, phoneNumber, userInfo.accType) map { verification =>
-        phoneService.sendSMSVerification(verification.contact, verification.code.get)
+        phoneService.sendSMSVerification(verification.get.contact, verification.get.code.get)
         VerificationSent
       }
       case None =>

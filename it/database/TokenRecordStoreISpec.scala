@@ -16,11 +16,12 @@
 
 package database
 
-import dev.cjww.mongo.responses.MongoSuccessCreate
+import dev.cjww.mongo.responses.{MongoSuccessCreate, MongoSuccessDelete, MongoSuccessUpdate}
 import helpers.{Assertions, IntegrationApp}
 import models.TokenRecord
 import org.joda.time.DateTime
 import org.mongodb.scala.model.Filters.{equal => mongoEqual}
+import org.mongodb.scala.model.Updates.{combine, set}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatestplus.play.PlaySpec
 
@@ -89,6 +90,31 @@ class TokenRecordStoreISpec extends PlaySpec with IntegrationApp with Assertions
       "there are active records matching the query" in {
         awaitAndAssert(testTokenRecordStore.getActiveRecords(mongoEqual("userId", testTokenRecord.userId))) {
           _ mustBe Seq(testTokenRecord)
+        }
+      }
+    }
+  }
+
+  "updateTokenRecord" should {
+    "return a MongoSuccessUpdate" when {
+      "the token record has been updated" in {
+        val query = mongoEqual("tokenSetId", testTokenRecord.tokenSetId)
+        val update = combine(set("appId", "newTestAppId"))
+
+        awaitAndAssert(testTokenRecordStore.updateTokenRecord(query, update)) {
+          _ mustBe MongoSuccessUpdate
+        }
+      }
+    }
+  }
+
+  "deleteTokenRecord" should {
+    "return a MongoSuccessDelete" when {
+      "the token record has been updated" in {
+        val query = mongoEqual("tokenSetId", testTokenRecord.tokenSetId)
+
+        awaitAndAssert(testTokenRecordStore.deleteTokenRecord(query)) {
+          _ mustBe MongoSuccessDelete
         }
       }
     }

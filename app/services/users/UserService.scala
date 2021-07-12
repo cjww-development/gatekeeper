@@ -18,12 +18,10 @@ package services.users
 
 import database.{UserStore, UserStoreUtils}
 import dev.cjww.mongo.responses.{MongoFailedUpdate, MongoSuccessUpdate, MongoUpdatedResponse}
-import dev.cjww.security.SecurityConfiguration
-import dev.cjww.security.deobfuscation.DeObfuscators
 import models._
 import org.joda.time.DateTime
 import org.mongodb.scala.bson.conversions.Bson
-import org.mongodb.scala.model.Filters.{and, equal}
+import org.mongodb.scala.model.Filters.equal
 import org.mongodb.scala.model.Updates.{combine, set, unset}
 import org.slf4j.{Logger, LoggerFactory}
 import utils.StringUtils
@@ -40,16 +38,14 @@ case object LinkRemoved extends LinkResponse
 case object NoUserFound extends LinkResponse
 
 class DefaultUserService @Inject()(@Named("individualUserStore") val individualUserStore: UserStore,
-                                   @Named("organisationUserStore") val organisationUserStore: UserStore) extends UserService {
-  override val locale: String = ""
-}
+                                   @Named("organisationUserStore") val organisationUserStore: UserStore) extends UserService
 
-trait UserService extends DeObfuscators with SecurityConfiguration with UserStoreUtils {
+trait UserService extends UserStoreUtils {
 
   protected val individualUserStore: UserStore
   protected val organisationUserStore: UserStore
 
-  override val logger: Logger = LoggerFactory.getLogger(this.getClass)
+  private val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   private val query: String => Bson = userId => equal("id", userId)
 
@@ -84,7 +80,6 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
             logger.warn(s"[linkClientToUser] - There was a problem linking $appId to user $userId")
             LinkFailed
         }
-        Future.successful(LinkSuccess)
       case None =>
         logger.warn(s"[linkClientToUser] - Failed to link client to user; user not found")
         Future.successful(NoUserFound)
@@ -125,8 +120,8 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
   def updateUserEmailAddress(userId: String, emailAddress: String)(implicit ec: ExC): Future[MongoUpdatedResponse] = {
     val collection = getUserStore(userId)
     val update: String => Bson = email => combine(
-      set("email", email),
-      set("emailVerified", false)
+      set("digitalContact.email.address", email),
+      set("digitalContact.email.verified", false)
     )
 
     collection.updateUser(query(userId), update(emailAddress)) map {
@@ -240,17 +235,19 @@ trait UserService extends DeObfuscators with SecurityConfiguration with UserStor
   }
 
   def validateCurrentPassword(userId: String, currentPassword: String)(implicit ec: ExC): Future[Boolean] = {
-    val collection = getUserStore(userId)
+    getUserStore(userId).findUser(query(userId)).map {
+      case Some(user) =>
+        val salt = user.salt
+        val actualPassword = user.password
 
-    collection.projectValue("id", userId, "salt", "password") map { data =>
-      val salt = data("salt").asString().getValue
-      val actualPassword = data("password").asString().getValue
+        val hashedCurrentPassword = StringUtils.hasher(salt, currentPassword)
 
-      val hashedCurrentPassword = StringUtils.hasher(salt, currentPassword)
-
-      val isMatched = hashedCurrentPassword == actualPassword
-      logger.info(s"[validateCurrentPassword] - The supplied password did match what is on file for user $userId")
-      isMatched
+        val isMatched = hashedCurrentPassword == actualPassword
+        logger.info(s"[validateCurrentPassword] - The supplied password did match what is on file for user $userId")
+        isMatched
+      case None =>
+        logger.info(s"[validateCurrentPassword] - There was no user matching userId $userId")
+        false
     }
   }
 }

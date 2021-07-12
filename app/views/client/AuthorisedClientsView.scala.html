@@ -8,15 +8,15 @@
 @Main("View all your authorised apps", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <script src="https://cdn.jsdelivr.net/npm/jdenticon@@3.0.1" async></script>
     <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
-    <h1 class="h3 mb-3 font-weight-normal">Authorised apps</h1>
+    <h1 id="title" class="h3 mb-3 font-weight-normal">Authorised apps</h1>
     <hr>
 
     @if(apps.isEmpty) {
-        <p class="default-text">You have no authorised apps</p>
+        <p id="no-authorised-apps" class="default-text">You have no authorised apps</p>
     } else {
-        <p class="default-text">These are the apps you have given permission to, to access your data</p>
+        <p id="authorised-apps" class="default-text">These are the apps you have given permission to, to access your data</p>
 
-        @for(app <- apps) {
+        @for((app, idx) <- apps.zipWithIndex) {
             <div class="card">
                 <div class="card-body">
                     @if(app.iconUrl.nonEmpty) {
@@ -24,8 +24,8 @@
                     } else {
                         <svg data-jdenticon-value="@{app.name}" width="100" height="100"/>
                     }
-                    <h5 class="card-title">@{app.name}</h5>
-                    <p class="default-text">@{app.desc}</p>
+                    <h5 id="app-@{idx}-name" class="card-title">@{app.name}</h5>
+                    <p id="app-@{idx}-desc" class="default-text">@{app.desc}</p>
                     <a href="@uiRoutes.ClientController.getAuthorisedApp(app.appId)" class="btn btn-primary btn-block">View</a>
                 </div>
             </div>

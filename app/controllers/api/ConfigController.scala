@@ -30,7 +30,7 @@ trait ConfigController extends BaseController {
 
   val wellKnownConfigOrchestrator: WellKnownConfigOrchestrator
 
-  def wellKnownConfig(): Action[AnyContent] = Action { _ =>
+  def wellKnownConfig(): Action[AnyContent] = Action { implicit req =>
     val config = wellKnownConfigOrchestrator.getConfig
     Ok(Json.toJson(config)(WellKnownConfig.writer))
   }

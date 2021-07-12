@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services
+package services.security
 
 import database.{IndividualUserStore, OrganisationUserStore}
 import dev.cjww.mongo.responses.{MongoFailedUpdate, MongoSuccessUpdate}
@@ -30,7 +30,6 @@ import helpers.misc.MockJavaTOTP
 import models.{DigitalContact, Email, User}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import services.security._
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global

@@ -87,8 +87,8 @@ trait OAuthController extends BaseController with AuthenticatedAction with Basic
     }
   }
 
-  def authoriseGet(response_type: String, client_id: String, scope: String, state: Option[String], code_verifier: Option[String], code_challenge: Option[String], code_challenge_method: Option[String]): Action[AnyContent] = authenticatedUser { implicit req => userId =>
-    grantOrchestrator.validateIncomingGrant(response_type, client_id, scope, userId) flatMap {
+  def authoriseGet(response_type: String, client_id: String, scope: String, state: Option[String], code_verifier: Option[String], code_challenge: Option[String], code_challenge_method: Option[String]): Action[AnyContent] = authenticatedUser { implicit req => user =>
+    grantOrchestrator.validateIncomingGrant(response_type, client_id, scope, user.id) flatMap {
       case ValidatedGrantRequest(app, scopes) => Future.successful(Ok(Grant(response_type, client_id, Seq(), scopes, scope, app, state, code_verifier, code_challenge, code_challenge_method)))
       case PreviouslyAuthorised => authorisePost(response_type, client_id, scope, state, code_verifier, code_challenge, code_challenge_method)(req)
       case ScopeDrift(app, authScopes, reqScopes) => Future.successful(Ok(Grant(response_type, client_id, authScopes, reqScopes, scope, app, state, code_verifier, code_challenge, code_challenge_method)))
@@ -96,10 +96,10 @@ trait OAuthController extends BaseController with AuthenticatedAction with Basic
     }
   }
 
-  def authorisePost(response_type: String, client_id: String, scope: String, state: Option[String], code_verifier: Option[String], code_challenge: Option[String], code_challenge_method: Option[String]): Action[AnyContent] = authenticatedUser { _ => userId =>
+  def authorisePost(response_type: String, client_id: String, scope: String, state: Option[String], code_verifier: Option[String], code_challenge: Option[String], code_challenge_method: Option[String]): Action[AnyContent] = authenticatedUser { _ => user =>
     val scopes = scope.trim.split(" ").toSeq
 
-    grantOrchestrator.saveIncomingGrant(response_type, client_id, userId, scopes, code_verifier, code_challenge, code_challenge_method) map {
+    grantOrchestrator.saveIncomingGrant(response_type, client_id, user.id, scopes, code_verifier, code_challenge, code_challenge_method) map {
       case Some(grant) => Redirect(
         grant.redirectUri,
         Map("code" -> Seq(grant.authCode)) ++ state.fold[Map[String, Seq[String]]](Map())(ste => Map("state" -> Seq(ste)))

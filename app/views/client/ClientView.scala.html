@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="@routes.Assets.at("stylesheets/checkbox.css")">
 
     <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
-    <h1 class="h3 mb-3 font-weight-normal">Registered client</h1>
+    <h1 id="title" class="h3 mb-3 font-weight-normal">Registered client</h1>
     <hr>
 
     <div class="card card-blue">
@@ -21,8 +21,8 @@
             } else {
                 <svg data-jdenticon-value="@{app.name}" width="100" height="100"/>
             }
-            <h4 class="card-title">@{app.name}</h4>
-            <p>@{app.desc}</p>
+            <h4 id="name" class="card-title">@{app.name}</h4>
+            <p id="desc">@{app.desc}</p>
         </div>
     </div>
 
@@ -143,7 +143,7 @@
                 </label>
 
                 <label class="checkbox checkbox-success" for="refresh-check">
-                    <input type="checkbox" id="client-cred-check" name="client-cred-check" value="refresh_token" @if(app.oauth2Flows.contains("refresh_token")){ checked }/> Refresh token grant
+                    <input type="checkbox" id="client-cred-check" name="refresh-check" value="refresh_token" @if(app.oauth2Flows.contains("refresh_token")){ checked }/> Refresh token grant
                 </label>
 
                 <hr>

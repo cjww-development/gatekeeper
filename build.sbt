@@ -8,7 +8,7 @@ val appName = "gatekeeper"
 val btVersion: String = Try(ConfigFactory.load.getString("version")).getOrElse("0.1.0-local")
 
 val scoverageSettings = Seq(
-  ScoverageKeys.coverageExcludedPackages  := "<empty>;Reverse.*;models/.data/..*;views.*;models.*;common.*;.*(AuthService|BuildInfo|Routes).*",
+  ScoverageKeys.coverageExcludedPackages  := "<empty>;Reverse.*;models/.data/..*;views.*;models.*;global.*;utils.*;forms.*;filters.*;errors.*;database.registries.*;controllers.test.*;controllers.features.*;controllers.shuttering.*;controllers.system.*;common.*;.*(AuthService|BuildInfo|Routes).*",
   ScoverageKeys.coverageMinimumStmtTotal  := 80,
   ScoverageKeys.coverageFailOnMinimum     := false,
   ScoverageKeys.coverageHighlighting      := true
@@ -51,19 +51,20 @@ lazy val microservice = Project(appName, file("."))
       "org.mockito"                  %  "mockito-core"               % "3.11.2"      % Test,
       "org.scalatestplus"            %  "scalatestplus-mockito_2.13" % "1.0.0-M2"    % Test,
       "org.scalatestplus.play"       %  "scalatestplus-play_2.13"    % "5.1.0"       % Test,
-      "org.scalatestplus.play"       %  "scalatestplus-play_2.13"    % "5.1.0"       % IntegrationTest
+      "org.scalatestplus.play"       %  "scalatestplus-play_2.13"    % "5.1.0"       % IntegrationTest,
+      "org.jsoup"                    % "jsoup"                       % "1.13.1"      % IntegrationTest
     ),
     scalacOptions ++= Seq(
       "-unchecked",
       "-deprecation",
     ),
-    Test / testOptions +=  Tests.Argument("-oF"),
-    IntegrationTest / fork :=  false,
-    IntegrationTest /  unmanagedSourceDirectories :=  (IntegrationTest / baseDirectory)(base => Seq(base / "it")).value,
-    IntegrationTest /  parallelExecution :=  false,
-    Test / fork :=  true,
-    Test / testForkedParallel :=  true,
-    Test / parallelExecution :=  true,
-    Test / logBuffered :=  false
+    Test / testOptions += Tests.Argument("-oF"),
+    IntegrationTest / fork := false,
+    IntegrationTest / unmanagedSourceDirectories := (IntegrationTest / baseDirectory)(base => Seq(base / "it")).value,
+    IntegrationTest / parallelExecution :=  false,
+    Test / fork := true,
+    Test / testForkedParallel := true,
+    Test / parallelExecution := true,
+    Test / logBuffered := false
   )
       

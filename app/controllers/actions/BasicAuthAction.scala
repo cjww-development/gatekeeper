@@ -60,6 +60,8 @@ trait BasicAuthAction {
           logger.warn(s"[clientAuthentication] - No client has been found matching clientId $id")
           Future.successful(Unauthorized(StandardErrors.INVALID_CLIENT))
       }
+      case (None, None) =>
+        Future.successful(Unauthorized(StandardErrors.INVALID_CLIENT))
     }
   }
 

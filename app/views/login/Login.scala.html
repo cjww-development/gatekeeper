@@ -10,7 +10,7 @@
 @Main("Login", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <form action="@uiRoutes.LoginController.loginSubmit()" method="post">
         <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
-        <h1 class="h3 mb-3 font-weight-normal">Sign in</h1>
+        <h1 id="title" class="h3 mb-3 font-weight-normal">Sign in</h1>
 
         <hr>
 
@@ -76,7 +76,7 @@
                 Symbol("_type") -> "password",
                 Symbol("_class") -> "form-control form-input-middle"
             )
-            <div class="alert alert-danger form-input-bottom alert-error-border" role="alert">
+            <div id="login-error" class="alert alert-danger form-input-bottom alert-error-border" role="alert">
                 @err.message
             </div>
         }

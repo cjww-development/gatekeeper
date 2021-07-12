@@ -16,7 +16,6 @@
 
 package controllers.api
 
-import play.api.i18n.Lang
 import play.api.libs.json.{JsArray, Json}
 import play.api.mvc._
 import services.oauth2.JwksService
@@ -34,8 +33,6 @@ trait JwksController extends BaseController {
   implicit val ec: ExC
 
   val jwksService: JwksService
-
-  implicit def langs(implicit rh: RequestHeader): Lang = messagesApi.preferred(rh).lang
 
   def getCurrentJwks(): Action[AnyContent] = Action { _ =>
     val jwks = jwksService.getCurrentJwks

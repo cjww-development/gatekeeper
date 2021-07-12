@@ -17,26 +17,30 @@
 package helpers
 
 import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 
-trait IntegrationApp extends GuiceOneAppPerSuite {
+trait IntegrationApp extends GuiceOneServerPerSuite {
   self: PlaySpec =>
 
   val appConfig: Map[String, Any] = Map(
-    "scopes.read"                                     -> Seq("username"),
-    "scopes.write"                                    -> Seq(),
-    "database.IndividualUserStore.database"           -> "gatekeeper-it",
-    "database.OrganisationUserStore.database"         -> "gatekeeper-it",
-    "database.DefaultAppStore.database"               -> "gatekeeper-it",
-    "database.DefaultGrantStore.database"             -> "gatekeeper-it",
-    "database.DefaultLoginAttemptStore.database"      -> "gatekeeper-it",
-    "database.DefaultTokenRecordStore.database"       -> "gatekeeper-it",
-    "database.DefaultEmailVerificationStore.database" -> "gatekeeper-it",
+    "scopes.read"                                             -> Seq("username"),
+    "scopes.write"                                            -> Seq(),
+    "database.IndividualUserStore.database"                   -> "gatekeeper-it",
+    "database.OrganisationUserStore.database"                 -> "gatekeeper-it",
+    "database.DefaultAppStore.database"                       -> "gatekeeper-it",
+    "database.DefaultGrantStore.database"                     -> "gatekeeper-it",
+    "database.DefaultLoginAttemptStore.database"              -> "gatekeeper-it",
+    "database.DefaultTokenRecordStore.database"               -> "gatekeeper-it",
+    "database.DefaultEmailVerificationStore.database"         -> "gatekeeper-it",
+    "play.http.router"                                        -> "testing.Routes"
   )
 
   override lazy val app: Application = new GuiceApplicationBuilder()
     .configure(appConfig)
     .build()
+
+  lazy val testAppUrl = s"http://localhost:$port/gatekeeper"
+  lazy val testAppPrivateUrl = s"http://localhost:$port/private"
 }

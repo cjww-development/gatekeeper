@@ -9,7 +9,7 @@
 @Main("Register for an account", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <form action="@uiRoutes.RegistrationController.submitUserReg()" method="post">
         <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
-        <h1 class="h3 mb-3 font-weight-normal">Sign up</h1>
+        <h1 id="title" class="h3 mb-3 font-weight-normal">Sign up</h1>
 
         <hr>
 
@@ -145,7 +145,7 @@
                 Symbol("_class") -> "form-control form-input-middle"
             )
 
-            <div class="alert alert-danger form-input-bottom alert-error-border" role="alert">
+            <div id="form-error" class="alert alert-danger form-input-bottom alert-error-border" role="alert">
                 @err.message
             </div>
 

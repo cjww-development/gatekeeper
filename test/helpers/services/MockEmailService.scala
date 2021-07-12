@@ -45,7 +45,7 @@ trait MockEmailService extends MockitoSugar with BeforeAndAfterEach {
       .thenReturn(result)
   }
 
-  def mockSaveVerificationRecord(verificationRecord: Verification): OngoingStubbing[Future[Verification]] = {
+  def mockSaveVerificationRecord(verificationRecord: Option[Verification]): OngoingStubbing[Future[Option[Verification]]] = {
     when(mockEmailService.saveVerificationRecord(ArgumentMatchers.any[String](), ArgumentMatchers.any[String](), ArgumentMatchers.any[String]())(ArgumentMatchers.any()))
       .thenReturn(Future.successful(verificationRecord))
   }

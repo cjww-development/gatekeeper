@@ -19,7 +19,6 @@ package controllers.api
 import controllers.actions.OAuthAction
 import orchestrators.UserOrchestrator
 import play.api.Configuration
-import play.api.i18n.Lang
 import play.api.mvc._
 import services.oauth2.TokenService
 
@@ -41,8 +40,6 @@ trait AccountController extends BaseController with OAuthAction {
   protected val userOrchestrator: UserOrchestrator
 
   implicit val ec: ExC
-
-  implicit def langs(implicit rh: RequestHeader): Lang = messagesApi.preferred(rh).lang
 
   def getUserDetails: Action[AnyContent] = authorised { _ => userId => scopes =>
     userOrchestrator.getScopedUserInfo(userId, scopes) map {

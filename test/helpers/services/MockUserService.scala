@@ -41,4 +41,6 @@ trait MockUserService extends MockitoSugar with BeforeAndAfterEach {
     when(mockUserService.setEmailVerifiedStatus(ArgumentMatchers.any[String](), ArgumentMatchers.any[Boolean]())(ArgumentMatchers.any()))
       .thenReturn(if(updated) Future.successful(MongoSuccessUpdate) else Future.successful(MongoFailedUpdate))
   }
+
+
 }

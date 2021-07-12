@@ -64,15 +64,18 @@ trait GrantOrchestrator {
               val requestedScopes = scope.split(" ").map(_.trim).toSeq
               val authorisedScopes = reqUser.authorisedClients.find(_.appId == app.appId).get.authorisedScopes
               if(authorisedScopes != requestedScopes) {
+                logger.info(s"[validateIncomingGrant] - The requested scopes have changed for user $requestingUserId for app ${app.appId}")
                 ScopeDrift(
                   app = app.copy(owner = orgUser.userName),
                   scopeService.getScopeDetails(authorisedScopes),
                   scopeService.getScopeDetails(requestedScopes)
                 )
               } else {
+                logger.info(s"[validateIncomingGrant] - The app ${app.appId} has been previously authorised by user $requestingUserId")
                 PreviouslyAuthorised
               }
             } else {
+              logger.info(s"[validateIncomingGrant] - The app ${app.appId} has not been previously authorised by user $requestingUserId, presenting consent required")
               ValidatedGrantRequest(
                 app = app.copy(owner = orgUser.userName),
                 scopes = {

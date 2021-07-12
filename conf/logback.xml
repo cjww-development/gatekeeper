@@ -44,7 +44,7 @@
   <logger name="repositories"                                        level="INFO" />
   <logger name="Logging filter"                                      level="INFO" />
 
-  <logger name="reactivemongo.api.MongoDriver"                       level="OFF" />
+  <logger name="reactivemongo.ui.MongoDriver" level="OFF" />
   <logger name="play.modules.reactivemongo.DefaultReactiveMongoApi"  level="OFF" />
 
   <!-- Off these ones as they are annoying, and anyway we manage configuration ourselves -->

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services
+package services.users
 
 import database.{LoginAttemptStore, UserStore}
 import helpers.Assertions
@@ -23,7 +23,6 @@ import models.{DigitalContact, Email, LoginAttempt, User}
 import org.joda.time.DateTime
 import org.mongodb.scala.bson.BsonString
 import org.scalatestplus.play.PlaySpec
-import services.users.LoginService
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global

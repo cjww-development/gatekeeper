@@ -28,7 +28,7 @@ import utils.StringUtils._
 import java.text.SimpleDateFormat
 import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 sealed trait UserUpdateResponse
 case object NoUpdateRequired extends UserUpdateResponse
@@ -71,10 +71,16 @@ trait UserOrchestrator {
           } else {
             for {
               _ <- userService.updateUserEmailAddress(userId, obsEmail)
-              vRec <- emailService.saveVerificationRecord(userId, obsEmail, user.accType)
+              Some(vRec) <- emailService.saveVerificationRecord(userId, obsEmail, user.accType)
             } yield {
-              emailService.sendEmailVerificationMessage(email, vRec)
-              EmailUpdated
+              Try(emailService.sendEmailVerificationMessage(email, vRec)) match {
+                case Success(_) =>
+                  logger.info(s"[updateEmailAndReVerify] - Send email verification message to user $userId")
+                  EmailUpdated
+                case Failure(e) =>
+                  logger.warn("[updateEmailAndReVerify] - Problem sending email verification message", e)
+                  EmailUpdated
+              }
             }
           }
         }

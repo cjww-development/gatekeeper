@@ -9,7 +9,7 @@
 @Main("Regenerate client", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <form action="@uiRoutes.ClientController.regenerateIdAndSecretSubmit(app.appId)" method="post">
         <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
-        <h1 class="h3 mb-3 font-weight-normal">Registered client</h1>
+        <h1 id="title" class="h3 mb-3 font-weight-normal">Regenerate client</h1>
         <hr>
 
         @CSRF.formField

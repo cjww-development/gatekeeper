@@ -17,7 +17,7 @@
 package helpers.database
 
 import database.TokenRecordStore
-import dev.cjww.mongo.responses.{MongoCreateResponse, MongoFailedCreate, MongoSuccessCreate}
+import dev.cjww.mongo.responses._
 import models.TokenRecord
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
@@ -47,5 +47,20 @@ trait MockTokenRecordStore extends MockitoSugar with BeforeAndAfterEach {
   def mockValidateTokenRecord(record: Option[TokenRecord]): OngoingStubbing[Future[Option[TokenRecord]]] = {
     when(mockTokenRecordStore.validateTokenRecord(ArgumentMatchers.any[Bson]()))
       .thenReturn(Future.successful(record))
+  }
+
+  def mockUpdateTokenRecord(success: Boolean): OngoingStubbing[Future[MongoUpdatedResponse]] = {
+    when(mockTokenRecordStore.updateTokenRecord(ArgumentMatchers.any[Bson](), ArgumentMatchers.any[Bson]())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(if(success) MongoSuccessUpdate else MongoFailedUpdate))
+  }
+
+  def mockDeleteTokenRecord(success: Boolean): OngoingStubbing[Future[MongoDeleteResponse]] = {
+    when(mockTokenRecordStore.deleteTokenRecord(ArgumentMatchers.any[Bson]())(ArgumentMatchers.any()))
+      .thenReturn(Future.successful(if(success) MongoSuccessDelete else MongoFailedDelete))
+  }
+
+  def mockGetActiveRecords(records: Seq[TokenRecord]): OngoingStubbing[Future[Seq[TokenRecord]]] = {
+    when(mockTokenRecordStore.getActiveRecords(ArgumentMatchers.any[Bson]()))
+      .thenReturn(Future.successful(records))
   }
 }

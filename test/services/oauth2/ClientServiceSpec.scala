@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,31 +14,23 @@
  * limitations under the License.
  */
 
-package services
+package services.oauth2
 
 import database.AppStore
 import dev.cjww.mongo.responses.{MongoFailedDelete, MongoFailedUpdate, MongoSuccessDelete, MongoSuccessUpdate}
-import dev.cjww.security.Implicits._
-import dev.cjww.security.deobfuscation.DeObfuscators
-import dev.cjww.security.obfuscation.Obfuscators
 import helpers.Assertions
 import helpers.database.MockAppStore
 import models.{PresetService, RegisteredApplication}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import play.api.Configuration
-import services.oauth2.{ClientService, RegeneratedId, RegeneratedIdAndSecret, RegenerationFailed}
+import utils.StringUtils._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class ClientServiceSpec
   extends PlaySpec
     with Assertions
-    with Obfuscators
-    with DeObfuscators
     with MockAppStore {
-
-  override val locale: String = ""
 
   private val testService: ClientService = new ClientService {
     override val appStore: AppStore = mockAppStore
@@ -263,12 +255,108 @@ class ClientServiceSpec
     }
   }
 
+  "updateOAuth2Flows" should {
+    "return a MongoSuccessUpdate" when {
+      "the apps oauth2 flows were updated" in {
+        mockUpdateApp(resp = MongoSuccessUpdate)
+
+        awaitAndAssert(testService.updateOAuth2Flows(Seq("testOAuthFlow"), "testAppId", "testOrgId")) {
+          _ mustBe MongoSuccessUpdate
+        }
+      }
+    }
+
+    "return a MongoFailedUpdate" when {
+      "the apps oauth2 flows could not be updated" in {
+        mockUpdateApp(resp = MongoFailedUpdate)
+
+        awaitAndAssert(testService.updateOAuth2Flows(Seq("testOAuthFlow"), "testAppId", "testOrgId")) {
+          _ mustBe MongoFailedUpdate
+        }
+      }
+    }
+  }
+
+  "updateOAuth2Scopes" should {
+    "return a MongoSuccessUpdate" when {
+      "the apps oauth2 scopes were updated" in {
+        mockUpdateApp(resp = MongoSuccessUpdate)
+
+        awaitAndAssert(testService.updateOAuth2Scopes(Seq("testOAuthScope"), "testAppId", "testOrgId")) {
+          _ mustBe MongoSuccessUpdate
+        }
+      }
+    }
+
+    "return a MongoFailedUpdate" when {
+      "the apps oauth2 scopes could not be updated" in {
+        mockUpdateApp(resp = MongoFailedUpdate)
+
+        awaitAndAssert(testService.updateOAuth2Scopes(Seq("testOAuthScope"), "testAppId", "testOrgId")) {
+          _ mustBe MongoFailedUpdate
+        }
+      }
+    }
+  }
+
+  "updateTokenExpiry" should {
+    "return a MongoSuccessUpdate" when {
+      "the apps token expiry was updated" in {
+        mockUpdateApp(resp = MongoSuccessUpdate)
+
+        awaitAndAssert(testService.updateTokenExpiry("testOrgId", "testAppId", 1, 2, 3)) {
+          _ mustBe MongoSuccessUpdate
+        }
+      }
+    }
+
+    "return a MongoFailedUpdate" when {
+      "the apps token expiry could not be updated" in {
+        mockUpdateApp(resp = MongoFailedUpdate)
+
+        awaitAndAssert(testService.updateTokenExpiry("testOrgId", "testAppId", 1, 2, 3)) {
+          _ mustBe MongoFailedUpdate
+        }
+      }
+    }
+  }
+
+  "updateRedirects" should {
+    "return a MongoSuccessUpdate" when {
+      "the apps redirects were updated" in {
+        mockUpdateApp(resp = MongoSuccessUpdate)
+
+        awaitAndAssert(testService.updateRedirects("testOrgId", "testAppId", "testHomeUrl", "testRedirectUrl")) {
+          _ mustBe MongoSuccessUpdate
+        }
+      }
+    }
+
+    "return a MongoFailedUpdate" when {
+      "the apps redirects could not be updated" in {
+        mockUpdateApp(resp = MongoFailedUpdate)
+
+        awaitAndAssert(testService.updateRedirects("testOrgId", "testAppId", "testHomeUrl", "testRedirectUrl")) {
+          _ mustBe MongoFailedUpdate
+        }
+      }
+    }
+  }
+
   "updateBasicDetails" should {
     "return a MongoSuccessUpdate" when {
       "the apps basic details were updated" in {
         mockUpdateApp(resp = MongoSuccessUpdate)
 
         awaitAndAssert(testService.updateBasicDetails("testOwner", "testAppId", "testName", "testDesc", Some("testIconUrl"))) {
+          _ mustBe MongoSuccessUpdate
+        }
+      }
+
+      "the apps basic details were updated without a testIconUrl" in {
+        mockUpdateApp(resp = MongoSuccessUpdate)
+
+        awaitAndAssert(testService.updateBasicDetails("testOwner", "testAppId", "testName", "testDesc", None)) {
           _ mustBe MongoSuccessUpdate
         }
       }

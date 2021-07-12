@@ -18,6 +18,7 @@ package helpers.orchestrators
 
 import models.WellKnownConfig
 import orchestrators.WellKnownConfigOrchestrator
+import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
 import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.BeforeAndAfterEach
@@ -35,7 +36,7 @@ trait MockWellKnownConfigOrchestrator extends MockitoSugar with BeforeAndAfterEa
   }
 
   def mockGetWellKnownConfig(wkc: WellKnownConfig): OngoingStubbing[WellKnownConfig] = {
-    when(mockWellKnownConfigOrchestrator.getConfig)
+    when(mockWellKnownConfigOrchestrator.getConfig(ArgumentMatchers.any()))
       .thenReturn(wkc)
   }
 }
