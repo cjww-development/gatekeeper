@@ -33,8 +33,8 @@ import scala.concurrent.{Future, ExecutionContext => ExC}
 class DefaultSesService @Inject()(val config: Configuration,
                                   val verificationStore: VerificationStore) extends SesService {
   override val awsRegion: String = config.get[String]("email-service.ses.region")
-  override val emailSenderAddress: String = config.get[String]("email-service.default.from")
-  override val verificationSubjectLine: String = config.get[String]("email-service.default.verification-subject")
+  override val emailSenderAddress: String = config.get[String]("email-service.message-settings.from")
+  override val verificationSubjectLine: String = config.get[String]("email-service.message-settings.verification-subject")
 
   override val emailClient: AmazonSimpleEmailService = AmazonSimpleEmailServiceClientBuilder
     .standard()

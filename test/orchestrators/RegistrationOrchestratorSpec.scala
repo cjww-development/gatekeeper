@@ -105,7 +105,11 @@ class RegistrationOrchestratorSpec
           accType = "individual",
           createdAt = new DateTime()
         )))
-        mockSendEmailVerificationMessage()
+        mockSendEmailVerificationMessage(EmailResponse(
+          provider = "testProvider",
+          userId = "testUserId",
+          messageId = "testMessageId"
+        ))
 
         awaitAndAssert(testOrchestrator.registerUser(testUser)) {
           _ mustBe Registered

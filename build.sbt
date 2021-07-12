@@ -36,6 +36,7 @@ lazy val microservice = Project(appName, file("."))
     githubRepository :=  appName,
     resolvers +=  Resolver.githubPackages("cjww-development"),
     libraryDependencies ++= Seq(
+      ws,
       "dev.cjww.libs"                %  "mongo-connector_2.13"       % "1.0.0",
       "dev.cjww.libs"                %  "data-defender_2.13"         % "1.0.0",
       "dev.cjww.libs"                %  "log-encoding_2.13"          % "1.0.0",

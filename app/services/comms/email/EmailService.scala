@@ -17,7 +17,7 @@
 package services.comms.email
 
 import database.VerificationStore
-import dev.cjww.mongo.responses.MongoDeleteResponse
+import dev.cjww.mongo.responses.{MongoDeleteResponse, MongoFailedCreate, MongoSuccessCreate}
 import models.{EmailResponse, Verification}
 import org.joda.time.DateTime
 import org.mongodb.scala.model.Filters.{and, equal}
@@ -35,7 +35,7 @@ trait EmailService {
 
   def sendEmailVerificationMessage(to: String, record: Verification)(implicit req: Request[_], ec: ExC): Future[EmailResponse]
 
-  def saveVerificationRecord(userId: String, email: String, accType: String)(implicit ec: ExC): Future[Verification] = {
+  def saveVerificationRecord(userId: String, email: String, accType: String)(implicit ec: ExC): Future[Option[Verification]] = {
     val record = Verification(
       verificationId = s"verify-${UUID.randomUUID().toString}",
       userId,
@@ -45,7 +45,10 @@ trait EmailService {
       accType,
       createdAt = new DateTime()
     )
-    verificationStore.createVerificationRecord(record) map(_ => record)
+    verificationStore.createVerificationRecord(record) map {
+      case MongoSuccessCreate => Some(record)
+      case MongoFailedCreate => None
+    }
   }
 
   def validateVerificationRecord(record: Verification): Future[Option[Verification]] = {

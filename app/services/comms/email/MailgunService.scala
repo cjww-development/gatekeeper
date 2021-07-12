@@ -19,6 +19,7 @@ package services.comms.email
 import database.VerificationStore
 import models.{EmailResponse, Verification}
 import dev.cjww.security.Implicits._
+import org.slf4j.{Logger, LoggerFactory}
 import play.api.Configuration
 import play.api.http.MimeTypes
 import play.api.libs.ws.{WSAuthScheme, WSClient}
@@ -32,8 +33,8 @@ import scala.concurrent.{Future, ExecutionContext => ExC}
 class DefaultMailgunService @Inject()(val config: Configuration,
                                       val wsClient: WSClient,
                                       val verificationStore: VerificationStore) extends MailgunService {
-  override val emailSenderAddress: String = config.get[String]("email-service.default.from")
-  override val verificationSubjectLine: String = config.get[String]("email-service.default.verification-subject")
+  override val emailSenderAddress: String = config.get[String]("email-service.message-settings.from")
+  override val verificationSubjectLine: String = config.get[String]("email-service.message-settings.verification-subject")
   override val apiKey: String = config.get[String]("email-service.mail-gun.api-key")
   override val mailgunUrl: String = config.get[String]("email-service.mail-gun.url")
 }

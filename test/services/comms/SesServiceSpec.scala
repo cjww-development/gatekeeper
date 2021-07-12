@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services
+package services.comms
 
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService
 import database.VerificationStore
@@ -28,22 +28,24 @@ import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import services.comms.email.SesService
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 class SesServiceSpec
   extends PlaySpec
     with Assertions
     with MockVerificationStore
     with MockSES {
 
-  private val testService = new SesService {
+  private val testService: SesService = new SesService {
     override val awsRegion: String = "eu-west-2"
     override val emailClient: AmazonSimpleEmailService = mockSES
     override val emailSenderAddress: String = "test@email.com"
-    override val verificationSubjectLine: String = "Test subject line"
+    override val verificationSubjectLine: String = "test verification line"
     override val verificationStore: VerificationStore = mockVerificationStore
   }
 
   "sendEmailVerificationMessage" should {
-    "return a SendEmailResult" when {
+    "return an EmailResponse" when {
       "the verification email has been sent" in {
         implicit val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
 
@@ -59,8 +61,8 @@ class SesServiceSpec
 
         mockSendEmail()
 
-        assertOutput(testService.sendEmailVerificationMessage("test@email.com", testVerificationRecord)) {
-          _.getMessageId mustBe "testMessageId"
+        awaitAndAssert(testService.sendEmailVerificationMessage("test@email.com", testVerificationRecord)) {
+          _.messageId mustBe "testMessageId"
         }
       }
     }

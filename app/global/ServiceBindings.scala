@@ -125,9 +125,9 @@ class ServiceBindings extends Module {
 
   private def emailService(config: Configuration): Seq[Binding[_]] = {
     config.get[String]("email-service.selected-provider") match {
-      case "ses"      => Seq(bind[EmailService].to[DefaultSesService].eagerly())
-      case "mail-gun" => Seq(bind[EmailService].to[DefaultMailgunService].eagerly())
-      case _          => throw new RuntimeException("Invalid email provider")
+      case "ses"     => Seq(bind[EmailService].to[DefaultSesService].eagerly())
+      case "mailgun" => Seq(bind[EmailService].to[DefaultMailgunService].eagerly())
+      case _         => throw new RuntimeException("Invalid email provider")
     }
   }
 }

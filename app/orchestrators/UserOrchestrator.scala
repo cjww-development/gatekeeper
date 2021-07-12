@@ -71,7 +71,7 @@ trait UserOrchestrator {
           } else {
             for {
               _ <- userService.updateUserEmailAddress(userId, obsEmail)
-              vRec <- emailService.saveVerificationRecord(userId, obsEmail, user.accType)
+              Some(vRec) <- emailService.saveVerificationRecord(userId, obsEmail, user.accType)
               resp <- emailService.sendEmailVerificationMessage(email, vRec)
             } yield {
               logger.info(s"[updateEmailAndReVerify] - Reverification email sent with messageId ${resp.messageId} to userId ${resp.userId} via ${resp.provider}")
