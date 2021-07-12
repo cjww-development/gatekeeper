@@ -8,7 +8,7 @@
 @Main("View an authorised app", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <script src="https://cdn.jsdelivr.net/npm/jdenticon@@3.0.1" async></script>
     <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
-    <h1 class="h3 mb-3 font-weight-normal">Authorised app</h1>
+    <h1 id="title" class="h3 mb-3 font-weight-normal">Authorised app</h1>
     <hr>
 
     <div class="card card-blue">
@@ -18,8 +18,8 @@
             } else {
                 <svg data-jdenticon-value="@{app.name}" width="100" height="100"/>
             }
-            <h4 class="card-title">@{app.name}</h4>
-            <p>@{app.desc}</p>
+            <h4 id="name" class="card-title">@{app.name}</h4>
+            <p id="desc">@{app.desc}</p>
         </div>
     </div>
 
@@ -27,7 +27,7 @@
         <div class="card-body">
             <h4 class="card-title default-text">App details</h4>
             <p class="default-text"><strong>Managed by</strong></p>
-            <p class="default-text">@{app.owner}</p>
+            <p id="owner" class="default-text">@{app.owner}</p>
         </div>
     </div>
 

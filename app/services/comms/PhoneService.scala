@@ -20,7 +20,7 @@ import com.amazonaws.regions.Regions
 import com.amazonaws.services.sns.model.{MessageAttributeValue, PublishRequest, PublishResult}
 import com.amazonaws.services.sns.{AmazonSNS, AmazonSNSClientBuilder}
 import database.VerificationStore
-import dev.cjww.mongo.responses.MongoDeleteResponse
+import dev.cjww.mongo.responses.{MongoDeleteResponse, MongoFailedCreate, MongoSuccessCreate}
 import models.Verification
 import org.joda.time.DateTime
 import org.mongodb.scala.model.Filters.{and, equal}
@@ -65,7 +65,7 @@ trait PhoneService {
       .withMessageAttributes(msgAttrs))
   }
 
-  def saveVerificationRecord(userId: String, phoneNumber: String, accType: String)(implicit ec: ExC): Future[Verification] = {
+  def saveVerificationRecord(userId: String, phoneNumber: String, accType: String)(implicit ec: ExC): Future[Option[Verification]] = {
     val ran = new Random()
     val record = Verification(
       verificationId = s"verify-${UUID.randomUUID().toString}",
@@ -76,7 +76,10 @@ trait PhoneService {
       accType,
       createdAt = new DateTime()
     )
-    verificationStore.createVerificationRecord(record) map(_ => record)
+    verificationStore.createVerificationRecord(record) map {
+      case MongoSuccessCreate => Some(record)
+      case MongoFailedCreate  => None
+    }
   }
 
   def validateVerificationRecord(userId: String, code: String): Future[Option[Verification]] = {

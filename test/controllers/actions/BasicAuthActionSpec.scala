@@ -61,11 +61,147 @@ class BasicAuthActionSpec extends PlaySpec with MockClientService with Assertion
     createdAt    = now
   )
 
-  "clientAuthentication" should {
+  "clientAuthenticationOptionalPkce" should {
     "return an ok" when {
-      "the client has been successfully validated" in {
+      "the client has been successfully validated using PKCE" in {
+        val req = FakeRequest()
+          .withFormUrlEncodedBody(
+            "client_id" -> "testClientId",
+            "code_verifier" -> "testCodeVerifier"
+          )
+
+        mockGetRegisteredAppById(app = Some(testApp))
+
+        val result = testFilter.clientAuthenticationOptionalPkce {
+          _ => app => _ => okFunction(app)
+        }.apply(req)
+
+        assertOutput(result) { res =>
+          status(res)          mustBe OK
+          contentAsString(res) mustBe "I am app testAppId"
+        }
+      }
+
+      "the client has been successfully validated using basic auth" in {
         val req = FakeRequest()
           .withHeaders("Authorization" -> "Basic dGVzdElkOnRlc3RTZWNyZXQ=")
+
+        mockGetRegisteredAppByIdAndSecret(app = Some(testApp))
+
+        val result = testFilter.clientAuthenticationOptionalPkce {
+          _ => app => _ => okFunction(app)
+        }.apply(req)
+
+        assertOutput(result) { res =>
+          status(res)          mustBe OK
+          contentAsString(res) mustBe "I am app testAppId"
+        }
+      }
+
+      "the client has been successfully validated using client body" in {
+        val req = FakeRequest()
+          .withFormUrlEncodedBody(
+            "client_id" -> "testClientId",
+            "client_secret" -> "testClientSecret"
+          )
+
+        mockGetRegisteredAppByIdAndSecret(app = Some(testApp))
+
+        val result = testFilter.clientAuthenticationOptionalPkce {
+          _ => app => _ => okFunction(app)
+        }.apply(req)
+
+        assertOutput(result) { res =>
+          status(res)          mustBe OK
+          contentAsString(res) mustBe "I am app testAppId"
+        }
+      }
+    }
+
+    "return an unauthorized" when {
+      "there was no auth header" in {
+        val req = FakeRequest()
+
+        val result = testFilter.clientAuthenticationOptionalPkce {
+          _ => app => _ => okFunction(app)
+        }.apply(req)
+
+        assertOutput(result) { res =>
+          status(res) mustBe UNAUTHORIZED
+          contentAsJson(res).\("error").as[String] mustBe "invalid_client"
+        }
+      }
+
+      "the header was found but it wasn't a basic auth header" in {
+        val req = FakeRequest()
+          .withHeaders("Authorization" -> "Bearer 1234567890")
+
+        val result = testFilter.clientAuthenticationOptionalPkce {
+          _ => app => _ => okFunction(app)
+        }.apply(req)
+
+        assertOutput(result) { res =>
+          status(res) mustBe UNAUTHORIZED
+          contentAsJson(res).\("error").as[String] mustBe "invalid_client"
+        }
+      }
+
+      "the header was found, it was basic, but it could not be decoded" in {
+        val req = FakeRequest()
+          .withHeaders("Authorization" -> "Basic invalid-base64")
+
+        val result = testFilter.clientAuthenticationOptionalPkce {
+          _ => app => _ => okFunction(app)
+        }.apply(req)
+
+        assertOutput(result) { res =>
+          status(res) mustBe UNAUTHORIZED
+          contentAsJson(res).\("error").as[String] mustBe "invalid_client"
+        }
+      }
+
+      "the header was found, it was decoded, but no matching client could be found" in {
+        val req = FakeRequest()
+          .withHeaders("Authorization" -> "Basic dGVzdElkOnRlc3RTZWNyZXQ=")
+
+        mockGetRegisteredAppByIdAndSecret(app = None)
+
+        val result = testFilter.clientAuthenticationOptionalPkce {
+          _ => app => _ => okFunction(app)
+        }.apply(req)
+
+        assertOutput(result) { res =>
+          status(res) mustBe UNAUTHORIZED
+          contentAsJson(res).\("error").as[String] mustBe "invalid_client"
+        }
+      }
+    }
+  }
+
+  "clientAuthentication" should {
+    "return an ok" when {
+      "the client has been successfully validated using basic auth" in {
+        val req = FakeRequest()
+          .withHeaders("Authorization" -> "Basic dGVzdElkOnRlc3RTZWNyZXQ=")
+
+        mockGetRegisteredAppByIdAndSecret(app = Some(testApp))
+
+        val result = testFilter.clientAuthentication {
+          _ => app => _ => okFunction(app)
+        }.apply(req)
+
+        assertOutput(result) { res =>
+          status(res)          mustBe OK
+          contentAsString(res) mustBe "I am app testAppId"
+        }
+      }
+
+      "the client has been successfully validated using client body" in {
+        val req = FakeRequest()
+          .withFormUrlEncodedBody(
+            "client_id" -> "testClientId",
+            "client_secret" -> "testClientSecret"
+          )
 
         mockGetRegisteredAppByIdAndSecret(app = Some(testApp))
 

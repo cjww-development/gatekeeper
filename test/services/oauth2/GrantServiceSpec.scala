@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,29 +14,24 @@
  * limitations under the License.
  */
 
-package services
+package services.oauth2
 
 import database.{AppStore, GrantStore}
 import dev.cjww.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
-import dev.cjww.security.Implicits._
-import dev.cjww.security.obfuscation.Obfuscators
 import helpers.Assertions
 import helpers.database.{MockAppStore, MockGrantStore}
 import models.{Grant, RegisteredApplication}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import services.oauth2.GrantService
+import utils.StringUtils._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class GrantServiceSpec
   extends PlaySpec
     with Assertions
-    with Obfuscators
     with MockGrantStore
     with MockAppStore {
-
-  override val locale: String = ""
 
   private val testService: GrantService = new GrantService {
     override val appStore: AppStore = mockAppStore
@@ -122,6 +117,28 @@ class GrantServiceSpec
         mockValidateGrant(app = Some(testGrant))
 
         awaitAndAssert(testService.validateGrant(testGrant.authCode, testApp.clientId, testApp.redirectUrl, None)) {
+          _ mustBe Some(testGrant)
+        }
+      }
+
+      "the auth code and state have been validated using PKCE" in {
+        val testGrant: Grant = Grant(
+          responseType = "code",
+          authCode = "testAuthCode",
+          scope = Seq("testScope"),
+          clientId = testApp.clientId,
+          userId = "testUserId",
+          accType = "testType",
+          redirectUri = testApp.redirectUrl,
+          codeVerifier = Some("OY1p~h33KJHY.SQEgjgQWvAe94~8I.XM.cn2PTxj~i_FDhyEGoM7PzA6XfxwQr3OUv0-TneA9WEK1N9.XOXlDXoiuytnkdg2KyAja4HpXud8gLedc5puqpgBz5~dj7_G"),
+          codeChallenge = Some("WUh1MDni8olIQ6iV-L80LVEjwwaxQ4YyfYykug55quA"),
+          codeChallengeMethod = Some("S256"),
+          createdAt = DateTime.now()
+        )
+
+        mockValidateGrant(app = Some(testGrant))
+
+        awaitAndAssert(testService.validateGrant(testGrant.authCode, testApp.clientId, testApp.redirectUrl, testGrant.codeVerifier)) {
           _ mustBe Some(testGrant)
         }
       }

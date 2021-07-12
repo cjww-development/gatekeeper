@@ -54,16 +54,16 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
 
   implicit def langs(implicit rh: RequestHeader): Lang = messagesApi.preferred(rh).lang
 
-  def showAppReg(): Action[AnyContent] = authenticatedOrgUser { implicit req => userId =>
+  def showAppReg(): Action[AnyContent] = authenticatedOrgUser { implicit req => user =>
     val presetService = clientService.getPresetServices.map(_.name)
-    Future.successful(Ok(AppRegistration(appRegForm(userId), presetService)))
+    Future.successful(Ok(AppRegistration(appRegForm(user.id), presetService)))
   }
 
-  def submitPreset(): Action[AnyContent] = authenticatedOrgUser { implicit req => userId =>
+  def submitPreset(): Action[AnyContent] = authenticatedOrgUser { implicit req => user =>
     val reqBody = req.body.asFormUrlEncoded.getOrElse(Map())
     val presetChoice = reqBody.get("preset-choice").map(_.head)
     presetChoice match {
-      case Some(preset) => registrationOrchestrator.registerPresetApplication(userId, preset) map {
+      case Some(preset) => registrationOrchestrator.registerPresetApplication(user.id, preset) map {
         case AppRegistered(id) => Redirect(routes.ClientController.getClientDetails(id))
         case AppRegistrationError => InternalServerError(INS())
       }
@@ -71,8 +71,8 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
     }
   }
 
-  def submitAppReg(): Action[AnyContent] = authenticatedOrgUser { implicit req => userId =>
-    appRegForm(userId).bindFromRequest().fold(
+  def submitAppReg(): Action[AnyContent] = authenticatedOrgUser { implicit req => user =>
+    appRegForm(user.id).bindFromRequest().fold(
       errs => Future.successful(BadRequest(errs.toString)),
       app  => registrationOrchestrator.registerApplication(app) map {
         case AppRegistered        => Redirect(routes.ClientController.getClientDetails(app.appId))
@@ -81,10 +81,10 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
     )
   }
 
-  def getClientDetails(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => orgUserId =>
+  def getClientDetails(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => user =>
     for {
-      app <- clientOrchestrator.getRegisteredApp(orgUserId, appId)
-      expiry <- clientOrchestrator.getTokenExpiry(appId, orgUserId)
+      app <- clientOrchestrator.getRegisteredApp(user.id, appId)
+      expiry <- clientOrchestrator.getTokenExpiry(appId, user.id)
     } yield if(app.isDefined && expiry.isDefined) {
       Ok(ClientView(app.get, expiry.get, scopeService.getValidScopes))
     } else {
@@ -92,87 +92,87 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
     }
   }
 
-  def getAllClients(groupedBy: Int): Action[AnyContent] = authenticatedOrgUser { implicit req => orgUserId =>
-    clientOrchestrator.getRegisteredApps(orgUserId, groupedBy) map { apps =>
+  def getAllClients(groupedBy: Int): Action[AnyContent] = authenticatedOrgUser { implicit req => user =>
+    clientOrchestrator.getRegisteredApps(user.id, groupedBy) map { apps =>
       Ok(ClientsView(apps))
     }
   }
 
-  def regenerateIdAndSecretShow(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => orgUserId =>
-    clientOrchestrator.getRegisteredApp(orgUserId, appId) map {
+  def regenerateIdAndSecretShow(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => user =>
+    clientOrchestrator.getRegisteredApp(user.id, appId) map {
       case Some(app) => Ok(RegenerateClientIdView(app))
       case None      => NotFound(NotFoundView())
     }
   }
 
-  def regenerateIdAndSecretSubmit(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => orgUserId =>
-    clientOrchestrator.regenerateClientIdAndSecret(orgUserId, appId) map {
+  def regenerateIdAndSecretSubmit(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => user =>
+    clientOrchestrator.regenerateClientIdAndSecret(user.id, appId) map {
       case SecretsUpdated => Redirect(routes.ClientController.getClientDetails(appId))
       case NoAppFound => NotFound(NotFoundView())
       case _ => InternalServerError(INS())
     }
   }
 
-  def deleteClientShow(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => orgUserId =>
-    clientOrchestrator.getRegisteredApp(orgUserId, appId) map {
+  def deleteClientShow(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => user =>
+    clientOrchestrator.getRegisteredApp(user.id, appId) map {
       case Some(app) => Ok(DeleteClientView(app))
       case None      => NotFound(NotFoundView())
     }
   }
 
-  def deleteClientSubmit(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => orgUserId =>
-    clientOrchestrator.deleteClient(orgUserId, appId) map {
+  def deleteClientSubmit(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => user =>
+    clientOrchestrator.deleteClient(user.id, appId) map {
       case MongoSuccessDelete => Redirect(routes.ClientController.getAllClients())
       case MongoFailedDelete  => NotFound(NotFoundView())
     }
   }
 
-  def getAuthorisedAppsForUser(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
-    clientOrchestrator.getAuthorisedApps(userId) map {
+  def getAuthorisedAppsForUser(): Action[AnyContent] = authenticatedUser { implicit req => user =>
+    clientOrchestrator.getAuthorisedApps(user.id) map {
       apps => Ok(AuthorisedClientsView(apps))
     }
   }
 
-  def getAuthorisedApp(appId: String): Action[AnyContent] = authenticatedUser { implicit req => userId =>
-    clientOrchestrator.getAuthorisedApp(userId, appId) map {
+  def getAuthorisedApp(appId: String): Action[AnyContent] = authenticatedUser { implicit req => user =>
+    clientOrchestrator.getAuthorisedApp(user.id, appId) map {
       case Some((app, client, sessions)) => Ok(AuthorisedClientView(app, client, scopeService.getValidScopes, sessions))
       case None      => NotFound(NotFoundView())
     }
   }
 
-  def revokeAppAccess(appId: String): Action[AnyContent] = authenticatedUser { _ => userId =>
-    clientOrchestrator.unlinkAppFromUser(appId, userId) map {
+  def revokeAppAccess(appId: String): Action[AnyContent] = authenticatedUser { _ => user =>
+    clientOrchestrator.unlinkAppFromUser(appId, user.id) map {
       _ => Redirect(routes.ClientController.getAuthorisedAppsForUser())
     }
   }
 
-  def revokeSession(tokenSetId: String, appId: String): Action[AnyContent] = authenticatedUser { _ => userId =>
-    tokenOrchestrator.revokeTokens(tokenSetId, userId, appId) map {
+  def revokeSession(tokenSetId: String, appId: String): Action[AnyContent] = authenticatedUser { _ => user =>
+    tokenOrchestrator.revokeTokens(tokenSetId, user.id, appId) map {
       _ => Redirect(routes.ClientController.getAuthorisedApp(appId))
     }
   }
 
-  def updateOAuthFlows(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => orgUserId =>
+  def updateOAuthFlows(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => user =>
     val reqBody = req.body.asFormUrlEncoded.getOrElse(Map())
     val oauthFlows = reqBody.getOrElse("auth-code-check", Seq()) ++ reqBody.getOrElse("client-cred-check", Seq()) ++ reqBody.getOrElse("refresh-check", Seq())
 
-    clientOrchestrator.updateAppOAuthFlows(oauthFlows, appId, orgUserId) map {
+    clientOrchestrator.updateAppOAuthFlows(oauthFlows, appId, user.id) map {
       _ => Redirect(routes.ClientController.getClientDetails(appId))
     }
   }
 
-  def updateOAuthScopes(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => orgUserId =>
+  def updateOAuthScopes(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => user =>
     val reqBody = req.body.asFormUrlEncoded.getOrElse(Map())
     val oauthScopes = scopeService.getValidScopes.flatMap { scope =>
       reqBody.getOrElse(s"${scope.name}-check", Seq())
     }
 
-    clientOrchestrator.updateAppOAuthScopes(oauthScopes, appId, orgUserId) map {
+    clientOrchestrator.updateAppOAuthScopes(oauthScopes, appId, user.id) map {
       _ => Redirect(routes.ClientController.getClientDetails(appId))
     }
   }
 
-  def updateTokenExpiry(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => orgUserId =>
+  def updateTokenExpiry(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => user =>
     val body = req.body.asFormUrlEncoded.getOrElse(Map())
     val expiry = TokenExpiry(
       idTokenMins = Try(body.getOrElse("id-token-mins", Seq("0")).map(_.toLong).head).getOrElse(0),
@@ -183,28 +183,28 @@ trait ClientController extends BaseController with I18NSupportLowPriorityImplici
       refreshTokenMins = Try(body.getOrElse("refresh-token-mins", Seq("0")).map(_.toLong).head).getOrElse(0)
     )
 
-    clientOrchestrator.updateTokenExpiry(appId, orgUserId, expiry) map {
+    clientOrchestrator.updateTokenExpiry(appId, user.id, expiry) map {
       _ => Redirect(routes.ClientController.getClientDetails(appId))
     }
   }
 
-  def updateHomeAndRedirect(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => orgUserId =>
+  def updateHomeAndRedirect(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => user =>
     val body = req.body.asFormUrlEncoded.getOrElse(Map())
     val homeUrl = body.getOrElse("home-url", Seq("")).head
     val redirectUrl = body.getOrElse("redirect-url", Seq("")).head
 
-    clientOrchestrator.updateRedirects(appId, orgUserId, homeUrl, redirectUrl) map {
+    clientOrchestrator.updateRedirects(appId, user.id, homeUrl, redirectUrl) map {
       _ => Redirect(routes.ClientController.getClientDetails(appId))
     }
   }
 
-  def updateBasicDetails(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => orgUserId =>
+  def updateBasicDetails(appId: String): Action[AnyContent] = authenticatedOrgUser { implicit req => user =>
     val body = req.body.asFormUrlEncoded.getOrElse(Map())
     val name = body.getOrElse("name", Seq("")).head
     val desc = body.getOrElse("desc", Seq("")).head
     val iconUrl = body.get("icon-url").filter(_.head != "").map(_.head)
 
-    clientOrchestrator.updateBasicDetails(appId, orgUserId, name, desc, iconUrl) map {
+    clientOrchestrator.updateBasicDetails(appId, user.id, name, desc, iconUrl) map {
       _ => Redirect(routes.ClientController.getClientDetails(appId))
     }
   }

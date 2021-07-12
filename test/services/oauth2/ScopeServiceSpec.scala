@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package services
+package services.oauth2
 
 import helpers.Assertions
 import models.Scope
 import org.scalatestplus.play.PlaySpec
-import services.oauth2.ScopeService
 
 class ScopeServiceSpec
   extends PlaySpec
@@ -43,6 +42,17 @@ class ScopeServiceSpec
     }
   }
 
+  "getScopeDetails" should {
+    "return a sequence of scopes matching the scope names" in {
+      assertOutput(testService.getScopeDetails(strScopes = Seq("read:testRead", "write:testWrite"))) {
+        _ mustBe Seq(
+          Scope(name = "read:testRead", readableName = "read:testRead", desc = ""),
+          Scope(name = "write:testWrite", readableName = "write:testWrite", desc = "")
+        )
+      }
+    }
+  }
+
   "validateScopes" should {
     "return true" when {
       "the requested scopes are valid" in {
@@ -55,6 +65,24 @@ class ScopeServiceSpec
     "return false" when {
       "the requested scopes aren't valid" in {
         assertOutput(testService.validateScopes(scopes = "testRead testWrite")) {
+          res => assert(!res)
+        }
+      }
+    }
+  }
+
+  "validateScopes (app scopes)" should {
+    "return true" when {
+      "the requested scopes are valid against the apps scopes" in {
+        assertOutput(testService.validateScopes(scopes = "read:testRead write:testWrite", appScopes = Seq("read:testRead", "write:testWrite"))) {
+          res => assert(res)
+        }
+      }
+    }
+
+    "return false" when {
+      "the requested scopes aren't valid against the apps scopes" in {
+        assertOutput(testService.validateScopes(scopes = "read:testRead write:testWrite", appScopes = Seq("read:testRead"))) {
           res => assert(!res)
         }
       }

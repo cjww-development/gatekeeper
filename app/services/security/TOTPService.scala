@@ -22,10 +22,10 @@ import dev.samstevens.totp.code.{CodeVerifier, DefaultCodeGenerator, DefaultCode
 import dev.samstevens.totp.qr.{QrData, ZxingPngQrGenerator}
 import dev.samstevens.totp.secret.{DefaultSecretGenerator, SecretGenerator}
 import dev.samstevens.totp.time.SystemTimeProvider
-import dev.samstevens.totp.util.Utils.getDataUriForImage
+import org.apache.commons.codec.binary.Base64
 import org.mongodb.scala.bson.conversions.Bson
-import org.mongodb.scala.model.Filters.{and, equal}
-import org.mongodb.scala.model.Updates.{set, unset}
+import org.mongodb.scala.model.Filters.equal
+import org.mongodb.scala.model.Updates.{combine, set, unset}
 import org.slf4j.{Logger, LoggerFactory}
 import play.api.Configuration
 import utils.StringUtils._
@@ -113,7 +113,8 @@ trait TOTPService extends UserStoreUtils {
         val imageData: Array[Byte] = qrGenerator.generate(qrData)
         val mimeType = qrGenerator.getImageMimeType
         logger.info(s"[generateQRCode] - Generated QR code for user $userId")
-        QRCode(getDataUriForImage(imageData, mimeType))
+        val encodedData = new String(new Base64().encode(imageData))
+        QRCode(String.format("data:%s;base64,%s", mimeType, encodedData))
       case None =>
         logger.warn(s"[generateQRCode] - No user found for $userId, failed to generate a secret for TOTP MFA")
         QRCodeFailed
@@ -140,7 +141,7 @@ trait TOTPService extends UserStoreUtils {
   }
 
   def removeTOTPMFA(userId: String)(implicit ec: ExC): Future[Boolean] = {
-    val update = and(set("mfaEnabled", false), unset("mfaSecret"))
+    val update = combine(set("mfaEnabled", false), unset("mfaSecret"))
 
     getUserStore(userId).updateUser(query(userId), update).map {
       case MongoSuccessUpdate =>

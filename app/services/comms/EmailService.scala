@@ -20,7 +20,7 @@ import com.amazonaws.regions.Regions
 import com.amazonaws.services.simpleemail.model._
 import com.amazonaws.services.simpleemail.{AmazonSimpleEmailService, AmazonSimpleEmailServiceClientBuilder}
 import database.VerificationStore
-import dev.cjww.mongo.responses.MongoDeleteResponse
+import dev.cjww.mongo.responses.{MongoDeleteResponse, MongoFailedCreate, MongoSuccessCreate}
 import dev.cjww.security.Implicits._
 import models.Verification
 import org.joda.time.DateTime
@@ -81,7 +81,7 @@ trait EmailService {
     emailClient.sendEmail(request)
   }
 
-  def saveVerificationRecord(userId: String, email: String, accType: String)(implicit ec: ExC): Future[Verification] = {
+  def saveVerificationRecord(userId: String, email: String, accType: String)(implicit ec: ExC): Future[Option[Verification]] = {
     val record = Verification(
       verificationId = s"verify-${UUID.randomUUID().toString}",
       userId,
@@ -91,7 +91,10 @@ trait EmailService {
       accType,
       createdAt = new DateTime()
     )
-    verificationStore.createVerificationRecord(record) map(_ => record)
+    verificationStore.createVerificationRecord(record) map {
+      case MongoSuccessCreate => Some(record)
+      case MongoFailedCreate  => None
+    }
   }
 
   def validateVerificationRecord(record: Verification): Future[Option[Verification]] = {

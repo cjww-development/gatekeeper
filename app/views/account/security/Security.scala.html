@@ -2,7 +2,7 @@
 @import views.AuthForView
 @import views.html.Main
 
-@(mfaStatus: Boolean, emailVerificationStatus: Boolean, email: String, phoneVerificationStatus: Boolean, phone: Option[String])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
+@(mfaStatus: Boolean, emailVerified: Boolean, email: String, phoneVerified: Boolean, phone: Option[String])(implicit rh: RequestHeader, msgs: MessagesApi, lang: Lang)
 
 @Main("Account Security", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
@@ -13,14 +13,14 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Email verification</h5>
-            @if(emailVerificationStatus) {
+            @if(emailVerified) {
                 <p class="default-text">Your email address</p>
-                <p class="default-text">@email</p>
+                <p class="default-text" id="verified-email">@email</p>
                 <p class="default-text">has been verified</p>
             } else {
                 <p class="default-text">Your email address not yet been verified.</p>
                 <p class="default-text">Use the link in the email we sent to</p>
-                <p class="default-text">@email</p>
+                <p class="default-text" id="unverified-email">@email</p>
                 <p class="default-text">to verify</p>
                 <p class="default-text">Use the button below to resend the email</p>
                 <a href="" class="btn btn-success btn-block">Resend verification message</a>
@@ -31,12 +31,12 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Securing your account with your phone number</h5>
-            @if(phoneVerificationStatus) {
+            @if(phoneVerified) {
                 <p class="default-text">Your phone number</p>
-                <p class="default-text">@{phone.get}</p>
+                <p class="default-text" id="verified-phone">@{phone.get}</p>
                 <p class="default-text">has been verified</p>
             } else {
-                <p class="default-text">Enter your phone to further secure your account</p>
+                <p class="default-text" id="unverified-phone">Enter your phone to further secure your account</p>
                 <a href="@uiRoutes.PhoneController.enterPhoneNumber()" class="btn btn-success btn-block">Enter your phone number</a>
             }
         </div>
@@ -46,10 +46,10 @@
         <div class="card-body">
             <h5 class="card-title">Two factor authentication</h5>
             @if(mfaStatus) {
-                <p class="default-text">Your account is secured with two factor authentication</p>
+                <p class="default-text" id="mfa-enabled">Your account is secured with two factor authentication</p>
                 <a href="@uiRoutes.AccountController.disableMFAConfirm()" class="btn btn-danger btn-block">Disable two factor</a>
             } else {
-                <p class="default-text">Secure your account with two factor authentication</p>
+                <p class="default-text" id="mfa-disabled">Secure your account with two factor authentication</p>
                 <a href="@uiRoutes.AccountController.totpSetup()" class="btn btn-success btn-block">Enable two factor</a>
             }
         </div>

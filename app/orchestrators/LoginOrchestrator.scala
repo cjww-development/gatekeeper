@@ -18,8 +18,8 @@ package orchestrators
 
 import models.Login
 import org.slf4j.LoggerFactory
-import services.users.LoginService
 import services.security.{Secret, TOTPService}
+import services.users.LoginService
 
 import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}

@@ -21,7 +21,6 @@ import play.api.libs.json.{JsObject, Json, OFormat}
 import utils.StringUtils._
 
 import java.text.SimpleDateFormat
-import java.util.Date
 
 case class UserInfo(id: String,
                     userName: String,

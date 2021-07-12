@@ -41,7 +41,7 @@ trait UserStore extends DatabaseRepository with CodecReg {
   override def indexes: Seq[IndexModel] = Seq(
     IndexModel(Indexes.ascending("id"), IndexOptions().background(false).unique(true)),
     IndexModel(Indexes.ascending("userName"), IndexOptions().background(false).unique(true)),
-    IndexModel(Indexes.ascending("email"), IndexOptions().background(false).unique(true)),
+    IndexModel(Indexes.ascending("digitalContact.email.address"), IndexOptions().background(false).unique(true)),
     IndexModel(Indexes.ascending("salt"), IndexOptions().background(false).unique(true)),
   )
 

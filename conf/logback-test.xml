@@ -18,19 +18,10 @@
 <configuration debug="false">
   <conversionRule conversionWord="coloredLevel" converterClass="dev.cjww.logging.converters.HighlightedLogLevelConverter" />
 
-  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-    <file>${application.home:-.}/logs/application-json.log</file>
-    <encoder class="dev.cjww.logging.encoding.JsonLoggingEncoder" />
-  </appender>
-
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
       <pattern>%coloredLevel timestamp=[%date{ISO8601}] thread=[%thread] locale=[%logger] %message %replace(exception=[%xException]){'^exception=\[\]$',''}%n</pattern>
     </encoder>
-  </appender>
-
-  <appender name="ASYNCFILE" class="ch.qos.logback.classic.AsyncAppender">
-    <appender-ref ref="FILE" />
   </appender>
 
   <appender name="ASYNCSTDOUT" class="ch.qos.logback.classic.AsyncAppender">
@@ -42,7 +33,7 @@
   <logger name="repositories"                                        level="INFO" />
   <logger name="Logging filter"                                      level="INFO" />
 
-  <logger name="reactivemongo.api.MongoDriver"                       level="OFF" />
+  <logger name="reactivemongo.ui.MongoDriver" level="OFF" />
   <logger name="play.modules.reactivemongo.DefaultReactiveMongoApi"  level="OFF" />
 
   <!-- Off these ones as they are annoying, and anyway we manage configuration ourselves -->
@@ -52,7 +43,6 @@
   <logger name="com.gargoylesoftware.htmlunit.javascript"            level="OFF" />
 
   <root level="OFF">
-    <appender-ref ref="ASYNCFILE"   />
     <appender-ref ref="ASYNCSTDOUT" />
   </root>
 </configuration>

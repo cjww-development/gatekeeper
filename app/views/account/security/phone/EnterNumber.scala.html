@@ -10,7 +10,7 @@
 @Main("Enter your phone number", AuthForView.isAuthenticated(rh), AuthForView.isOrgUser(rh)) {
     <form action="@uiRoutes.PhoneController.submitPhoneNumber()" method="post">
         <img class="mb-4" src="@routes.Assets.at("images/logo.png")" alt="" height="72">
-        <h1 class="h3 mb-3 font-weight-normal">Enter your phone number</h1>
+        <h1 id="title" class="h3 mb-3 font-weight-normal">Enter your phone number</h1>
 
         <hr>
 

@@ -28,7 +28,7 @@ import play.api.i18n.{I18NSupportLowPriorityImplicits, I18nSupport, Lang}
 import play.api.mvc._
 import views.html.account.security.{MFADisableConfirm, Security, TOTP}
 import views.html.account.{Account, AccountDetails}
-import views.html.misc.{NotFound => NotFoundView, INS}
+import views.html.misc.INS
 
 import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
@@ -50,152 +50,198 @@ trait AccountController extends BaseController with I18NSupportLowPriorityImplic
 
   implicit def langs(implicit rh: RequestHeader): Lang = messagesApi.preferred(rh).lang
 
-  def show(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
-    userOrchestrator.getUserDetails(userId) flatMap {
-      case Some(userInfo) => if(userId.startsWith("org-user-")) {
-        clientOrchestrator.getRegisteredApps(userId, 1) map { clients =>
-          Ok(Account(userInfo, clients.flatten))
+  def show(): Action[AnyContent] = authenticatedUser { implicit req => user =>
+    if(user.id.startsWith("org-user-")) {
+      clientOrchestrator.getRegisteredApps(user.id, 1) map { clients =>
+        Ok(Account(user, clients.flatten))
+      }
+    } else {
+      Future.successful(Ok(Account(user, Seq())))
+    }
+  }
+
+  def accountSecurity(): Action[AnyContent] = authenticatedUser { implicit req => user =>
+    Future.successful(Ok(Security(
+      user.mfaEnabled,
+      user.emailVerified,
+      user.email,
+      user.phoneVerified,
+      user.phone
+    )))
+  }
+
+  def totpSetup(): Action[AnyContent] = authenticatedUser { implicit req => user =>
+    if(!user.mfaEnabled) {
+      mfaOrchestrator.setupTOTPMFA(user.id) map {
+        case MFATOTPQR(qrDataUri) => Ok(TOTP(TOTPSetupCodeVerificationForm.form, qrDataUri))
+      }
+    } else {
+      Future.successful(Redirect(routes.AccountController.accountSecurity()))
+    }
+  }
+
+  def postTotpSetupVerification(): Action[AnyContent] = authenticatedUser { implicit req => user =>
+    if(!user.mfaEnabled) {
+      TOTPSetupCodeVerificationForm.form.bindFromRequest().fold(
+        err => mfaOrchestrator.setupTOTPMFA(user.id) map {
+          case MFATOTPQR(qrCodeData) => BadRequest(TOTP(err, qrCodeData))
+          case _ => InternalServerError(INS())
+        },
+        codes => mfaOrchestrator.postTOTPSetupCodeVerification(user.id, codes.codeOne, codes.codeTwo) map {
+          _ => Redirect(routes.AccountController.accountSecurity())
         }
-      } else {
-        Future.successful(Ok(Account(userInfo, Seq())))
-      }
-      case None => Future.successful(Redirect(routes.LoginController.logout()))
+      )
+    } else {
+      Future.successful(Redirect(routes.AccountController.accountSecurity()))
     }
   }
 
-  def accountSecurity(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
-    userOrchestrator.getUserDetails(userId) map { userInfo =>
-      Ok(Security(userInfo.get.mfaEnabled, userInfo.get.emailVerified, userInfo.get.email, userInfo.get.phoneVerified, userInfo.get.phone))
+  def disableMFAConfirm(): Action[AnyContent] = authenticatedUser { implicit req => user =>
+    if(user.mfaEnabled) {
+      Future.successful(Ok(MFADisableConfirm()))
+    } else {
+      Future.successful(Redirect(routes.AccountController.accountSecurity()))
     }
   }
 
-  def totpSetup(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
-    mfaOrchestrator.isMFAEnabled(userId) flatMap { status =>
-      if(!status) {
-        mfaOrchestrator.setupTOTPMFA(userId) map {
-          case MFATOTPQR(qrDataUri) => Ok(TOTP(TOTPSetupCodeVerificationForm.form, qrDataUri))
-          case _ => Redirect(routes.LoginController.logout())
-        }
-      } else {
-        Future.successful(Redirect(routes.AccountController.accountSecurity()))
-      }
-    }
-  }
-
-  def postTotpSetupVerification(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
-    mfaOrchestrator.isMFAEnabled(userId) flatMap { status =>
-      if(!status) {
-        TOTPSetupCodeVerificationForm.form.bindFromRequest().fold(
-          err => mfaOrchestrator.setupTOTPMFA(userId) map {
-            case MFATOTPQR(qrCodeData) => BadRequest(TOTP(err, qrCodeData))
-            case _ => InternalServerError(INS())
-          },
-          codes => mfaOrchestrator.postTOTPSetupCodeVerification(userId, codes.codeOne, codes.codeTwo) map {
-            _ => Redirect(routes.AccountController.accountSecurity())
-          }
-        )
-      } else {
-        Future.successful(Redirect(routes.AccountController.accountSecurity()))
-      }
-    }
-  }
-
-  def disableMFAConfirm(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
-    mfaOrchestrator.isMFAEnabled(userId) map { enabled =>
-      if(enabled) {
-        Ok(MFADisableConfirm())
-      } else {
+  def disableMFA(): Action[AnyContent] = authenticatedUser { _ => user =>
+    if(user.mfaEnabled) {
+      mfaOrchestrator.disableMFA(user.id) map { _ =>
         Redirect(routes.AccountController.accountSecurity())
       }
+    } else {
+      Future.successful(Redirect(routes.AccountController.accountSecurity()))
     }
   }
 
-  def disableMFA(): Action[AnyContent] = authenticatedUser { _ => userId =>
-    mfaOrchestrator.isMFAEnabled(userId) flatMap { enabled =>
-      if(enabled) {
-        mfaOrchestrator.disableMFA(userId) map { _ =>
-          Redirect(routes.AccountController.accountSecurity())
-        }
-      } else {
-        Future.successful(Redirect(routes.AccountController.accountSecurity()))
-      }
-    }
+  def accountDetails(): Action[AnyContent] = authenticatedUser { implicit req => user =>
+    Future.successful(Ok(AccountDetails(
+      user,
+      emailInUse = false,
+      changeOfPasswordForm,
+      nameForm.fill(user.name),
+      genderForm.fill(user.gender),
+      birthdayForm.fill(user.birthDate.getOrElse("")),
+      user.address.fold(addressForm)(adr => addressForm.fill(adr))
+    )))
   }
 
-  def accountDetails(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
-    userOrchestrator.getUserDetails(userId) map {
-      _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, changeOfPasswordForm, nameForm.fill(user.name), genderForm.fill(user.gender), birthdayForm.fill(user.birthDate.getOrElse("")), user.address.fold(addressForm)(adr => addressForm.fill(adr)))))
-    }
-  }
-
-  def updateUserEmail(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+  def updateUserEmail(): Action[AnyContent] = authenticatedUser { implicit req => user =>
     val body = req.body.asFormUrlEncoded.getOrElse(Map())
     val emailAddress = body.getOrElse("email", Seq("")).head
 
-    userOrchestrator.updateEmailAndReVerify(userId, emailAddress) flatMap {
-      case EmailInUse => userOrchestrator.getUserDetails(userId) map {
-        _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = true, changeOfPasswordForm, nameForm.fill(user.name), genderForm.fill(user.gender), birthdayForm.fill(user.birthDate.getOrElse("")), user.address.fold(addressForm)(adr => addressForm.fill(adr)))))
-      }
-      case _ => Future.successful(Redirect(routes.AccountController.accountDetails()))
+    userOrchestrator.updateEmailAndReVerify(user.id, emailAddress) map {
+      case EmailInUse => BadRequest(AccountDetails(
+        user,
+        emailInUse = true,
+        changeOfPasswordForm,
+        nameForm.fill(user.name),
+        genderForm.fill(user.gender),
+        user.birthDate.fold(birthdayForm)(birthdayForm.fill),
+        user.address.fold(addressForm)(addressForm.fill)
+      ))
+      case _ => Redirect(routes.AccountController.accountDetails())
     }
   }
 
-  def updatePassword(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+  def updatePassword(): Action[AnyContent] = authenticatedUser { implicit req => user =>
     changeOfPasswordForm.bindFromRequest().fold(
-      err => userOrchestrator.getUserDetails(userId) map {
-        _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, err, nameForm.fill(user.name), genderForm.fill(user.gender), birthdayForm.fill(user.birthDate.getOrElse("")), user.address.fold(addressForm)(adr => addressForm.fill(adr)))))
-      },
-      pwd => userOrchestrator.updatePassword(userId, pwd) flatMap {
-        case PasswordMismatch => userOrchestrator.getUserDetails(userId) map {
-          _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, changeOfPasswordForm.fill(pwd).renderNewPasswordMismatch, nameForm.fill(user.name), genderForm.fill(user.gender), birthdayForm.fill(user.birthDate.getOrElse("")), user.address.fold(addressForm)(adr => addressForm.fill(adr)))))
-        }
-        case InvalidOldPassword => userOrchestrator.getUserDetails(userId) map {
-          _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, changeOfPasswordForm.fill(pwd).renderInvalidOldPasswordError, nameForm.fill(user.name), genderForm.fill(user.gender), birthdayForm.fill(user.birthDate.getOrElse("")), user.address.fold(addressForm)(adr => addressForm.fill(adr)))))
-        }
-        case _ => Future.successful(Redirect(routes.AccountController.accountDetails()))
+      err => Future.successful(BadRequest(AccountDetails(
+        user,
+        emailInUse = false,
+        err,
+        nameForm.fill(user.name),
+        genderForm.fill(user.gender),
+        user.birthDate.fold(birthdayForm)(birthdayForm.fill),
+        user.address.fold(addressForm)(addressForm.fill)
+      ))),
+      pwd => userOrchestrator.updatePassword(user.id, pwd) map {
+        case PasswordMismatch => BadRequest(AccountDetails(
+          user,
+          emailInUse = false,
+          changeOfPasswordForm.fill(pwd).renderNewPasswordMismatch,
+          nameForm.fill(user.name),
+          genderForm.fill(user.gender),
+          user.birthDate.fold(birthdayForm)(birthdayForm.fill),
+          user.address.fold(addressForm)(addressForm.fill)
+        ))
+        case InvalidOldPassword => BadRequest(AccountDetails(
+          user,
+          emailInUse = false,
+          changeOfPasswordForm.fill(pwd).renderInvalidOldPasswordError,
+          nameForm.fill(user.name),
+          genderForm.fill(user.gender),
+          user.birthDate.fold(birthdayForm)(birthdayForm.fill),
+          user.address.fold(addressForm)(addressForm.fill)
+        ))
+        case _ => Redirect(routes.AccountController.accountDetails())
       }
     )
   }
 
-  def updateName(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+  def updateName(): Action[AnyContent] = authenticatedUser { implicit req => user =>
     nameForm.bindFromRequest().fold(
-      err => userOrchestrator.getUserDetails(userId) map {
-        _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, changeOfPasswordForm, err, genderForm.fill(user.gender), birthdayForm.fill(user.birthDate.getOrElse("")), user.address.fold(addressForm)(adr => addressForm.fill(adr)))))
-      },
-      name => userOrchestrator.updateName(userId, name) map {
+      err => Future.successful(BadRequest(AccountDetails(
+        user,
+        emailInUse = false,
+        changeOfPasswordForm,
+        err,
+        genderForm.fill(user.gender),
+        user.birthDate.fold(birthdayForm)(birthdayForm.fill),
+        user.address.fold(addressForm)(addressForm.fill)
+      ))),
+      name => userOrchestrator.updateName(user.id, name) map {
         _ => Redirect(routes.AccountController.accountDetails())
       }
     )
   }
 
-  def updateGender(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+  def updateGender(): Action[AnyContent] = authenticatedUser { implicit req => user =>
     genderForm.bindFromRequest().fold(
-      err => userOrchestrator.getUserDetails(userId) map {
-        _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, changeOfPasswordForm, nameForm.fill(user.name), err, birthdayForm.fill(user.birthDate.getOrElse("")), user.address.fold(addressForm)(adr => addressForm.fill(adr)))))
-      },
-      gen => userOrchestrator.updateGender(userId, gen) map {
+      err => Future.successful(BadRequest(AccountDetails(
+        user,
+        emailInUse = false,
+        changeOfPasswordForm,
+        nameForm.fill(user.name),
+        err,
+        user.birthDate.fold(birthdayForm)(birthdayForm.fill),
+        user.address.fold(addressForm)(addressForm.fill)
+      ))),
+      gen => userOrchestrator.updateGender(user.id, gen) map {
         _ => Redirect(routes.AccountController.accountDetails())
       }
     )
   }
 
-  def updateBirthday(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+  def updateBirthday(): Action[AnyContent] = authenticatedUser { implicit req => user =>
     birthdayForm.bindFromRequest().fold(
-      err => userOrchestrator.getUserDetails(userId) map {
-        _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, changeOfPasswordForm, nameForm.fill(user.name), genderForm.fill(user.gender), err, user.address.fold(addressForm)(adr => addressForm.fill(adr)))))
-      },
-      hbd => userOrchestrator.updateBirthday(userId, hbd) map {
+      err => Future.successful(BadRequest(AccountDetails(
+        user,
+        emailInUse = false,
+        changeOfPasswordForm,
+        nameForm.fill(user.name),
+        genderForm.fill(user.gender),
+        err,
+        user.address.fold(addressForm)(addressForm.fill)
+      ))),
+      hbd => userOrchestrator.updateBirthday(user.id, hbd) map {
         _ => Redirect(routes.AccountController.accountDetails())
       }
     )
   }
 
-  def updateAddress(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+  def updateAddress(): Action[AnyContent] = authenticatedUser { implicit req => user =>
     addressForm.bindFromRequest().fold(
-      err => userOrchestrator.getUserDetails(userId) map {
-        _.fold(NotFound(NotFoundView()))(user => Ok(AccountDetails(user, emailInUse = false, changeOfPasswordForm, nameForm.fill(user.name), genderForm.fill(user.gender), birthdayForm.fill(user.birthDate.getOrElse("")), err)))
-      },
-      adr => userOrchestrator.updateAddress(userId, adr) map {
+      err => Future.successful(BadRequest(AccountDetails(
+        user,
+        emailInUse = false,
+        changeOfPasswordForm,
+        nameForm.fill(user.name),
+        genderForm.fill(user.gender),
+        user.birthDate.fold(birthdayForm)(birthdayForm.fill),
+        err
+      ))),
+      adr => userOrchestrator.updateAddress(user.id, adr) map {
         _ => Redirect(routes.AccountController.accountDetails())
       }
     )

@@ -15,15 +15,15 @@
     <div class="card card-blue">
         <div class="card-body">
             <svg data-jdenticon-value="@{userDetails.email}" width="100" height="100"/>
-            <h4 class="card-title">@{userDetails.userName}</h4>
+            <h4 class="card-title" id="user-name">@{userDetails.userName}</h4>
         </div>
     </div>
 
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Your details</h5>
-            <p class="default-text">@{userDetails.email}</p>
-            <p class="default-text">Member since @{userDetails.createdAt.toString("yyyy-MM-dd")}</p>
+            <p class="default-text" id="email">@{userDetails.email}</p>
+            <p class="default-text" id="created-on">Member since @{userDetails.createdAt.toString("yyyy-MM-dd")}</p>
             <a href="@uiRoutes.AccountController.accountDetails()" class="btn btn-primary btn-block">Update your details</a>
         </div>
     </div>
@@ -32,15 +32,15 @@
         <div class="card-body">
             <h5 class="card-title">Account security</h5>
             @if(userDetails.emailVerified) {
-                <p class="default-text">Your email address is verified</p>
+                <p class="default-text" id="email-verified">Your email address is verified</p>
             } else {
-                <p class="default-text">You need to verify your email address</p>
+                <p class="default-text" id="email-verified">You need to verify your email address</p>
             }
 
             @if(userDetails.mfaEnabled) {
-                <p class="default-text">Two factor authentication is enabled</p>
+                <p class="default-text" id="mfa-enabled">Two factor authentication is enabled</p>
             } else {
-                <p class="default-text">Enable two factor authentication</p>
+                <p class="default-text" id="mfa-enabled">Enable two factor authentication</p>
             }
 
             <a href="@uiRoutes.AccountController.accountSecurity()" class="btn btn-primary btn-block">Review account security</a>
@@ -48,7 +48,7 @@
     </div>
 
     @if(AuthForView.isOrgUser(rh)) {
-        <div class="card">
+        <div class="card" id="registered-clients">
             <div class="card-body">
                 <h5 class="card-title">Registered clients</h5>
                 <p class="default-text">You have</p>
@@ -63,7 +63,7 @@
         <div class="card-body">
             <h5 class="card-title">Authorised apps</h5>
             <p class="default-text">You have authorised</p>
-            <p class="default-text display-3">@{userDetails.authorisedClients.length}</p>
+            <p class="default-text display-3" id="authorised-client-count">@{userDetails.authorisedClients.length}</p>
             <p class="default-text">app@if(userDetails.authorisedClients.length != 1) {s}, to access your data</p>
             <a href="@uiRoutes.ClientController.getAuthorisedAppsForUser()" class="btn btn-primary btn-block">View authorised apps</a>
         </div>

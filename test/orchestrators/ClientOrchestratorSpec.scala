@@ -17,8 +17,6 @@
 package orchestrators
 
 import dev.cjww.mongo.responses.{MongoFailedDelete, MongoFailedUpdate, MongoSuccessDelete, MongoSuccessUpdate}
-import dev.cjww.security.Implicits._
-import dev.cjww.security.obfuscation.Obfuscators
 import helpers.Assertions
 import helpers.services.{MockAccountService, MockClientService, MockTokenService}
 import models._
@@ -26,6 +24,7 @@ import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import services.oauth2._
 import services.users.UserService
+import utils.StringUtils._
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -33,12 +32,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class ClientOrchestratorSpec
   extends PlaySpec
     with Assertions
-    with Obfuscators
     with MockClientService
     with MockAccountService
     with MockTokenService {
-
-  override val locale: String = ""
 
   val testOrchestrator: ClientOrchestrator = new ClientOrchestrator {
     override protected val clientService: ClientService = mockClientService
@@ -389,6 +385,8 @@ class ClientOrchestratorSpec
       }
     }
   }
+
+
 
   "updateBasicDetails" should {
     "return a MongoSuccessUpdate" when {

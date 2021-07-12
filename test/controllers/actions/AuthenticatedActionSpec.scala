@@ -38,7 +38,7 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
     override val userOrchestrator: UserOrchestrator = mockUserOrchestrator
   }
 
-  private val okFunction: String => Future[Result] = userId => Future.successful(Ok(s"I am user $userId"))
+  private val okFunction: UserInfo => Future[Result] = user => Future.successful(Ok(s"I am user ${user.id}"))
 
   val now: DateTime = DateTime.now()
 
@@ -88,7 +88,7 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
     "return an ok" when {
       "there is a valid cookie and user information was found" in {
         val req = FakeRequest()
-          .withCookies(ServerCookies.createAuthCookie("testUserId", enc = true))
+          .withCookies(ServerCookies.createAuthCookie(testIndUser.id, enc = true))
 
         mockGetUserDetails(details = Option(UserInfo(
           id = testIndUser.id,
@@ -121,7 +121,7 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
 
         assertOutput(result) { res =>
           status(res)          mustBe OK
-          contentAsString(res) mustBe "I am user testUserId"
+          contentAsString(res) mustBe s"I am user ${testIndUser.id}"
         }
       }
     }
@@ -158,12 +158,11 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
     }
   }
 
-
   "authenticatedOrgUser" should {
     "return an ok" when {
       "there is a valid cookie and org user information was found" in {
         val req = FakeRequest()
-          .withCookies(ServerCookies.createAuthCookie("testUserId", enc = true))
+          .withCookies(ServerCookies.createAuthCookie(testOrgUser.id, enc = true))
 
         mockGetUserDetails(details = Some(UserInfo(
           id = testOrgUser.id,
@@ -196,7 +195,7 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
 
         assertOutput(result) { res =>
           status(res)          mustBe OK
-          contentAsString(res) mustBe "I am user testUserId"
+          contentAsString(res) mustBe s"I am user ${testOrgUser.id}"
         }
       }
     }
@@ -204,7 +203,7 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
     "return a Not found" when {
       "there is a valid cookie but no org user information was found" in {
         val req = FakeRequest()
-          .withCookies(ServerCookies.createAuthCookie("testUserId", enc = true))
+          .withCookies(ServerCookies.createAuthCookie(testIndUser.id, enc = true))
 
         mockGetUserDetails(details = Some(UserInfo(
           id = testIndUser.id,
@@ -225,7 +224,7 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
           ),
           address = None,
           birthDate = None,
-          accType = testIndUser.accType,
+          accType = "individual",
           authorisedClients = List.empty[AuthorisedClient],
           mfaEnabled = false,
           createdAt = now
@@ -245,7 +244,7 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
       "there is no valid cookie" in {
         val req = FakeRequest("GET", "/test-redirect")
 
-        val result = testFilter.authenticatedUser {
+        val result = testFilter.authenticatedOrgUser {
           _ => user => okFunction(user)
         }.apply(req)
 
@@ -261,7 +260,7 @@ class AuthenticatedActionSpec extends PlaySpec with MockUserOrchestrator with As
 
         mockGetUserDetails(details = None)
 
-        val result = testFilter.authenticatedUser {
+        val result = testFilter.authenticatedOrgUser {
           _ => user => okFunction(user)
         }.apply(req)
 

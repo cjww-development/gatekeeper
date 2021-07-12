@@ -23,7 +23,7 @@ import orchestrators._
 import play.api.i18n.{I18NSupportLowPriorityImplicits, I18nSupport, Lang}
 import play.api.mvc._
 import views.html.account.security.phone.{EnterCode, EnterNumber}
-import views.html.misc.{NotFound => NotFoundView, INS}
+import views.html.misc.{INS, NotFound => NotFoundView}
 
 import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
@@ -46,10 +46,10 @@ trait PhoneController extends BaseController with I18NSupportLowPriorityImplicit
     Future.successful(Ok(EnterNumber(phoneForm)))
   }
 
-  def submitPhoneNumber(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+  def submitPhoneNumber(): Action[AnyContent] = authenticatedUser { implicit req => user =>
     phoneForm.bindFromRequest().fold(
       err => Future.successful(BadRequest(EnterNumber(err))),
-      num => registrationOrchestrator.sendPhoneVerificationMessage(userId, num) map {
+      num => registrationOrchestrator.sendPhoneVerificationMessage(user.id, num) map {
         case VerificationSent => Redirect(routes.PhoneController.enterVerifyCode())
         case NoUserFound => NotFound(NotFoundView())
         case _  => InternalServerError(INS())
@@ -61,10 +61,10 @@ trait PhoneController extends BaseController with I18NSupportLowPriorityImplicit
     Future.successful(Ok(EnterCode(codeForm)))
   }
 
-  def verifyEnteredCode(): Action[AnyContent] = authenticatedUser { implicit req => userId =>
+  def verifyEnteredCode(): Action[AnyContent] = authenticatedUser { implicit req => user =>
     codeForm.bindFromRequest().fold(
       err  => Future.successful(BadRequest(EnterCode(err))),
-      code => registrationOrchestrator.verifySentCode(userId, code) map {
+      code => registrationOrchestrator.verifySentCode(user.id, code) map {
         case PhoneVerified => Redirect(routes.AccountController.accountSecurity())
         case _             => NotFound(NotFoundView())
       }

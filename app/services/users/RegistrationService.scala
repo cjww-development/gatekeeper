@@ -44,7 +44,7 @@ trait RegistrationService extends UserStoreUtils {
 
   def isIdentifierInUse(email: String, userName: String)(implicit ec: ExC): Future[Boolean] = {
     val query: String => Bson = accountId => or(
-      equal("email", accountId),
+      equal("digitalContact.email.address", accountId),
       equal("userName", accountId)
     )
 

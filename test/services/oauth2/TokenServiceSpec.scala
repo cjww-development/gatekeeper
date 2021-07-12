@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 CJWW Development
+ * Copyright 2021 CJWW Development
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package services
+package services.oauth2
 
 import com.nimbusds.jose.Algorithm
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator
 import com.nimbusds.jose.jwk.{KeyUse, RSAKey}
 import database.TokenRecordStore
-import dev.cjww.mongo.responses.{MongoFailedCreate, MongoSuccessCreate}
+import dev.cjww.mongo.responses._
 import helpers.Assertions
 import helpers.database.MockTokenRecordStore
 import models._
@@ -28,7 +28,6 @@ import org.apache.commons.net.util.Base64
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
-import services.oauth2.TokenService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -226,6 +225,72 @@ class TokenServiceSpec
 
         awaitAndAssert(testService.lookupTokenRecordSet(tokenRecordSet.tokenSetId, tokenRecordSet.userId)) {
           _ mustBe None
+        }
+      }
+    }
+  }
+
+  "updateTokenRecordSet" should {
+    "return MongoSuccessUpdate" when {
+      "the token record set has been updated" in {
+        mockUpdateTokenRecord(success = true)
+
+        awaitAndAssert(testService.updateTokenRecordSet("testSetId", "testAccessId", "testIdId")) {
+          _ mustBe MongoSuccessUpdate
+        }
+      }
+    }
+
+    "return MongoFailedUpdate" when {
+      "the token record set has not been updated" in {
+        mockUpdateTokenRecord(success = false)
+
+        awaitAndAssert(testService.updateTokenRecordSet("testSetId", "testAccessId", "testIdId")) {
+          _ mustBe MongoFailedUpdate
+        }
+      }
+    }
+  }
+
+  "getActiveSessionsFor" should {
+    "return a sequence of token records" when {
+      "there are active sessions for a user" in {
+        mockGetActiveRecords(records = Seq(tokenRecordSet))
+
+        awaitAndAssert(testService.getActiveSessionsFor("testUserId", "testApp")) {
+          _ mustBe Seq(tokenRecordSet)
+        }
+      }
+    }
+
+    "return an empty sequence" when {
+      "there are no active sessions for a user" in {
+        mockGetActiveRecords(records = Seq())
+
+        awaitAndAssert(testService.getActiveSessionsFor("testUserId", "testApp")) {
+          _ mustBe Seq()
+        }
+      }
+    }
+  }
+
+  "revokeTokens" should {
+    "return a MongoSuccessDelete" when {
+      "the token set has been deleted" in {
+        mockDeleteTokenRecord(success = true)
+
+        awaitAndAssert(testService.revokeTokens("testTokenSetId", "testA[ppId", "testUserId")) {
+          _ mustBe MongoSuccessDelete
+        }
+      }
+    }
+
+    "return a MongoFailedDelete" when {
+      "there was an issue deleting the token set" in {
+        mockDeleteTokenRecord(success = false)
+
+        awaitAndAssert(testService.revokeTokens("testTokenSetId", "testAppId", "testUserId")) {
+          _ mustBe MongoFailedDelete
         }
       }
     }
