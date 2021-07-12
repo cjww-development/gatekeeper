@@ -25,16 +25,19 @@ trait IntegrationApp extends GuiceOneServerPerSuite {
   self: PlaySpec =>
 
   val appConfig: Map[String, Any] = Map(
-    "scopes.read"                                             -> Seq("username"),
-    "scopes.write"                                            -> Seq(),
-    "database.IndividualUserStore.database"                   -> "gatekeeper-it",
-    "database.OrganisationUserStore.database"                 -> "gatekeeper-it",
-    "database.DefaultAppStore.database"                       -> "gatekeeper-it",
-    "database.DefaultGrantStore.database"                     -> "gatekeeper-it",
-    "database.DefaultLoginAttemptStore.database"              -> "gatekeeper-it",
-    "database.DefaultTokenRecordStore.database"               -> "gatekeeper-it",
-    "database.DefaultEmailVerificationStore.database"         -> "gatekeeper-it",
-    "play.http.router"                                        -> "testing.Routes"
+    "scopes.read"                                     -> Seq("username"),
+    "scopes.write"                                    -> Seq(),
+    "database.IndividualUserStore.database"           -> "gatekeeper-it",
+    "database.OrganisationUserStore.database"         -> "gatekeeper-it",
+    "database.DefaultAppStore.database"               -> "gatekeeper-it",
+    "database.DefaultGrantStore.database"             -> "gatekeeper-it",
+    "database.DefaultLoginAttemptStore.database"      -> "gatekeeper-it",
+    "database.DefaultTokenRecordStore.database"       -> "gatekeeper-it",
+    "database.DefaultEmailVerificationStore.database" -> "gatekeeper-it",
+    "email-service.ses.region"                        -> "eu-west-2",
+    "email-service.ses.from"                          -> "test@email.com",
+    "email-service.ses.enabled"                       -> true,
+    "play.http.router"                                -> "testing.Routes"
   )
 
   override lazy val app: Application = new GuiceApplicationBuilder()

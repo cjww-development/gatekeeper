@@ -25,14 +25,14 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.mvc.Request
-import services.comms.EmailService
+import services.comms.email.SesService
 
 import scala.concurrent.Future
 
 trait MockEmailService extends MockitoSugar with BeforeAndAfterEach {
   self: PlaySpec =>
 
-  val mockEmailService: EmailService = mock[EmailService]
+  val mockEmailService: SesService = mock[SesService]
 
   override def beforeEach(): Unit = {
     super.beforeEach()

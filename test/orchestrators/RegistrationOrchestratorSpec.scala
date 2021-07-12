@@ -23,7 +23,8 @@ import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
-import services.comms.{EmailService, PhoneService}
+import services.comms.PhoneService
+import services.comms.email.SesService
 import services.oauth2.ClientService
 import services.users.{RegistrationService, UserService}
 import utils.StringUtils._
@@ -43,7 +44,7 @@ class RegistrationOrchestratorSpec
     override protected val phoneService: PhoneService = mockPhoneService
     override protected val userService: UserService = mockUserService
     override val registrationService: RegistrationService = mockRegistrationService
-    override protected val emailService: EmailService = mockEmailService
+    override protected val emailService: SesService = mockEmailService
     override protected val clientService: ClientService = mockClientService
   }
 

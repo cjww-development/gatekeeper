@@ -30,7 +30,8 @@ import filters.{DefaultRequestLoggingFilter, DefaultShutteringFilter, RequestLog
 import orchestrators._
 import play.api.inject.{Binding, Module}
 import play.api.{Configuration, Environment}
-import services.comms.{DefaultEmailService, DefaultPhoneService, EmailService, PhoneService}
+import services.comms.email.{DefaultSesService, SesService}
+import services.comms.{DefaultPhoneService, PhoneService}
 import services.oauth2._
 import services.security.{DefaultTOTPService, TOTPService}
 import services.users._
@@ -45,7 +46,8 @@ class ServiceBindings extends Module {
     controllers() ++
     apiControllers() ++
     testControllers() ++
-    systemControllers()
+    systemControllers() ++
+    emailService()
   }
 
   private def globals(): Seq[Binding[_]] = Seq(
@@ -78,7 +80,6 @@ class ServiceBindings extends Module {
     bind[TokenService].to[DefaultTokenService].eagerly(),
     bind[ClientService].to[DefaultClientService].eagerly(),
     bind[TOTPService].to[DefaultTOTPService].eagerly(),
-    bind[EmailService].to[DefaultEmailService].eagerly(),
     bind[PhoneService].to[DefaultPhoneService].eagerly(),
     bind[JwksService].to[DefaultJwksService].eagerly()
   )
@@ -120,5 +121,9 @@ class ServiceBindings extends Module {
   private def testControllers(): Seq[Binding[_]] = Seq(
     bind[EmailViewTestController].to[DefaultEmailViewTestController].eagerly(),
     bind[ExceptionTestController].to[DefaultExceptionTestController].eagerly()
+  )
+
+  private def emailService(): Seq[Binding[_]] = Seq(
+    bind[SesService].to[DefaultSesService].eagerly()
   )
 }

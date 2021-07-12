@@ -21,7 +21,8 @@ import dev.cjww.mongo.responses.{MongoFailedCreate, MongoFailedUpdate, MongoSucc
 import models.{RegisteredApplication, User, Verification}
 import org.slf4j.LoggerFactory
 import play.api.mvc.Request
-import services.comms.{EmailService, PhoneService}
+import services.comms.PhoneService
+import services.comms.email.SesService
 import services.oauth2.ClientService
 import services.users.{RegistrationService, UserService}
 import utils.StringUtils._
@@ -52,12 +53,12 @@ class DefaultRegistrationOrchestrator @Inject()(val registrationService: Registr
                                                 val userService: UserService,
                                                 val phoneService: PhoneService,
                                                 val clientService: ClientService,
-                                                val emailService: EmailService) extends RegistrationOrchestrator
+                                                val emailService: SesService) extends RegistrationOrchestrator
 
 trait RegistrationOrchestrator {
 
   protected val registrationService: RegistrationService
-  protected val emailService: EmailService
+  protected val emailService: SesService
   protected val userService: UserService
   protected val phoneService: PhoneService
   protected val clientService: ClientService
@@ -75,7 +76,7 @@ trait RegistrationOrchestrator {
             val emailAddress = user.digitalContact.email.address.decrypt.getOrElse(throw new Exception("Decryption error"))
             emailService.saveVerificationRecord(user.id, user.digitalContact.email.address, user.accType) map { record =>
               logger.info(s"[registerUser] - Registration successful; new user under ${user.id}")
-              Try(emailService.sendEmailVerificationMessage(emailAddress, record.get)) match {
+              Try(emailService.sendEmailVerificationMessage(emailAddress, record)) match {
                 case Success(_) =>
                   logger.info(s"[registerUser] - Send email verification message to user ${user.id}")
                   Registered

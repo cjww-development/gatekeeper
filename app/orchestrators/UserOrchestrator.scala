@@ -21,7 +21,7 @@ import models._
 import org.slf4j.LoggerFactory
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Request
-import services.comms.EmailService
+import services.comms.email.SesService
 import services.users.{RegistrationService, UserService}
 import utils.StringUtils._
 
@@ -40,13 +40,13 @@ case object PasswordUpdated extends UserUpdateResponse
 case object InvalidOldPassword extends UserUpdateResponse
 
 class DefaultUserOrchestrator @Inject()(val userService: UserService,
-                                        val emailService: EmailService,
+                                        val emailService: SesService,
                                         val registrationService: RegistrationService) extends UserOrchestrator
 
 trait UserOrchestrator {
 
   protected val userService: UserService
-  protected val emailService: EmailService
+  protected val emailService: SesService
   protected val registrationService: RegistrationService
 
   private val logger = LoggerFactory.getLogger(this.getClass)

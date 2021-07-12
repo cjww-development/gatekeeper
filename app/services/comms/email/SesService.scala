@@ -14,45 +14,38 @@
  * limitations under the License.
  */
 
-package services.comms
+package services.comms.email
 
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.simpleemail.model._
 import com.amazonaws.services.simpleemail.{AmazonSimpleEmailService, AmazonSimpleEmailServiceClientBuilder}
 import database.VerificationStore
-import dev.cjww.mongo.responses.{MongoDeleteResponse, MongoFailedCreate, MongoSuccessCreate}
 import dev.cjww.security.Implicits._
 import models.Verification
-import org.joda.time.DateTime
-import org.mongodb.scala.model.Filters.{and, equal}
 import play.api.Configuration
 import play.api.mvc.Request
 import views.html.email.VerificationEmail
 
 import java.nio.charset.StandardCharsets
-import java.util.UUID
 import javax.inject.Inject
-import scala.concurrent.{Future, ExecutionContext => ExC}
 
-class DefaultEmailService @Inject()(val config: Configuration,
-                                    val verificationStore: VerificationStore) extends EmailService {
-  override val emailSenderAddress: String = config.get[String]("email.from")
-  override val verificationSubjectLine: String = config.get[String]("email.verification-subject")
+class DefaultSesService @Inject()(val config: Configuration,
+                                  val verificationStore: VerificationStore) extends SesService {
+  override val awsRegion: String = config.get[String]("email-service.ses.region")
+  override val emailSenderAddress: String = config.get[String]("email-service.ses.from")
+  override val verificationSubjectLine: String = config.get[String]("email-service.ses.verification-subject")
+
   override val emailClient: AmazonSimpleEmailService = AmazonSimpleEmailServiceClientBuilder
     .standard()
-    .withRegion(Regions.EU_WEST_1)
+    .withRegion(Regions.fromName(awsRegion))
     .build()
 }
 
-trait EmailService {
-  val emailSenderAddress: String
-  val verificationSubjectLine: String
-
+trait SesService extends EmailService[SendEmailResult] {
+  val awsRegion: String
   val emailClient: AmazonSimpleEmailService
 
-  val verificationStore: VerificationStore
-
-  def sendEmailVerificationMessage(to: String, record: Verification)(implicit req: Request[_]): SendEmailResult = {
+  override def sendEmailVerificationMessage(to: String, record: Verification)(implicit req: Request[_]): SendEmailResult = {
     val queryParam = record.encrypt
 
     val destination: Destination = new Destination()
@@ -79,36 +72,5 @@ trait EmailService {
       .withSource(emailSenderAddress)
 
     emailClient.sendEmail(request)
-  }
-
-  def saveVerificationRecord(userId: String, email: String, accType: String)(implicit ec: ExC): Future[Option[Verification]] = {
-    val record = Verification(
-      verificationId = s"verify-${UUID.randomUUID().toString}",
-      userId,
-      "email",
-      email,
-      code = None,
-      accType,
-      createdAt = new DateTime()
-    )
-    verificationStore.createVerificationRecord(record) map {
-      case MongoSuccessCreate => Some(record)
-      case MongoFailedCreate  => None
-    }
-  }
-
-  def validateVerificationRecord(record: Verification): Future[Option[Verification]] = {
-    val query = and(
-      equal("verificationId", record.verificationId),
-      equal("userId", record.userId),
-      equal("contact", record.contact),
-      equal("contactType", record.contactType),
-    )
-    verificationStore.validateVerificationRecord(query)
-  }
-
-  def removeVerificationRecord(verificationId: String)(implicit ec: ExC): Future[MongoDeleteResponse] = {
-    val query = equal("verificationId", verificationId)
-    verificationStore.deleteVerificationRecord(query)
   }
 }
