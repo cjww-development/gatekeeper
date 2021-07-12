@@ -43,16 +43,16 @@ lazy val microservice = Project(appName, file("."))
       "dev.cjww.libs"                %  "inbound-outbound_2.13"      % "1.0.0",
       "io.github.nremond"            %  "pbkdf2-scala_2.13"          % "0.6.5",
       "com.pauldijou"                %  "jwt-core_2.13"              % "5.0.0",
-      "com.nimbusds"                 %  "nimbus-jose-jwt"            % "9.10.1",
+      "com.nimbusds"                 %  "nimbus-jose-jwt"            % "9.11",
       "dev.samstevens.totp"          %  "totp"                       % "1.7.1",
-      "com.amazonaws"                %  "aws-java-sdk-ses"           % "1.12.13",
-      "com.amazonaws"                %  "aws-java-sdk-sns"           % "1.12.13",
-      "com.fasterxml.jackson.module" %% "jackson-module-scala"       % "2.12.3",
+      "com.amazonaws"                %  "aws-java-sdk-ses"           % "1.12.21",
+      "com.amazonaws"                %  "aws-java-sdk-sns"           % "1.12.21",
+      "com.fasterxml.jackson.module" %% "jackson-module-scala"       % "2.12.4",
       "org.mockito"                  %  "mockito-core"               % "3.11.2"      % Test,
       "org.scalatestplus"            %  "scalatestplus-mockito_2.13" % "1.0.0-M2"    % Test,
       "org.scalatestplus.play"       %  "scalatestplus-play_2.13"    % "5.1.0"       % Test,
       "org.scalatestplus.play"       %  "scalatestplus-play_2.13"    % "5.1.0"       % IntegrationTest,
-      "org.jsoup"                    % "jsoup"                       % "1.13.1"      % IntegrationTest
+      "org.jsoup"                    % "jsoup"                       % "1.14.1"      % IntegrationTest
     ),
     scalacOptions ++= Seq(
       "-unchecked",
