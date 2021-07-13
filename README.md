@@ -126,7 +126,7 @@ The following table describes what each of the gatekeeper envs means in the dock
 | MAILGUN_URL     | n/a                              | Should only be set if EMAIL_PROVIDER is mail-gun. Obtained from the mailgun console after account creation |
       
 ## Choosing an email provider
-Gatekeeper currently sends emails via AWS SES or Mailgun. Both support sending emails from a proper address, or some address on a verified domain. On their respective free tiers you can only send to email address you've verified in SES or Mailgun.
+Gatekeeper currently sends emails via AWS SES or Mailgun. Both support sending emails from a proper address, or some address on a verified domain. On their respective free tiers you can only send to email addresses you've verified in SES or Mailgun.
 To lift that limitation you need to be on a paid plan. However, AWS SES lets you send 62000 emails a month for free forever, but you need to be in their production zone on SES.
 Mailgun, on their flex plan, allows 5000 emails a month for 3 months, and then you move to pay as you go ($0.80 / 1000 emails).
 
