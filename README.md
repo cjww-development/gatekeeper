@@ -24,7 +24,10 @@ However, if a service offers integration with a third party OAuth2 provider, the
     - Create clients from presets
 - User and developer registration
     - Update email and password
-    - Email verification (via AWS SES)
+    - Email verification via
+	    - AWS SES
+	    - Mailgun
+	    - More offerings to come
     - TOTP MFA
     - See list of apps accessing your account
     - Revoke sessions for apps accessing your account
@@ -108,15 +111,32 @@ Run `./docker-boot.sh` to run this process.
 ## Docker compose variables
 The following table describes what each of the gatekeeper envs means in the docker compose file.
 
-| Env Var       | Default                          | Description                                                                                              |
-|---------------|----------------------------------|----------------------------------------------------------------------------------------------------------|
-| VERSION       | dev                              | The version of Gatekeeper you're running. Appears at the bottom of pages                                 |
-| EMAIL_FROM    | test@email.com                   | The email address used to send emails from Gatekeeper                                                    |
-| MONGO_URI     | mongodb://mongo.local            | Where MongoDB lives. The database that backs Gatekeeper                                                  |
-| APP_SECRET    | 23817cc7d0e6460e9c1515aa4047b29b | The app secret scala play uses to sign session cookies and CSRF tokens. Should be changed to run in prod |
-| ENC_KEY       | 23817cc7d0e6460e9c1515aa4047b29b | The key used to secure data. Should be changed to run in prod                                            |
-| MFA_ISSUER    | Gatekeeper (docker)              | The string used to describe the TOTP Code in apps like Google Authenticator                              |
-| SMS_SENDER_ID | SmsVerify                        | The string used to say where SMS messages have come from                                                 |
+| Env Var         | Default                          | Description                                                                                                |
+|-----------------|----------------------------------|------------------------------------------------------------------------------------------------------------|
+| VERSION         | dev                              | The version of Gatekeeper you're running. Appears at the bottom of pages                                   |
+| EMAIL_FROM      | test@email.com                   | The email address used to send emails from Gatekeeper                                                      |
+| MONGO_URI       | mongodb://mongo.local            | Where MongoDB lives. The database that backs Gatekeeper                                                    |
+| APP_SECRET      | 23817cc7d0e6460e9c1515aa4047b29b | The app secret scala play uses to sign session cookies and CSRF tokens. Should be changed to run in prod   |
+| ENC_KEY         | 23817cc7d0e6460e9c1515aa4047b29b | The key used to secure data. Should be changed to run in prod                                              |
+| MFA_ISSUER      | Gatekeeper (docker)              | The string used to describe the TOTP Code in apps like Google Authenticator                                |
+| SMS_SENDER_ID   | SmsVerify                        | The string used to say where SMS messages have come from                                                   |
+| EMAIL_PROVIDER  | n/a                              | Used to determine what email provider to use. Valid options are ses or mail-gun                            |
+| AWS_REGION      | n/a                              | Should only be set if EMAIL_PROVIDER is ses. Should match the AWS region you're running SES from           |
+| MAILGUN_API_KEY | n/a                              | Should only be set if EMAIL_PROVIDER is mail-gun. Obtained from the mailgun console after account creation |
+| MAILGUN_URL     | n/a                              | Should only be set if EMAIL_PROVIDER is mail-gun. Obtained from the mailgun console after account creation |
+      
+## Choosing an email provider
+Gatekeeper currently sends emails via AWS SES or Mailgun. Both support sending emails from a proper address, or some address on a verified domain. On their respective free tiers you can only send to email address you've verified in SES or Mailgun.
+To lift that limitation you need to be on a paid plan. However, AWS SES lets you send 62000 emails a month for free forever, but you need to be in their production zone on SES.
+Mailgun, on their flex plan, allows 5000 emails a month for 3 months, and then you move to pay as you go ($0.80 / 1000 emails).
+
+### What if I don't want to use AWS SES or Mailgun?
+That's a fair question. Neither may suit you. If you're technically minded, look at [the adding more email providers section](#Adding-further-email-providers) to find out more about adding your preferred provided (dev work required).
+If you're not technically minded, no fear, get started with a [feature request](https://github.com/cjww-development/gatekeeper/issues/new?assignees=&labels=&template=feature_request.md&title=) and we can try to make your request a reality.
+
+Find more information about each here
+- [Mailgun](https://www.mailgun.com/)
+- [AWS SES](https://aws.amazon.com/ses/)
 
 ## Adding further client presets
 Gatekeeper supports creating client presets for 
@@ -150,6 +170,83 @@ In `application.conf` the well known services block defines the presets. You can
 For the time being, the service's icon needs to be hosted in Gatekeeper, find a suitable image for the service and place the image in `public/images/services`. In the config block enter the name of the file under icon.
 
 Once a service has been added to this list, it will be available for creation in the frontend. 
+
+## Adding further email providers
+Right now Gatekeeper can send emails via AWS SES or Mailgun, however these providers can be extended. Below details how you can go about adding new email providers.
+
+1. Clone the repository and branch off as `feature/email-provider/new-provider-name`
+
+
+2. Add the new email providers config into `conf/application.conf` 
+```hocon
+email-service {
+    selected-provider = ${?EMAIL_PROVIDER}
+    message-settings {
+      from = ${?EMAIL_FROM}
+      verification-subject = "Verifying your account"
+    }
+
+    ses {
+      region = ${?AWS_REGION}
+    }
+
+    mail-gun {
+      api-key = ${?MAILGUN_API_KEY}
+      url = ${?MAILGUN_URL}
+    }
+    
+    new-provider-name {
+        ...whatever config the new provider needs. API Key, endpoints etc
+    }
+}
+```
+
+3. Create a new default class and trait inside of `app/services/comms/email`. Traits in this package should all extend the `EmailService`. Ensure appropriate tests are included.
+
+```scala
+import database.VerificationStore
+import models.{EmailResponse, Verification}
+import play.api.mvc.Request
+import services.comms.email.EmailService
+
+import scala.concurrent.{ExecutionContext, Future}
+
+class DefaultNewProvider @Inject()(val config: Configuration,
+                                   val verificationStore: VerificationStore) extends NewProvider {
+  override val emailSenderAddress: String = config.get[String]("email-service.message-settings.from")
+  override val verificationSubjectLine: String = config.get[String]("email-service.message-settings.verification-subject")
+  override val valueFromConfigNeededForNewProvider: String = config.get[String]("email-service.new-provider-name.whatever-required-config")
+}
+
+trait NewProvider extends EmailService {
+
+  val valueFromConfigNeededForNewProvider: String
+
+  override def sendEmailVerificationMessage(to: String, record: Verification)(implicit req: Request[_], ec: ExecutionContext): Future[EmailResponse] = {
+    //What ever logic is needed to send an email via the new provider
+    // Should return a Future EmailResponse
+    Future.successful(EmailResponse(
+      provider = "new-provider-name",
+      userId = record.userId,
+      messageId = "some email message id returned from the new email provider"
+    ))
+  }
+}
+```
+
+4. Add new class to Gatekeepers Service bindings in `app/global/ServiceBindings`
+```scala
+private def emailService(config: Configuration): Seq[Binding[_]] = {
+  config.get[String]("email-service.selected-provider") match {
+    case "ses"               => Seq(bind[EmailService].to[DefaultSesService].eagerly())
+    case "mailgun"           => Seq(bind[EmailService].to[DefaultMailgunService].eagerly())
+    case "new-provider-name" => Seq(bind[EmailService].to[DefaultNewProvider].eagerly())
+    case _                   => throw new RuntimeException("Invalid email provider")
+  }
+}
+```
+
+5. Create a pull request
 
 License
 =======
