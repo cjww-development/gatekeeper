@@ -22,6 +22,7 @@ import com.amazonaws.services.simpleemail.{AmazonSimpleEmailService, AmazonSimpl
 import database.VerificationStore
 import dev.cjww.security.Implicits._
 import models.{EmailResponse, Verification}
+import org.slf4j.LoggerFactory
 import play.api.Configuration
 import play.api.mvc.Request
 import views.html.email.VerificationEmail
@@ -29,6 +30,7 @@ import views.html.email.VerificationEmail
 import java.nio.charset.StandardCharsets
 import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
+import scala.util.{Failure, Success, Try}
 
 class DefaultSesService @Inject()(val config: Configuration,
                                   val verificationStore: VerificationStore) extends SesService {
@@ -45,6 +47,8 @@ class DefaultSesService @Inject()(val config: Configuration,
 trait SesService extends EmailService {
   val awsRegion: String
   val emailClient: AmazonSimpleEmailService
+
+  private val logger = LoggerFactory.getLogger(this.getClass)
 
   override def sendEmailVerificationMessage(to: String, record: Verification)(implicit req: Request[_], ec: ExC): Future[EmailResponse] = {
     val queryParam = record.encrypt
@@ -72,7 +76,13 @@ trait SesService extends EmailService {
       .withMessage(message)
       .withSource(emailSenderAddress)
 
-    val resp = emailClient.sendEmail(request)
-    Future.successful(EmailResponse("ses", record.userId, resp.getMessageId))
+    Try(emailClient.sendEmail(request)) match {
+      case Failure(e) =>
+        logger.error("[sendEmailVerificationMessage] - There was a problem sending the welcome email via AWS SES", e)
+        Future.successful(EmailResponse("ses", record.userId, "DID NOT SEND"))
+      case Success(resp) =>
+        logger.info(s"[sendEmailVerificationMessage] - Welcome email sent with messageId ${resp.getMessageId} to userId ${record.userId} via AWS SES")
+        Future.successful(EmailResponse("ses", record.userId, resp.getMessageId))
+    }
   }
 }

@@ -46,6 +46,8 @@ trait MailgunService extends EmailService {
 
   val wsClient: WSClient
 
+  private val logger = LoggerFactory.getLogger(this.getClass)
+
   override def sendEmailVerificationMessage(to: String, record: Verification)(implicit req: Request[_], ec: ExC): Future[EmailResponse] = {
     val queryParam = record.encrypt
     val formData = Map(
@@ -60,6 +62,14 @@ trait MailgunService extends EmailService {
       .withAuth("api", apiKey, WSAuthScheme.BASIC)
       .withHttpHeaders(HeaderNames.CONTENT_TYPE -> MimeTypes.FORM)
       .post(formData)
-      .map(resp => EmailResponse("mailgun", record.userId, resp.json.\("id").as[String]))
+      .map { resp =>
+        val msgId = resp.json.\("id").as[String]
+        logger.info(s"[sendEmailVerificationMessage] - Welcome email sent with messageId $msgId to userId ${record.userId} via AWS SES")
+        EmailResponse("mailgun", record.userId, msgId)
+      } recover {
+        case e =>
+          logger.error("[sendEmailVerificationMessage] - There was a problem sending the welcome email via Mailgun", e)
+          EmailResponse("ses", record.userId, "DID NOT SEND")
+      }
   }
 }

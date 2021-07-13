@@ -76,7 +76,6 @@ trait RegistrationOrchestrator {
             val emailAddress = user.digitalContact.email.address.decrypt.getOrElse(throw new Exception("Decryption error"))
             emailService.saveVerificationRecord(user.id, user.digitalContact.email.address, user.accType) flatMap { record =>
               emailService.sendEmailVerificationMessage(emailAddress, record.get).map { resp =>
-                logger.info(s"[registerUser] - Welcome email sent with messageId ${resp.messageId} to userId ${resp.userId} via ${resp.provider}")
                 logger.info(s"[registerUser] - Registration successful; new user under ${user.id}")
                 Registered
               }

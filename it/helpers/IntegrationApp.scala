@@ -34,9 +34,9 @@ trait IntegrationApp extends GuiceOneServerPerSuite {
     "database.DefaultLoginAttemptStore.database"      -> "gatekeeper-it",
     "database.DefaultTokenRecordStore.database"       -> "gatekeeper-it",
     "database.DefaultEmailVerificationStore.database" -> "gatekeeper-it",
+    "email-service.selected-provider"                 -> "ses",
+    "email-service.message-settings.from"             -> "test@email.com",
     "email-service.ses.region"                        -> "eu-west-2",
-    "email-service.ses.from"                          -> "test@email.com",
-    "email-service.ses.enabled"                       -> true,
     "play.http.router"                                -> "testing.Routes"
   )
 
