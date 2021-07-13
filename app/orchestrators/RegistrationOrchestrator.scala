@@ -21,7 +21,8 @@ import dev.cjww.mongo.responses.{MongoFailedCreate, MongoFailedUpdate, MongoSucc
 import models.{RegisteredApplication, User, Verification}
 import org.slf4j.LoggerFactory
 import play.api.mvc.Request
-import services.comms.{EmailService, PhoneService}
+import services.comms.PhoneService
+import services.comms.email.EmailService
 import services.oauth2.ClientService
 import services.users.{RegistrationService, UserService}
 import utils.StringUtils._
@@ -73,15 +74,10 @@ trait RegistrationOrchestrator {
         registrationService.createNewUser(user.copy(salt = saltToUse)) flatMap {
           case MongoSuccessCreate =>
             val emailAddress = user.digitalContact.email.address.decrypt.getOrElse(throw new Exception("Decryption error"))
-            emailService.saveVerificationRecord(user.id, user.digitalContact.email.address, user.accType) map { record =>
-              logger.info(s"[registerUser] - Registration successful; new user under ${user.id}")
-              Try(emailService.sendEmailVerificationMessage(emailAddress, record.get)) match {
-                case Success(_) =>
-                  logger.info(s"[registerUser] - Send email verification message to user ${user.id}")
-                  Registered
-                case Failure(e) =>
-                  logger.warn("[registerUser] - Problem sending email verification message", e)
-                  Registered
+            emailService.saveVerificationRecord(user.id, user.digitalContact.email.address, user.accType) flatMap { record =>
+              emailService.sendEmailVerificationMessage(emailAddress, record.get).map { resp =>
+                logger.info(s"[registerUser] - Registration successful; new user under ${user.id}")
+                Registered
               }
             }
           case MongoFailedCreate =>

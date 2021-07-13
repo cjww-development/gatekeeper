@@ -21,7 +21,7 @@ import helpers.services.{MockAccountService, MockEmailService, MockRegistrationS
 import models._
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import services.comms.EmailService
+import services.comms.email.SesService
 import services.users.{RegistrationService, UserService}
 
 import java.util.UUID
@@ -36,7 +36,7 @@ class UserOrchestratorSpec
 
   val testOrchestrator: UserOrchestrator = new UserOrchestrator {
     override protected val userService: UserService = mockAccountService
-    override protected val emailService: EmailService = mockEmailService
+    override protected val emailService: SesService = mockEmailService
     override protected val registrationService: RegistrationService = mockRegistrationService
   }
 

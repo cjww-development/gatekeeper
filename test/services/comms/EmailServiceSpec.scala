@@ -16,55 +16,29 @@
 
 package services.comms
 
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailService
 import database.VerificationStore
 import dev.cjww.mongo.responses.{MongoFailedDelete, MongoSuccessDelete}
 import helpers.Assertions
-import helpers.aws.MockSES
 import helpers.database.MockVerificationStore
-import models.Verification
+import models.{EmailResponse, Verification}
 import org.joda.time.DateTime
 import org.scalatestplus.play.PlaySpec
-import play.api.mvc.AnyContentAsEmpty
-import play.api.test.FakeRequest
+import play.api.mvc.Request
+import services.comms.email.EmailService
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
 class EmailServiceSpec
   extends PlaySpec
     with Assertions
-    with MockVerificationStore
-    with MockSES {
+    with MockVerificationStore {
 
   private val testService: EmailService = new EmailService {
     override val emailSenderAddress: String = "test@email.com"
     override val verificationSubjectLine: String = "Test subject line"
-    override val emailClient: AmazonSimpleEmailService = mockSES
     override val verificationStore: VerificationStore = mockVerificationStore
-  }
-
-  "sendEmailVerificationMessage" should {
-    "return a SendEmailResult" when {
-      "the verification email has been sent" in {
-        implicit val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
-
-        val testVerificationRecord = Verification(
-          verificationId = "test-verify-id",
-          userId = "test-user-id",
-          contactType = "email",
-          contact = "test@email.com",
-          code = None,
-          accType = "individual",
-          createdAt = new DateTime()
-        )
-
-        mockSendEmail()
-
-        assertOutput(testService.sendEmailVerificationMessage("test@email.com", testVerificationRecord)) {
-          _.getMessageId mustBe "testMessageId"
-        }
-      }
-    }
+    override def sendEmailVerificationMessage(to: String, record: Verification)(implicit req: Request[_], ec: ExecutionContext): Future[EmailResponse] = ???
   }
 
   "saveVerificationRecord" should {

@@ -21,7 +21,7 @@ import models._
 import org.slf4j.LoggerFactory
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Request
-import services.comms.EmailService
+import services.comms.email.EmailService
 import services.users.{RegistrationService, UserService}
 import utils.StringUtils._
 
@@ -72,15 +72,10 @@ trait UserOrchestrator {
             for {
               _ <- userService.updateUserEmailAddress(userId, obsEmail)
               Some(vRec) <- emailService.saveVerificationRecord(userId, obsEmail, user.accType)
+              resp <- emailService.sendEmailVerificationMessage(email, vRec)
             } yield {
-              Try(emailService.sendEmailVerificationMessage(email, vRec)) match {
-                case Success(_) =>
-                  logger.info(s"[updateEmailAndReVerify] - Send email verification message to user $userId")
-                  EmailUpdated
-                case Failure(e) =>
-                  logger.warn("[updateEmailAndReVerify] - Problem sending email verification message", e)
-                  EmailUpdated
-              }
+              logger.info(s"[updateEmailAndReVerify] - Reverification email sent with messageId ${resp.messageId} to userId ${resp.userId} via ${resp.provider}")
+              EmailUpdated
             }
           }
         }

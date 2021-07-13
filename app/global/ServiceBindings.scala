@@ -30,7 +30,8 @@ import filters.{DefaultRequestLoggingFilter, DefaultShutteringFilter, RequestLog
 import orchestrators._
 import play.api.inject.{Binding, Module}
 import play.api.{Configuration, Environment}
-import services.comms.{DefaultEmailService, DefaultPhoneService, EmailService, PhoneService}
+import services.comms.email.{DefaultMailgunService, DefaultSesService, EmailService}
+import services.comms.{DefaultPhoneService, PhoneService}
 import services.oauth2._
 import services.security.{DefaultTOTPService, TOTPService}
 import services.users._
@@ -45,7 +46,8 @@ class ServiceBindings extends Module {
     controllers() ++
     apiControllers() ++
     testControllers() ++
-    systemControllers()
+    systemControllers() ++
+    emailService(configuration)
   }
 
   private def globals(): Seq[Binding[_]] = Seq(
@@ -78,7 +80,6 @@ class ServiceBindings extends Module {
     bind[TokenService].to[DefaultTokenService].eagerly(),
     bind[ClientService].to[DefaultClientService].eagerly(),
     bind[TOTPService].to[DefaultTOTPService].eagerly(),
-    bind[EmailService].to[DefaultEmailService].eagerly(),
     bind[PhoneService].to[DefaultPhoneService].eagerly(),
     bind[JwksService].to[DefaultJwksService].eagerly()
   )
@@ -121,4 +122,12 @@ class ServiceBindings extends Module {
     bind[EmailViewTestController].to[DefaultEmailViewTestController].eagerly(),
     bind[ExceptionTestController].to[DefaultExceptionTestController].eagerly()
   )
+
+  private def emailService(config: Configuration): Seq[Binding[_]] = {
+    config.get[String]("email-service.selected-provider") match {
+      case "ses"     => Seq(bind[EmailService].to[DefaultSesService].eagerly())
+      case "mailgun" => Seq(bind[EmailService].to[DefaultMailgunService].eagerly())
+      case _         => throw new RuntimeException("Invalid email provider")
+    }
+  }
 }

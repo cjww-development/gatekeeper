@@ -14,72 +14,26 @@
  * limitations under the License.
  */
 
-package services.comms
+package services.comms.email
 
-import com.amazonaws.regions.Regions
-import com.amazonaws.services.simpleemail.model._
-import com.amazonaws.services.simpleemail.{AmazonSimpleEmailService, AmazonSimpleEmailServiceClientBuilder}
 import database.VerificationStore
 import dev.cjww.mongo.responses.{MongoDeleteResponse, MongoFailedCreate, MongoSuccessCreate}
-import dev.cjww.security.Implicits._
-import models.Verification
+import models.{EmailResponse, Verification}
 import org.joda.time.DateTime
 import org.mongodb.scala.model.Filters.{and, equal}
-import play.api.Configuration
 import play.api.mvc.Request
-import views.html.email.VerificationEmail
 
-import java.nio.charset.StandardCharsets
 import java.util.UUID
-import javax.inject.Inject
 import scala.concurrent.{Future, ExecutionContext => ExC}
 
-class DefaultEmailService @Inject()(val config: Configuration,
-                                    val verificationStore: VerificationStore) extends EmailService {
-  override val emailSenderAddress: String = config.get[String]("email.from")
-  override val verificationSubjectLine: String = config.get[String]("email.verification-subject")
-  override val emailClient: AmazonSimpleEmailService = AmazonSimpleEmailServiceClientBuilder
-    .standard()
-    .withRegion(Regions.EU_WEST_1)
-    .build()
-}
-
 trait EmailService {
+
   val emailSenderAddress: String
   val verificationSubjectLine: String
 
-  val emailClient: AmazonSimpleEmailService
-
   val verificationStore: VerificationStore
 
-  def sendEmailVerificationMessage(to: String, record: Verification)(implicit req: Request[_]): SendEmailResult = {
-    val queryParam = record.encrypt
-
-    val destination: Destination = new Destination()
-      .withToAddresses(to)
-
-    val subjectContent: Content = new Content()
-      .withCharset(StandardCharsets.UTF_8.name())
-      .withData(verificationSubjectLine)
-
-    val bodyContent: Content = new Content()
-      .withCharset(StandardCharsets.UTF_8.name())
-      .withData(VerificationEmail(queryParam).body)
-
-    val body: Body = new Body()
-      .withHtml(bodyContent)
-
-    val message: Message = new Message()
-      .withBody(body)
-      .withSubject(subjectContent)
-
-    val request: SendEmailRequest = new SendEmailRequest()
-      .withDestination(destination)
-      .withMessage(message)
-      .withSource(emailSenderAddress)
-
-    emailClient.sendEmail(request)
-  }
+  def sendEmailVerificationMessage(to: String, record: Verification)(implicit req: Request[_], ec: ExC): Future[EmailResponse]
 
   def saveVerificationRecord(userId: String, email: String, accType: String)(implicit ec: ExC): Future[Option[Verification]] = {
     val record = Verification(
@@ -93,7 +47,7 @@ trait EmailService {
     )
     verificationStore.createVerificationRecord(record) map {
       case MongoSuccessCreate => Some(record)
-      case MongoFailedCreate  => None
+      case MongoFailedCreate => None
     }
   }
 

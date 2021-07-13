@@ -35,6 +35,15 @@ services:
       ENC_KEY: "23817cc7d0e6460e9c1515aa4047b29b"
       MFA_ISSUER: "Gatekeeper (docker)"
       SMS_SENDER_ID: "SmsVerify"
+
+      #Email settings
+      EMAIL_PROVIDER: "ses" #Can be "ses" or "mail-gun"
+      #If the above is ses
+      AWS_REGION: "eu-west-2" #Or what ever region you're running SES from
+      #If the above is mail-gun
+      MAILGUN_API_KEY: "" #Obtained from the mailgun console
+      MAILGUN_URL: "" #Obtained from the mailgun console
+
     networks:
       - hub-platform-net
       - db-net

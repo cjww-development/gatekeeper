@@ -16,8 +16,7 @@
 
 package helpers.services
 
-import com.amazonaws.services.simpleemail.model.SendEmailResult
-import models.Verification
+import models.{EmailResponse, Verification}
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.{reset, when}
 import org.mockito.stubbing.OngoingStubbing
@@ -25,24 +24,23 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.mvc.Request
-import services.comms.EmailService
+import services.comms.email.SesService
 
 import scala.concurrent.Future
 
 trait MockEmailService extends MockitoSugar with BeforeAndAfterEach {
   self: PlaySpec =>
 
-  val mockEmailService: EmailService = mock[EmailService]
+  val mockEmailService: SesService = mock[SesService]
 
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockEmailService)
   }
 
-  def mockSendEmailVerificationMessage(): OngoingStubbing[SendEmailResult] = {
-    val result = new SendEmailResult().withMessageId("testMessageId")
-    when(mockEmailService.sendEmailVerificationMessage(ArgumentMatchers.any[String](), ArgumentMatchers.any[Verification]())(ArgumentMatchers.any[Request[_]]()))
-      .thenReturn(result)
+  def mockSendEmailVerificationMessage(emailResponse: EmailResponse): OngoingStubbing[Future[EmailResponse]] = {
+    when(mockEmailService.sendEmailVerificationMessage(ArgumentMatchers.any[String](), ArgumentMatchers.any[Verification]())(ArgumentMatchers.any[Request[_]](), ArgumentMatchers.any()))
+      .thenReturn(Future.successful(emailResponse))
   }
 
   def mockSaveVerificationRecord(verificationRecord: Option[Verification]): OngoingStubbing[Future[Option[Verification]]] = {
