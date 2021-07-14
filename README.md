@@ -122,7 +122,7 @@ The following table describes what each of the gatekeeper envs means in the dock
 | SMS_SENDER_ID    | SmsVerify                        | The string used to say where SMS messages have come from                                                                                            |
 | EMAIL_PROVIDER   | n/a                              | Used to determine what email provider to use. Valid options are ses or mail-gun                                                                     |
 | AWS_REGION       | n/a                              | Should only be set if EMAIL_PROVIDER is ses. Should match the AWS region you're running SES from                                                    |
-| AWS_IDENTITY_ARN | n/a                              | Should only be set if EMAIL_PROVIDER is ses. Should the arn of the SES identity you're sending via if the SES identity lives in another AWS account |
+| AWS_IDENTITY_ARN | n/a                              | Should only be set if EMAIL_PROVIDER is ses. Should be the arn of the SES identity you're sending via if the SES identity lives in another AWS account |
 | MAILGUN_API_KEY  | n/a                              | Should only be set if EMAIL_PROVIDER is mail-gun. Obtained from the mailgun console after account creation                                          |
 | MAILGUN_URL      | n/a                              | Should only be set if EMAIL_PROVIDER is mail-gun. Obtained from the mailgun console after account creation                                          |
       
