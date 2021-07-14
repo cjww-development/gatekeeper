@@ -42,6 +42,7 @@ class SesServiceSpec
     override val emailSenderAddress: String = "test@email.com"
     override val verificationSubjectLine: String = "test verification line"
     override val verificationStore: VerificationStore = mockVerificationStore
+    override val crossAccountIdentityArn: Option[String] = None
   }
 
   "sendEmailVerificationMessage" should {
