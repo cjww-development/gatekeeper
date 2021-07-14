@@ -38,6 +38,7 @@ services:
 
       #Email settings
       EMAIL_PROVIDER: "ses" #Can be "ses" or "mail-gun"
+      AWS_IDENTITY_ARN: "arn:aws:ses:<your-region>:<account-the-ses-identity-lives-in>:identity/<the-identity>"
       #If the above is ses
       AWS_REGION: "eu-west-2" #Or what ever region you're running SES from
       #If the above is mail-gun

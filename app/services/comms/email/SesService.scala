@@ -38,6 +38,8 @@ class DefaultSesService @Inject()(val config: Configuration,
   override val emailSenderAddress: String = config.get[String]("email-service.message-settings.from")
   override val verificationSubjectLine: String = config.get[String]("email-service.message-settings.verification-subject")
 
+  override val crossAccountIdentityArn: Option[String] = config.getOptional[String]("email-service.ses.cross-account-identity-arn")
+
   override val emailClient: AmazonSimpleEmailService = AmazonSimpleEmailServiceClientBuilder
     .standard()
     .withRegion(Regions.fromName(awsRegion))
@@ -47,6 +49,8 @@ class DefaultSesService @Inject()(val config: Configuration,
 trait SesService extends EmailService {
   val awsRegion: String
   val emailClient: AmazonSimpleEmailService
+
+  val crossAccountIdentityArn: Option[String]
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
@@ -71,10 +75,18 @@ trait SesService extends EmailService {
       .withBody(body)
       .withSubject(subjectContent)
 
-    val request: SendEmailRequest = new SendEmailRequest()
-      .withDestination(destination)
-      .withMessage(message)
-      .withSource(emailSenderAddress)
+    val request: SendEmailRequest = if(crossAccountIdentityArn.isDefined) {
+      new SendEmailRequest()
+        .withDestination(destination)
+        .withMessage(message)
+        .withSourceArn(crossAccountIdentityArn.get)
+        .withSource(emailSenderAddress)
+    } else {
+      new SendEmailRequest()
+        .withDestination(destination)
+        .withMessage(message)
+        .withSource(emailSenderAddress)
+    }
 
     Try(emailClient.sendEmail(request)) match {
       case Failure(e) =>

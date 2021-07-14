@@ -111,24 +111,29 @@ Run `./docker-boot.sh` to run this process.
 ## Docker compose variables
 The following table describes what each of the gatekeeper envs means in the docker compose file.
 
-| Env Var         | Default                          | Description                                                                                                |
-|-----------------|----------------------------------|------------------------------------------------------------------------------------------------------------|
-| VERSION         | dev                              | The version of Gatekeeper you're running. Appears at the bottom of pages                                   |
-| EMAIL_FROM      | test@email.com                   | The email address used to send emails from Gatekeeper                                                      |
-| MONGO_URI       | mongodb://mongo.local            | Where MongoDB lives. The database that backs Gatekeeper                                                    |
-| APP_SECRET      | 23817cc7d0e6460e9c1515aa4047b29b | The app secret scala play uses to sign session cookies and CSRF tokens. Should be changed to run in prod   |
-| ENC_KEY         | 23817cc7d0e6460e9c1515aa4047b29b | The key used to secure data. Should be changed to run in prod                                              |
-| MFA_ISSUER      | Gatekeeper (docker)              | The string used to describe the TOTP Code in apps like Google Authenticator                                |
-| SMS_SENDER_ID   | SmsVerify                        | The string used to say where SMS messages have come from                                                   |
-| EMAIL_PROVIDER  | n/a                              | Used to determine what email provider to use. Valid options are ses or mail-gun                            |
-| AWS_REGION      | n/a                              | Should only be set if EMAIL_PROVIDER is ses. Should match the AWS region you're running SES from           |
-| MAILGUN_API_KEY | n/a                              | Should only be set if EMAIL_PROVIDER is mail-gun. Obtained from the mailgun console after account creation |
-| MAILGUN_URL     | n/a                              | Should only be set if EMAIL_PROVIDER is mail-gun. Obtained from the mailgun console after account creation |
+| Env Var          | Default                          | Description                                                                                                                                         |
+|------------------|----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| VERSION          | dev                              | The version of Gatekeeper you're running. Appears at the bottom of pages                                                                            |
+| EMAIL_FROM       | test@email.com                   | The email address used to send emails from Gatekeeper                                                                                               |
+| MONGO_URI        | mongodb://mongo.local            | Where MongoDB lives. The database that backs Gatekeeper                                                                                             |
+| APP_SECRET       | 23817cc7d0e6460e9c1515aa4047b29b | The app secret scala play uses to sign session cookies and CSRF tokens. Should be changed to run in prod                                            |
+| ENC_KEY          | 23817cc7d0e6460e9c1515aa4047b29b | The key used to secure data. Should be changed to run in prod                                                                                       |
+| MFA_ISSUER       | Gatekeeper (docker)              | The string used to describe the TOTP Code in apps like Google Authenticator                                                                         |
+| SMS_SENDER_ID    | SmsVerify                        | The string used to say where SMS messages have come from                                                                                            |
+| EMAIL_PROVIDER   | n/a                              | Used to determine what email provider to use. Valid options are ses or mail-gun                                                                     |
+| AWS_REGION       | n/a                              | Should only be set if EMAIL_PROVIDER is ses. Should match the AWS region you're running SES from                                                    |
+| AWS_IDENTITY_ARN | n/a                              | Should only be set if EMAIL_PROVIDER is ses. Should the arn of the SES identity you're sending via if the SES identity lives in another AWS account |
+| MAILGUN_API_KEY  | n/a                              | Should only be set if EMAIL_PROVIDER is mail-gun. Obtained from the mailgun console after account creation                                          |
+| MAILGUN_URL      | n/a                              | Should only be set if EMAIL_PROVIDER is mail-gun. Obtained from the mailgun console after account creation                                          |
       
 ## Choosing an email provider
 Gatekeeper currently sends emails via AWS SES or Mailgun. Both support sending emails from a proper address, or some address on a verified domain. On their respective free tiers you can only send to email addresses you've verified in SES or Mailgun.
 To lift that limitation you need to be on a paid plan. However, AWS SES lets you send 62000 emails a month for free forever, but you need to be in their production zone on SES.
 Mailgun, on their flex plan, allows 5000 emails a month for 3 months, and then you move to pay as you go ($0.80 / 1000 emails).
+
+## SES cross account authorisation
+AWS SES allows AWS accounts to send email via verified identities from other accounts. More information can be found [here](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/sending-authorization.html).
+Gatekeeper supports this if SES is your email provider. Ensure that the `AWS_IDENTITY_ARN` env var is set to the arn you're wanting to send via.
 
 ### What if I don't want to use AWS SES or Mailgun?
 That's a fair question. Neither may suit you. If you're technically minded, look at [the adding more email providers section](#Adding-further-email-providers) to find out more about adding your preferred provided (dev work required).
@@ -188,6 +193,7 @@ email-service {
 
     ses {
       region = ${?AWS_REGION}
+      cross-account-identity-arn = ${?AWS_IDENTITY_ARN}
     }
 
     mail-gun {
