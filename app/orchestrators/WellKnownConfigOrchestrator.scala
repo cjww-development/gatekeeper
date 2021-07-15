@@ -23,11 +23,11 @@ import play.api.mvc.RequestHeader
 import javax.inject.Inject
 
 class DefaultWellKnownConfigOrchestrator @Inject()(val config: Configuration) extends WellKnownConfigOrchestrator {
-  override val authEndpoint: RequestHeader => String = rh => controllers.ui.routes.OAuthController.authoriseGet("", "", "").absoluteURL()(rh).split("\\?").head
-  override val tokenEndpoint: RequestHeader => String = rh => controllers.ui.routes.OAuthController.getToken().absoluteURL()(rh).split("\\?").head
-  override val revokeEndpoint: RequestHeader => String = rh => controllers.api.routes.RevokationController.revokeToken().absoluteURL()(rh).split("\\?").head
-  override val userDetailsEndpoint: RequestHeader => String = rh => controllers.api.routes.AccountController.getUserDetails.absoluteURL()(rh).split("\\?").head
-  override val jwksEndpoint: RequestHeader => String = rh => controllers.api.routes.JwksController.getCurrentJwks().absoluteURL()(rh).split("\\?").head
+  override val authEndpoint: String = controllers.ui.routes.OAuthController.authoriseGet("", "", "").url.split("\\?").head
+  override val tokenEndpoint: String = controllers.ui.routes.OAuthController.getToken().url.split("\\?").head
+  override val revokeEndpoint: String = controllers.api.routes.RevokationController.revokeToken().url.split("\\?").head
+  override val userDetailsEndpoint: String = controllers.api.routes.AccountController.getUserDetails.url.split("\\?").head
+  override val jwksEndpoint: String = controllers.api.routes.JwksController.getCurrentJwks().url.split("\\?").head
 
   override val grantTypes: Seq[String] = config.get[Seq[String]]("well-known-config.grant-types")
   override val supportedScopes: Seq[String] = config.get[Seq[String]]("well-known-config.scopes")
@@ -38,11 +38,11 @@ class DefaultWellKnownConfigOrchestrator @Inject()(val config: Configuration) ex
 }
 
 trait WellKnownConfigOrchestrator {
-  val authEndpoint: RequestHeader => String
-  val tokenEndpoint: RequestHeader => String
-  val revokeEndpoint: RequestHeader => String
-  val userDetailsEndpoint: RequestHeader => String
-  val jwksEndpoint: RequestHeader => String
+  val authEndpoint: String
+  val tokenEndpoint: String
+  val revokeEndpoint: String
+  val userDetailsEndpoint: String
+  val jwksEndpoint: String
 
   val grantTypes: Seq[String]
   val supportedScopes: Seq[String]
@@ -52,19 +52,20 @@ trait WellKnownConfigOrchestrator {
   val idTokenAlgs: Seq[String]
 
   def getConfig(implicit rh: RequestHeader): WellKnownConfig = {
-    val protocol = if(rh.secure) "https://" else "http://"
+    val protocol = rh.headers.get("X-Forwarded-Proto").map(proto => s"$proto://").getOrElse("http://")
+    val issuer = s"$protocol${rh.host}"
     WellKnownConfig(
-      s"$protocol${rh.host}",
-      authorizationEndpoint = authEndpoint(rh),
-      tokenEndpoint = tokenEndpoint(rh),
-      userInfoEndpoint = userDetailsEndpoint(rh),
-      jwksUri = jwksEndpoint(rh),
+      issuer,
+      authorizationEndpoint = issuer + authEndpoint,
+      tokenEndpoint = issuer + tokenEndpoint,
+      userInfoEndpoint = issuer + userDetailsEndpoint,
+      jwksUri = issuer + jwksEndpoint,
       registrationEndpoint = "",
       scopesSupported = supportedScopes,
       responseTypesSupported = responseTypes,
       grantTypesSupported = grantTypes,
       tokenEndpointAuth = tokenEndpointAuth,
-      revokeEndpoint = revokeEndpoint(rh),
+      revokeEndpoint = issuer + revokeEndpoint,
       idTokenSigningAlgs = idTokenAlgs
     )
   }

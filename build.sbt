@@ -63,9 +63,10 @@ lazy val microservice = Project(appName, file("."))
     IntegrationTest / fork := false,
     IntegrationTest / unmanagedSourceDirectories := (IntegrationTest / baseDirectory)(base => Seq(base / "it")).value,
     IntegrationTest / parallelExecution :=  false,
+    IntegrationTest / logBuffered := true,
     Test / fork := true,
     Test / testForkedParallel := true,
     Test / parallelExecution := true,
-    Test / logBuffered := false
+    Test / logBuffered := true
   )
       

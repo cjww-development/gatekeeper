@@ -35,6 +35,7 @@ services:
       ENC_KEY: "23817cc7d0e6460e9c1515aa4047b29b"
       MFA_ISSUER: "Gatekeeper (docker)"
       SMS_SENDER_ID: "SmsVerify"
+      WKC_ISSUER: "http://localhost:5678"
 
       #Email settings
       EMAIL_PROVIDER: "ses" #Can be "ses" or "mail-gun"

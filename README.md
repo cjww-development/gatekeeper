@@ -118,6 +118,7 @@ The following table describes what each of the gatekeeper envs means in the dock
 | MONGO_URI        | mongodb://mongo.local            | Where MongoDB lives. The database that backs Gatekeeper                                                                                             |
 | APP_SECRET       | 23817cc7d0e6460e9c1515aa4047b29b | The app secret scala play uses to sign session cookies and CSRF tokens. Should be changed to run in prod                                            |
 | ENC_KEY          | 23817cc7d0e6460e9c1515aa4047b29b | The key used to secure data. Should be changed to run in prod                                                                                       |
+| WKC_ISSUER       | http://localhost:5678            | Used in the tokens issued by Gatekeeper. Used in the token `iss` claim. Should be configured as the domain you connect to Gatekeeper with           |
 | MFA_ISSUER       | Gatekeeper (docker)              | The string used to describe the TOTP Code in apps like Google Authenticator                                                                         |
 | SMS_SENDER_ID    | SmsVerify                        | The string used to say where SMS messages have come from                                                                                            |
 | EMAIL_PROVIDER   | n/a                              | Used to determine what email provider to use. Valid options are ses or mail-gun                                                                     |
