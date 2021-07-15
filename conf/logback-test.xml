@@ -43,6 +43,6 @@
   <logger name="com.gargoylesoftware.htmlunit.javascript"            level="OFF" />
 
   <root level="OFF">
-    <appender-ref ref="ASYNCSTDOUT" />
+    <appender-ref ref="STDOUT" />
   </root>
 </configuration>

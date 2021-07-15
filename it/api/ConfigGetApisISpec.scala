@@ -52,7 +52,7 @@ class ConfigGetApisISpec
 
   "GET /api/.well-known/openid-configuration" should {
     "return an Ok" when {
-      "the well known config endpoint returns the relevant config" in {
+      "the well known config endpoint returns the relevant config (locally)" in {
         val result = ws
           .url(s"$testAppUrl/api/.well-known/openid-configuration")
           .withFollowRedirects(follow = false)
@@ -94,6 +94,102 @@ class ConfigGetApisISpec
               |   "client_secret_post"
               | ]
               |}
+            """.stripMargin
+          )
+        }
+      }
+
+      "the well known config endpoint returns the relevant config (insecure with host)" in {
+        val result = ws
+          .url(s"$testAppUrl/api/.well-known/openid-configuration")
+          .withHttpHeaders("Host" -> "test.example.com")
+          .withFollowRedirects(follow = false)
+          .get()
+
+        awaitAndAssert(result) { resp =>
+          resp.status mustBe OK
+          resp.json mustBe Json.parse(
+            s"""
+               |{
+               | "issuer":"http://test.example.com",
+               | "authorization_endpoint":"http://test.example.com/gatekeeper/oauth2/authorize",
+               | "token_endpoint":"http://test.example.com/gatekeeper/oauth2/token",
+               | "userinfo_endpoint":"http://test.example.com/gatekeeper/api/oauth2/userinfo",
+               | "jwks_uri":"http://test.example.com/gatekeeper/api/oauth2/jwks",
+               | "scopes_supported":[
+               |   "openid",
+               |   "profile",
+               |   "email",
+               |   "address",
+               |   "phone"
+               | ],
+               | "response_types_supported":[
+               |   "code"
+               | ],
+               | "grant_types_supported":[
+               |   "authorization_code",
+               |   "client_credentials",
+               |   "refresh_token"
+               | ],
+               | "id_token_signing_alg_values_supported":["RS256"],
+               | "token_endpoint_auth_methods_supported":[
+               |   "client_secret_basic",
+               |   "client_secret_post"
+               | ],
+               | "revocation_endpoint":"http://test.example.com/gatekeeper/api/oauth2/revoke",
+               | "revocation_endpoint_auth_methods_supported":[
+               |   "client_secret_basic",
+               |   "client_secret_post"
+               | ]
+               |}
+            """.stripMargin
+          )
+        }
+      }
+
+      "the well known config endpoint returns the relevant config (secure with host)" in {
+        val result = ws
+          .url(s"$testAppUrl/api/.well-known/openid-configuration")
+          .withHttpHeaders("Host" -> "test.example.com", "X-Forwarded-Proto" -> "https")
+          .withFollowRedirects(follow = false)
+          .get()
+
+        awaitAndAssert(result) { resp =>
+          resp.status mustBe OK
+          resp.json mustBe Json.parse(
+            s"""
+               |{
+               | "issuer":"https://test.example.com",
+               | "authorization_endpoint":"https://test.example.com/gatekeeper/oauth2/authorize",
+               | "token_endpoint":"https://test.example.com/gatekeeper/oauth2/token",
+               | "userinfo_endpoint":"https://test.example.com/gatekeeper/api/oauth2/userinfo",
+               | "jwks_uri":"https://test.example.com/gatekeeper/api/oauth2/jwks",
+               | "scopes_supported":[
+               |   "openid",
+               |   "profile",
+               |   "email",
+               |   "address",
+               |   "phone"
+               | ],
+               | "response_types_supported":[
+               |   "code"
+               | ],
+               | "grant_types_supported":[
+               |   "authorization_code",
+               |   "client_credentials",
+               |   "refresh_token"
+               | ],
+               | "id_token_signing_alg_values_supported":["RS256"],
+               | "token_endpoint_auth_methods_supported":[
+               |   "client_secret_basic",
+               |   "client_secret_post"
+               | ],
+               | "revocation_endpoint":"https://test.example.com/gatekeeper/api/oauth2/revoke",
+               | "revocation_endpoint_auth_methods_supported":[
+               |   "client_secret_basic",
+               |   "client_secret_post"
+               | ]
+               |}
             """.stripMargin
           )
         }

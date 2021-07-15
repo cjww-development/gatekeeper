@@ -44,10 +44,10 @@ lazy val microservice = Project(appName, file("."))
       "dev.cjww.libs"                %  "inbound-outbound_2.13"      % "1.0.0",
       "io.github.nremond"            %  "pbkdf2-scala_2.13"          % "0.6.5",
       "com.pauldijou"                %  "jwt-core_2.13"              % "5.0.0",
-      "com.nimbusds"                 %  "nimbus-jose-jwt"            % "9.11",
+      "com.nimbusds"                 %  "nimbus-jose-jwt"            % "9.11.1",
       "dev.samstevens.totp"          %  "totp"                       % "1.7.1",
-      "com.amazonaws"                %  "aws-java-sdk-ses"           % "1.12.22",
-      "com.amazonaws"                %  "aws-java-sdk-sns"           % "1.12.22",
+      "com.amazonaws"                %  "aws-java-sdk-ses"           % "1.12.24",
+      "com.amazonaws"                %  "aws-java-sdk-sns"           % "1.12.24",
       "com.fasterxml.jackson.module" %% "jackson-module-scala"       % "2.12.4",
       "org.mockito"                  %  "mockito-core"               % "3.11.2"      % Test,
       "org.scalatestplus"            %  "scalatestplus-mockito_2.13" % "1.0.0-M2"    % Test,
@@ -63,9 +63,10 @@ lazy val microservice = Project(appName, file("."))
     IntegrationTest / fork := false,
     IntegrationTest / unmanagedSourceDirectories := (IntegrationTest / baseDirectory)(base => Seq(base / "it")).value,
     IntegrationTest / parallelExecution :=  false,
+    IntegrationTest / logBuffered := true,
     Test / fork := true,
     Test / testForkedParallel := true,
     Test / parallelExecution := true,
-    Test / logBuffered := false
+    Test / logBuffered := true
   )
       
