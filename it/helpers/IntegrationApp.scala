@@ -36,8 +36,7 @@ trait IntegrationApp extends GuiceOneServerPerSuite {
     "database.DefaultEmailVerificationStore.database" -> "gatekeeper-it",
     "email-service.selected-provider"                 -> "ses",
     "email-service.message-settings.from"             -> "test@email.com",
-    "email-service.ses.region"                        -> "eu-west-2",
-    "play.http.router"                                -> "testing.Routes"
+    "email-service.ses.region"                        -> "eu-west-2"
   )
 
   override lazy val app: Application = new GuiceApplicationBuilder()
