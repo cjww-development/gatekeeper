@@ -23,49 +23,37 @@ import play.api.mvc.RequestHeader
 import javax.inject.Inject
 
 class DefaultWellKnownConfigOrchestrator @Inject()(val config: Configuration) extends WellKnownConfigOrchestrator {
-  override val authEndpoint: String = controllers.ui.routes.OAuthController.authoriseGet("", "", "").url.split("\\?").head
-  override val tokenEndpoint: String = controllers.ui.routes.OAuthController.getToken().url.split("\\?").head
-  override val revokeEndpoint: String = controllers.api.routes.RevokationController.revokeToken().url.split("\\?").head
-  override val userDetailsEndpoint: String = controllers.api.routes.AccountController.getUserDetails.url.split("\\?").head
-  override val jwksEndpoint: String = controllers.api.routes.JwksController.getCurrentJwks().url.split("\\?").head
-
   override val grantTypes: Seq[String] = config.get[Seq[String]]("well-known-config.grant-types")
   override val supportedScopes: Seq[String] = config.get[Seq[String]]("well-known-config.scopes")
   override val responseTypes: Seq[String] = config.get[Seq[String]]("well-known-config.response-types")
   override val tokenEndpointAuth: Seq[String] = config.get[Seq[String]]("well-known-config.token-auth-method")
-
   override val idTokenAlgs: Seq[String] = config.get[Seq[String]]("well-known-config.id-token-algs")
 }
 
 trait WellKnownConfigOrchestrator {
-  val authEndpoint: String
-  val tokenEndpoint: String
-  val revokeEndpoint: String
-  val userDetailsEndpoint: String
-  val jwksEndpoint: String
 
   val grantTypes: Seq[String]
   val supportedScopes: Seq[String]
   val responseTypes: Seq[String]
   val tokenEndpointAuth: Seq[String]
-
   val idTokenAlgs: Seq[String]
 
   def getConfig(implicit rh: RequestHeader): WellKnownConfig = {
     val protocol = rh.headers.get("X-Forwarded-Proto").map(proto => s"$proto://").getOrElse("http://")
     val issuer = s"$protocol${rh.host}"
+
     WellKnownConfig(
       issuer,
-      authorizationEndpoint = issuer + authEndpoint,
-      tokenEndpoint = issuer + tokenEndpoint,
-      userInfoEndpoint = issuer + userDetailsEndpoint,
-      jwksUri = issuer + jwksEndpoint,
+      authorizationEndpoint = issuer + controllers.ui.routes.OAuthController.authoriseGet("", "", "").url.split("\\?").head,
+      tokenEndpoint = issuer + controllers.ui.routes.OAuthController.getToken().url,
+      userInfoEndpoint = issuer + controllers.api.routes.AccountController.getUserDetails.url,
+      jwksUri = issuer + controllers.api.routes.JwksController.getCurrentJwks().url,
       registrationEndpoint = "",
       scopesSupported = supportedScopes,
       responseTypesSupported = responseTypes,
       grantTypesSupported = grantTypes,
       tokenEndpointAuth = tokenEndpointAuth,
-      revokeEndpoint = issuer + revokeEndpoint,
+      revokeEndpoint = issuer + controllers.api.routes.RevokationController.revokeToken().url,
       idTokenSigningAlgs = idTokenAlgs
     )
   }
