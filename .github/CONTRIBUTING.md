@@ -27,9 +27,9 @@ Once you've identified (or created) an [issue](https://github.com/cjww-developme
 * Fork the repository
 * Write tests along with your code
 * Add logical, atomic commits with [good commit messages](#commit-messages)
-* Raise your Pull Request against the `master` branch using our [Pull Request template](.github/PULL_REQUEST_TEMPLATE.md)
+* Raise your Pull Request against the `main` branch using our [Pull Request template](.github/PULL_REQUEST_TEMPLATE.md)
 * We will review and offer any feedback
-* Once accepted, we will coordinate a merge into `master` and a release
+* Once accepted, we will coordinate a merge into `main` and a release
 
 ## Commits
 
