@@ -61,7 +61,7 @@ sdk install sbt 1.5.3
 For MongoDB, we recommend running MongoDB in docker. To boot a MongoDB image in docker, run
 
 ```
-docker run -d -p 27017:27017 -v ~/data:/data/db mongo
+docker-compose -f docker-compose-mongo.yml up -d
 ```
 
 To allow gatekeeper to send emails and sms messages you need an [AWS account](https://aws.amazon.com/) that has an IAM user or role available. AWS recommends creating IAM users and roles with the minimum set of privileges it needs to operate. 

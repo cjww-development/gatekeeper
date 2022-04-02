@@ -1,0 +1,16 @@
+version: "3.7"
+
+networks:
+  db-net:
+    name: db-net
+    driver: bridge
+
+services:
+  mongo:
+    image: mongo:latest
+    container_name: mongo.local
+    hostname: mongo.local
+    ports:
+      - 27017:27017
+    networks:
+      - db-net
