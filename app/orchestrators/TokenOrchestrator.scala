@@ -114,10 +114,9 @@ trait TokenOrchestrator {
     if(app.oauth2Flows.contains("client_credentials")) {
       logger.info(s"[clientCredentialsGrant] - Issuing new access token for client ${app.appId} for use by client ${app.appId}")
 
-      val clientId = app.clientId.decrypt.getOrElse(throw new Exception(s"Could not decrypt clientId for client ${app.appId}"))
       val tokenSetId = tokenService.generateTokenRecordSetId
       val accessId = tokenService.generateTokenRecordSetId
-      val accessToken = tokenService.createClientAccessToken(clientId, tokenSetId, accessId, app.accessTokenExpiry)
+      val accessToken = tokenService.createClientAccessToken(app.clientId, tokenSetId, accessId, app.accessTokenExpiry)
 
       tokenService.createTokenRecordSet(
         tokenSetId,
