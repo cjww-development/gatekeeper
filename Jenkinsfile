@@ -2,7 +2,7 @@ def gitVersion
 pipeline {
   agent {
     docker {
-      image 'hseeberger/scala-sbt:11.0.11_1.5.3_2.13.6'
+      image 'cjww-development/scala-toolchain:latest'
       args '--network jenkins'
     }
   }
