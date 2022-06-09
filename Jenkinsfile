@@ -1,4 +1,3 @@
-def gitVersion
 pipeline {
   agent {
     docker {
@@ -6,8 +5,7 @@ pipeline {
     }
   }
   environment {
-    GITHUB_TOKEN = credentials('sbt-publisher-token')
-    GH_TOKEN = credentials('github-api')
+    GITHUB_TOKEN = credentials('jenkins-github-packages')
     SBT_OPS = '-DMONGO_URI=mongodb://mongo.local:27017 -Dsbt.global.base=.sbt -Dsbt.boot.directory=.sbt -Dsbt.ivy.home=.ivy2 -Dlocal=false'
   }
   options {
