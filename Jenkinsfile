@@ -16,7 +16,7 @@ pipeline {
     stage('Boot MongoDB') {
       steps {
         script {
-          sh 'docker-compose up -f docker-compose-mongo.yml up -d'
+          sh 'docker compose up -f docker-compose-mongo.yml up -d'
         }
       }
     }
@@ -35,7 +35,7 @@ pipeline {
     stage('Teardown MongoDB') {
       steps {
         script {
-          sh 'docker-compose up -f docker-compose-mongo.yml down -v'
+          sh 'docker compose up -f docker-compose-mongo.yml down -v'
         }
       }
     }
