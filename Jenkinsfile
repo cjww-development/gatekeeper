@@ -42,13 +42,13 @@ pipeline {
         }
       }
     }
-    stage('Build tarball') {
-      steps {
-        script {
-          sh 'sbt -D $SBT_OPS -Dversion=$TAG_VERSION universal:packageZipTarball'
-        }
-      }
-    }
+//     stage('Build tarball') {
+//       steps {
+//         script {
+//           sh 'sbt -D $SBT_OPS -Dversion=$TAG_VERSION universal:packageZipTarball'
+//         }
+//       }
+//     }
     stage('Build tarball') {
       when {
         buildingTag()
