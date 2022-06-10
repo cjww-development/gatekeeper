@@ -2,6 +2,7 @@ pipeline {
   agent {
     docker {
       image 'cjww-development/scala-toolchain:latest'
+      args '--network="host"'
     }
   }
   environment {
