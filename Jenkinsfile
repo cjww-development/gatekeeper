@@ -10,7 +10,6 @@ pipeline {
     DOCKER_HOST = 'tcp://127.0.0.1:2375'
     SBT_OPS = '-DMONGO_URI=mongodb://127.0.0.1:27017 -Dsbt.global.base=.sbt -Dsbt.boot.directory=.sbt -Dsbt.ivy.home=.ivy2 -Dlocal=false'
     HOME = "${WORKSPACE}"
-    TAG_VERSION = "NEEDS TO BE FOUND FROM PIPELINE EVENT"
   }
   options {
     ansiColor('xterm')
@@ -42,30 +41,32 @@ pipeline {
         }
       }
     }
-//     stage('Build tarball') {
-//       steps {
-//         script {
-//           sh 'sbt -D $SBT_OPS -Dversion=$TAG_VERSION universal:packageZipTarball'
-//         }
-//       }
-//     }
     stage('Build tarball') {
       when {
         buildingTag()
       }
+      environment {
+        TAG_VERSION = env.TAG_NAME
+      }
       steps {
         script {
-          sh 'echo "Building tag"'
+          sh 'sbt -D $SBT_OPS -Dversion=${TAG_VERSION} universal:packageZipTarball'
         }
       }
     }
-//     stage('Build docker image') {
-//       steps {
-//         script {
-//           sh 'docker build . -t cjww-development/gatekeeper:$TAG_VERSION --build-arg VERSION=$TAG_VERSION'
-//         }
-//       }
-//     }
+    stage('Build docker image') {
+      when {
+        buildingTag()
+      }
+      environment {
+        TAG_VERSION = env.TAG_NAME
+      }
+      steps {
+        script {
+          sh 'docker build . -t cjww-development/gatekeeper:$TAG_VERSION --build-arg VERSION=$TAG_VERSION'
+        }
+      }
+    }
 //     stage('Publish to ECR') {
 //       steps {
 //         script {
