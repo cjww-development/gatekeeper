@@ -45,12 +45,10 @@ pipeline {
       when {
         buildingTag()
       }
-      environment {
-        TAG_VERSION = env.TAG_NAME
-      }
       steps {
         script {
-          sh 'sbt -D $SBT_OPS -Dversion=${TAG_VERSION} universal:packageZipTarball'
+          sh 'echo "Building ${}"'
+          sh 'sbt -D $SBT_OPS -Dversion=${TAG_NAME} universal:packageZipTarball'
         }
       }
     }
@@ -58,12 +56,9 @@ pipeline {
       when {
         buildingTag()
       }
-      environment {
-        TAG_VERSION = env.TAG_NAME
-      }
       steps {
         script {
-          sh 'docker build . -t cjww-development/gatekeeper:$TAG_VERSION --build-arg VERSION=$TAG_VERSION'
+          sh 'docker build . -t cjww-development/gatekeeper:${TAG_NAME} --build-arg VERSION=${TAG_NAME}'
         }
       }
     }
