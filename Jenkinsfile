@@ -47,8 +47,7 @@ pipeline {
       }
       steps {
         script {
-          sh 'echo "Building ${}"'
-          sh 'sbt -D $SBT_OPS -Dversion=${TAG_NAME} universal:packageZipTarball'
+          sh "sbt -D $SBT_OPS -Dversion=${env.TAG_NAME} universal:packageZipTarball"
         }
       }
     }
@@ -58,7 +57,7 @@ pipeline {
       }
       steps {
         script {
-          sh 'docker build . -t cjww-development/gatekeeper:${TAG_NAME} --build-arg VERSION=${TAG_NAME}'
+          sh "docker build . -t cjww-development/gatekeeper:${env.TAG_NAME} --build-arg VERSION=${env.TAG_NAME}"
         }
       }
     }
