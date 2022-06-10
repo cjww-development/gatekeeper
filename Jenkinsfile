@@ -34,13 +34,6 @@ pipeline {
         step([$class: 'ScoveragePublisher', reportDir: './target/scala-2.13/scoverage-report', reportFile: 'scoverage.xml'])
       }
     }
-    stage('Teardown MongoDB') {
-      steps {
-        script {
-          sh 'docker compose -f docker-compose-mongo.yml down -v'
-        }
-      }
-    }
     stage('Build tarball') {
       when {
         buildingTag()
@@ -61,17 +54,36 @@ pipeline {
         }
       }
     }
-//     stage('Publish to ECR') {
-//       steps {
-//         script {
-//           sh 'echo "Publishing to ECR"'
-//         }
-//       }
-//     }
+    stage('Publish to ECR') {
+      when {
+        buildingTag()
+      }
+      environment {
+        AWS_ACCESS_KEY_ID = credentials('aws-access-key')
+        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-key')
+        AWS_DEFAULT_REGION = 'eu-west-2'
+        ROLE_ARN = credentials('home-server-role-arn')
+      }
+      steps {
+        script {
+          sh '''
+            source ./build/aws/assume-role.sh;
+            assumeRole;
+            aws ecr get-login-password | docker login -u AWS --password-stdin "https://$(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.$(aws configure get region).amazonaws.com"
+            docker tag cjww-development/gatekeeper:${env.TAG_NAME} 929252955305.dkr.ecr.eu-west-2.amazonaws.com/gatekeeper:${env.TAG_NAME}
+            docker push 047459333450.dkr.ecr.eu-west-2.amazonaws.com/gatekeeper:${env.TAG_NAME}
+          '''
+        }
+      }
+    }
   }
   post {
     always {
       cleanWs()
+      script {
+        sh 'docker compose -f docker-compose-mongo.yml down -v'
+        sh "docker image rm cjww-development/gatekeeper:${env.TAG_NAME}"
+      }
     }
   }
 }
