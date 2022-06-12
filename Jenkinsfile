@@ -67,8 +67,7 @@ pipeline {
       steps {
         script {
           sh '''
-            source ./build/aws/assume-role.sh;
-            assumeRole;
+            ./build/aws/assume-role.sh;
             aws ecr get-login-password | docker login -u AWS --password-stdin "https://$(aws sts get-caller-identity --query 'Account' --output text).dkr.ecr.$(aws configure get region).amazonaws.com"
             docker tag cjww-development/gatekeeper:${env.TAG_NAME} 929252955305.dkr.ecr.eu-west-2.amazonaws.com/gatekeeper:${env.TAG_NAME}
             docker push 047459333450.dkr.ecr.eu-west-2.amazonaws.com/gatekeeper:${env.TAG_NAME}
