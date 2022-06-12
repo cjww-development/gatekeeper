@@ -59,19 +59,17 @@ pipeline {
         buildingTag()
       }
       environment {
-        AWS_ACCESS_KEY_ID = credentials('aws-access-key')
-        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-key')
+        AWS_ACCESS_KEY_ID = credentials('home-server-aws-access-key')
+        AWS_SECRET_ACCESS_KEY = credentials('home-server-aws-secret-key')
         AWS_DEFAULT_REGION = 'eu-west-2'
-        ROLE_ARN = credentials('home-server-role-arn')
         HS_ACCOUNT_ID = credentials('home-server-aws-account-id')
       }
       steps {
         script {
           sh '''
-            ./build/aws/assume-role.sh;
-            aws ecr get-login-password | docker login -u AWS --password-stdin "https://${HS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
-            docker tag cjww-development/gatekeeper:${TAG_NAME} ${HS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/gatekeeper:${TAG_NAME}
-            docker push ${HS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/gatekeeper:${TAG_NAME}
+            aws ecr get-login-password | docker login -u AWS --password-stdin "https://${HS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com";
+            docker tag cjww-development/gatekeeper:${TAG_NAME} ${HS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/gatekeeper:${TAG_NAME};
+            docker push ${HS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/gatekeeper:${TAG_NAME};
           '''
         }
       }
