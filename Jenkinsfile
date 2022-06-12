@@ -74,14 +74,60 @@ pipeline {
         }
       }
     }
+    stage('Create Elastic Beanstalk application version') {
+      when {
+        buildingTag()
+      }
+      environment {
+        AWS_ACCESS_KEY_ID = credentials('home-server-aws-access-key')
+        AWS_SECRET_ACCESS_KEY = credentials('home-server-aws-secret-key')
+        AWS_DEFAULT_REGION = 'eu-west-2'
+        HS_ACCOUNT_ID = credentials('home-server-aws-account-id')
+      }
+      steps {
+        script {
+          sh '''
+            ./build/aws/build-eb-zip.sh ${TAG_NAME} ${HS_ACCOUNT_ID};
+            aws s3 cp gatekeeper-${TAG_NAME}.zip s3://elasticbeanstalk-${AWS_DEFAULT_REGION}-${HS_ACCOUNT_ID}/gatekeeper-${TAG_NAME}.zip;
+            aws elasticbeanstalk create-application-version \
+                --application-name gatekeeper \
+                --version-label ${TAG_NAME} \
+                --source-bundle S3Bucket="elasticbeanstalk-${AWS_DEFAULT_REGION}-${HS_ACCOUNT_ID}",S3Key="gatekeeper-${TAG_NAME}.zip" \
+                --region=${AWS_DEFAULT_REGION};
+          '''
+        }
+      }
+    }
+    stage('Deploy to environment') {
+      when {
+        buildingTag()
+      }
+      environment {
+        AWS_ACCESS_KEY_ID = credentials('home-server-aws-access-key')
+        AWS_SECRET_ACCESS_KEY = credentials('home-server-aws-secret-key')
+        AWS_DEFAULT_REGION = 'eu-west-2'
+        HS_ACCOUNT_ID = credentials('home-server-aws-account-id')
+      }
+      steps {
+        script {
+          sh '''
+            aws elasticbeanstalk update-environment \
+                --application-name gatekeeper \
+                --environment-name ws-prod \
+                --version-label ${TAG_NAME} \
+                --region=${AWS_DEFAULT_REGION};
+          '''
+        }
+      }
+    }
   }
   post {
     always {
-      cleanWs()
       script {
         sh 'docker compose -f docker-compose-mongo.yml down -v'
         sh "docker image rm cjww-development/gatekeeper:${env.TAG_NAME}"
       }
+      cleanWs()
     }
   }
 }
