@@ -33,3 +33,5 @@ dist
 .idea
 .bsp
 .env
+.DS_Store
+gatekeeper-*.zip
