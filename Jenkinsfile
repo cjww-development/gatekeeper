@@ -50,7 +50,7 @@ pipeline {
       }
       steps {
         script {
-          sh "docker build . -t cjww-development/gatekeeper:${env.TAG_NAME} --build-arg VERSION=${env.TAG_NAME}"
+          sh "docker build . -t cjww-development/gatekeeper:${env.TAG_NAME} --build-arg GK_VERSION=${env.TAG_NAME}"
         }
       }
     }
