@@ -28,7 +28,7 @@ services:
       - ~/logs:/opt/docker/gatekeeper-$VERSION/logs
       - $HOME/.aws:/root/.aws
     environment:
-      VERSION: $VERSION
+#      VERSION: $VERSION
       EMAIL_FROM: "test@email.com"
       MONGO_URI: "mongodb://mongo.local"
       APP_SECRET: "23817cc7d0e6460e9c1515aa4047b29b"
