@@ -125,7 +125,7 @@ pipeline {
     always {
       script {
         sh 'docker compose -f docker-compose-mongo.yml down -v'
-        sh "docker image rm cjww-development/gatekeeper:${env.TAG_NAME}"
+        sh "docker image rm cjww-development/gatekeeper:${env.TAG_NAME} || true"
       }
       cleanWs()
     }
