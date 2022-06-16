@@ -8,8 +8,8 @@ networks:
 services:
   mongo:
     image: mongo:latest
-    container_name: mongo.local
-    hostname: mongo.local
+    container_name: gatekeeper-mongo.local
+    hostname: gatekeeper-mongo.local
     ports:
       - 27017:27017
     networks:
